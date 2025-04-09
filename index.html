@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aaron Pitters - Author & Founder of Storicore</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Dark background (gray-900) */
+            color: #d1d5db; /* Default text color (gray-300) */
+        }
+        /* Style for active navigation link */
+        .nav-link.active {
+            font-weight: 700;
+            color: #ffffff; /* White */
+            border-bottom: 2px solid #ffffff; /* White underline */
+        }
+        /* Hide content sections by default */
+        .content-section {
+            display: none;
+        }
+        /* Show the active section */
+        .content-section.active {
+            display: block;
+        }
+        /* Basic link styling */
+        a {
+           color: #60a5fa; /* Blue-400 */
+           text-decoration: underline;
+           transition: color 0.3s ease;
+        }
+        a:hover {
+            color: #93c5fd; /* Blue-300 */
+        }
+         /* Button styling */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem; /* py-3 px-6 */
+            background-color: #3b82f6; /* blue-500 */
+            color: #ffffff; /* white */
+            font-weight: 500; /* medium */
+            border-radius: 0.375rem; /* rounded-md */
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+        .btn:hover {
+            background-color: #2563eb; /* blue-600 */
+            color: #ffffff; /* Keep text white on hover */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-gray-900 text-gray-300 sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold text-white">
+                </div>
+            <nav>
+                <ul class="flex space-x-6 sm:space-x-8">
+                    <li><a href="#home" class="nav-link hover:text-white transition duration-300 pb-1" data-target="home">Home</a></li>
+                    <li><a href="#about" class="nav-link hover:text-white transition duration-300 pb-1" data-target="about">About</a></li>
+                    <li><a href="#books" class="nav-link hover:text-white transition duration-300 pb-1" data-target="books">Books</a></li>
+                    <li><a href="#storicore" class="nav-link hover:text-white transition duration-300 pb-1" data-target="storicore">Storicore</a></li>
+                    <li><a href="#blog" class="nav-link hover:text-white transition duration-300 pb-1" data-target="blog">Blog</a></li>
+                    <li><a href="#contact" class="nav-link hover:text-white transition duration-300 pb-1" data-target="contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+        <section id="home" class="content-section text-center py-16 sm:py-24">
+             <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">Aaron Pitters</h1>
+            <p class="text-xl sm:text-2xl text-gray-400">Author & Founder of Storicore</p>
+        </section>
+
+        <section id="about" class="content-section max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-white mb-6 text-center sm:text-left">About Aaron</h2>
+            <div class="space-y-4 text-lg leading-relaxed">
+                <p>Aaron hails from Atlanta, Georgia. His canon of work spans a diverse range of literary projects. His debut series, <span class="font-semibold italic">Monarch</span>, a unique four-part exploration of an unsettled housewife's impending doomsday fears, sets the tone for his engaging storytelling style.</p>
+                <p>Aaron's subsequent works venture further into the dark corridors of psychological uncertainty. <span class="font-semibold italic">Psykosis</span>, one such venture, weaves an intriguing narrative around a lawyer entangled in the sinister deeds of a hypnotist. <span class="font-semibold italic">Michaelmas</span>, another of his profound narratives, transports readers to 18th-century England and encapsulates the turbulent transition from an era of magic to the advent of science.</p>
+                <p>His newest, <span class="font-semibold italic">House Fly</span>, is a novella that chronicles the journey of a recent divorcee unknowingly stepping into a complex commitment in a new town.</p>
+                <p>Beyond the realm of books, Aaron has lent his unique voice to the spheres of film and television screenwriting. No matter the medium, his distinctive style bridges the mundane and the sublime, challenging readers and viewers alike to confront the dichotomy between light and darkness inherent in us all.</p>
+            </div>
+        </section>
+
+        <section id="books" class="content-section max-w-3xl mx-auto text-center">
+            <h2 class="text-3xl font-bold text-white mb-6">Books</h2>
+            <p class="text-lg mb-6">This page is under construction. In the meantime, please explore Aaron's published works on his blog:</p>
+            <a href="https://aaronpitters.blogspot.com/p/books.html" target="_blank" rel="noopener noreferrer" class="btn mb-6">
+                Go to Aaron's Book List
+            </a>
+            <p class="text-lg">Stay tuned for more detailed descriptions, reader reviews, and purchasing links right here!</p>
+        </section>
+
+        <section id="storicore" class="content-section max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-white mb-6 text-center sm:text-left">STORiCORE</h2>
+            <p class="text-lg mb-6 leading-relaxed">Storicore is a multimedia company dedicated to creating innovative apps and original stories. We combine technology and storytelling to deliver immersive experiences across various platforms:</p>
+            <ul class="list-disc list-inside space-y-2 mb-6 text-lg pl-4">
+                <li>Books & E-books</li>
+                <li>Films & TV</li>
+                <li>Interactive Apps & Games</li>
+                <li>Online Communities</li>
+            </ul>
+            <p class="text-lg leading-relaxed">Our mission is to craft narratives that resonate with global audiences, bridging the gap between imagination and reality. Through Storicore, Aaron aims to inspire people everywhere to engage with stories that spark creativity, wonder, and reflection.</p>
+        </section>
+
+        <section id="blog" class="content-section max-w-3xl mx-auto text-center">
+            <h2 class="text-3xl font-bold text-white mb-6">Blog</h2>
+            <p class="text-lg mb-6">Check out Aaron's latest posts, updates, and musings over on his Blogger page:</p>
+            <a href="https://aaronpitters.blogspot.com/" target="_blank" rel="noopener noreferrer" class="btn mb-6">
+                Visit the Official Blog
+            </a>
+            <p class="text-lg">From behind-the-scenes looks at upcoming projects to in-depth discussions about his creative process, Aaron shares it all on the blog. Be sure to bookmark and visit often!</p>
+        </section>
+
+        <section id="contact" class="content-section max-w-3xl mx-auto text-center">
+            <h2 class="text-3xl font-bold text-white mb-6">Contact</h2>
+            <p class="text-lg mb-4">Have questions, comments, or just want to say hello? Feel free to reach out:</p>
+            <p class="text-lg mb-6">
+                Email: <a href="mailto:contact@storicore.com">contact@storicore.com</a>
+            </p>
+            <p class="text-lg">
+                You can also keep up with Aaron's latest announcements through the <a href="https://aaronpitters.blogspot.com/" target="_blank" rel="noopener noreferrer">Blog</a>.
+            </p>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 mt-12 py-6 text-center text-sm">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            &copy; <span id="current-year"></span> Aaron Pitters & Storicore. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        // Simple SPA (Single Page Application) Navigation Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const currentYearSpan = document.getElementById('current-year');
+
+            // Set current year in footer
+            if (currentYearSpan) {
+                currentYearSpan.textContent = new Date().getFullYear();
+            }
+
+            // Function to show the target section and update active link
+            function showSection(targetId) {
+                // Hide all sections
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                });
+
+                // Show the target section
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                } else {
+                    // Fallback to home if target not found
+                    document.getElementById('home').classList.add('active');
+                }
+
+                // Update active state for nav links
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.dataset.target === targetId) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            // Handle navigation link clicks
+            navLinks.forEach(link => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent default anchor link behavior
+                    const targetId = link.dataset.target;
+                    showSection(targetId);
+                    // Update URL hash
+                    window.location.hash = targetId;
+                });
+            });
+
+            // Show initial section based on URL hash or default to 'home'
+            const initialTarget = window.location.hash.substring(1) || 'home';
+            showSection(initialTarget);
+
+             // Handle back/forward navigation
+             window.addEventListener('popstate', () => {
+                const targetId = window.location.hash.substring(1) || 'home';
+                showSection(targetId);
+            });
+        });
+    </script>
+
+</body>
+</html>
