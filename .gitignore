@@ -1,0 +1,4 @@
+.dev.vars
+functions/api/_rubric.generated.js
+node_modules/
+.DS_Store
