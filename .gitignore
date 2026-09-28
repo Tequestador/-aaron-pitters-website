@@ -1,9 +1,3 @@
-# Secrets and generated files — required by docs/build-spec.md §3.
-# .dev.vars holds local API keys; the rubric module is generated from prompts/triage-rubric.md.
-.dev.vars
-functions/api/_rubric.generated.js
-node_modules/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -41,5 +35,11 @@ env/
 *~
 
 # OS
-Thumbs.db
 .DS_Store
+Thumbs.db
+
+# Secrets and generated files (docs/build-spec.md §3).
+# .dev.vars holds local API keys; the rubric module is generated from prompts/triage-rubric.md.
+.dev.vars
+functions/api/_rubric.generated.js
+node_modules/

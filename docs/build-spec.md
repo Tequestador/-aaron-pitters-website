@@ -58,12 +58,18 @@ is the app trap in miniature.
 
 ## 3. Repo layout
 
-The repo currently holds one `index.html` at the root, favicons, and a webmanifest.
-Nothing else — no `functions/`, no `_headers`, no `.gitignore`, no build step. Everything
-below is new.
+**Branch: `replit-version` is production.** It is the only branch Cloudflare Pages deploys.
+`main` is an old snapshot from before the Replit rewrite of `index.html` — don't build on
+it. Push to `replit-version` directly or open a pull request into it.
+
+The repo's live state is one `index.html` at the root, favicons, a webmanifest, and
+Replit leftovers (`.replit`, `replit.md`, `server.py`, which do nothing on Pages). No
+`functions/`, no `_headers` (one existed briefly — see §4), no build step. A `.gitignore`
+already exists with Python and OS entries; the new entries are **appended** to it, not a
+replacement. Everything in the tree below is new except that `.gitignore`.
 
 ```
-/.gitignore                      NEW — must exist before the first commit
+/.gitignore                      EXISTS — append the entries below before the first commit
 /ai-help/index.html              the page and form
 /functions/api/intake.js         the POST handler
 /prompts/triage-rubric.md        the rubric — source of truth, human-edited
@@ -76,8 +82,8 @@ below is new.
 ```
 
 `.gitignore` must contain at least `.dev.vars` and
-`functions/api/_rubric.generated.js`. Create it first; a key committed once is in the
-history forever.
+`functions/api/_rubric.generated.js`. Append them first (done); a key committed once is in
+the history forever.
 
 Adding a `functions/` directory is all that's needed to turn on Pages Functions — no
 dashboard change, no configuration.
@@ -97,18 +103,22 @@ with six sections shown and hidden by an inline script. The intake page needs a 
 people can be sent to, and the existing file shouldn't grow to absorb a form. Cloudflare
 Pages serves `/ai-help/index.html` at `/ai-help` with no configuration.
 
-**Match the existing look.** The site uses Tailwind from `cdn.tailwindcss.com`, Inter from
-Google Fonts, and a custom `<style>` block — dark theme, `#111827` background, `#d1d5db`
-text, blue-500 accents, `.btn` and `.btn-secondary` classes. Reuse the same header, footer,
-and palette so the page reads as part of the site. Copy the style block rather than
-refactoring it into a shared file; there is no build step and this is not the moment to add
-one.
+**Match the existing look.** The live site uses inline CSS only: one hand-written
+`<style>` block with semantic class names. It does **not** use Tailwind and does **not**
+load Google Fonts (the font stack is `Inter, -apple-system, …`, so it falls back to the
+system font). Dark theme, `#111827` background, `#d1d5db` text, blue-500 accents, `.btn`
+and `.btn-secondary` classes. Reuse the same header (including the hamburger menu), footer,
+and palette so the page reads as part of the site. Copy the relevant rules from the root
+page's style block rather than refactoring them into a shared file; there is no build step
+and this is not the moment to add one. `ai-help/index.html` has been restyled this way.
 
-**CSP: verify, don't assume.** There is no CSP in this repo — no meta tag, no `_headers`
-file. If one exists it's set in the Cloudflare dashboard. Turnstile loads from
-`challenges.cloudflare.com` and fails *silently* when blocked, so put the widget on a
-throwaway page and confirm it renders before building on it. Ten minutes now or an
-afternoon later.
+**CSP: verify, don't assume.** There is no CSP in the repo today, but there was one. A
+`_headers` file with a CSP was added in commit `1d5e88c` and removed in `7057995`; it did
+not allow Turnstile. Whether the Cloudflare dashboard sets one is not visible from here.
+Turnstile loads from `challenges.cloudflare.com` and fails *silently* when blocked, so
+confirm the widget renders on the deployed page. **If a CSP is re-added anywhere**, it must
+include `https://challenges.cloudflare.com` in **both** `script-src` and `frame-src`, and
+`connect-src 'self'` for the POST to `/api/intake`.
 
 Page contents, in order:
 
@@ -300,16 +310,20 @@ contact form and you are open for business.
    trivial but the quality difference on lead 3 and lead 5 might not be — and that
    comparison is itself a documentable evaluation.
 3. **Does `/ai-help` appear in the site nav, or is it an unlinked page you send people
-   to?** Unlinked is defensible while you're testing, and keeps the author site clean.
-   Adding a seventh nav item to a site that currently reads purely as an author page is a
-   positioning decision, not a technical one.
+   to?** **Decided: yes, it goes in the nav** — as the last item, after Contact, on both
+   the root `index.html` and `ai-help/index.html` (marked as the current page there). It is
+   **not added yet**: it goes in only *after* the form is confirmed working end to end, so
+   the page stays unlinked while it's being tested. When it is added, the root page's
+   script must select `.nav-link[data-target]` instead of `.nav-link`, so it doesn't
+   intercept the new link (which has no `data-target` and is a real page, not a hash
+   section). The link keeps the `nav-link` class for styling.
 
 4. **Which domain sends the email?** The site's published contact address is
    `contact@storicore.com`, but the intake lives on aaronpitters.com. Resend verifies a
    sending domain, so pick one — probably aaronpitters.com, since that's where the form is
    and a reply from a different domain than the site invites a spam filter's attention.
 
-5. **Tailwind CDN.** The site loads `cdn.tailwindcss.com`, which compiles in the browser
-   and is explicitly not intended for production use. The new page should match the site
-   as it is — don't fix this as part of this work. Worth knowing it's there, and worth
-   suspecting it if anything CSP-related does turn up.
+5. **Tailwind CDN.** *Resolved by the Replit rewrite:* the live site no longer loads
+   `cdn.tailwindcss.com` or Google Fonts, and `/ai-help` doesn't either. (The old CSP
+   allowed the Tailwind CDN specifically, which is why it's worth remembering that the
+   CSP and the CDN went together.)
