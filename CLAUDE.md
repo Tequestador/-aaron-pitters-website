@@ -17,7 +17,9 @@ Replit leftovers (`.replit`, `replit.md`, `server.py` — they only serve the si
 Replit and do nothing on Cloudflare Pages). It is a one-page site with six hash-routed
 sections — home, about, books, storicore, blog, contact — shown and hidden by a small
 inline script at the bottom of the file, with a hamburger menu below 768px. There is no
-build step, no framework, and no `functions/` directory yet.
+build step and no framework. The intake function lives in `functions/api/intake.js`
+(deployed, working: validation, Turnstile, raw-submission email, confirmation email; the
+OpenAI triage step is not added yet).
 
 **Styling:** all inline. The live site uses one `<style>` block in the head with plain
 hand-written CSS and semantic class names (`.site-header`, `.nav-link`, `.btn`,
@@ -46,17 +48,29 @@ Fonts), same header and footer markup — so the page doesn't read as bolted on.
 `.btn` styles. `ai-help/index.html` already does this; keep it in step if the root page's
 styles change.
 
-**Content Security Policy: none in the repo now, but one was here once.** A `_headers` file
-with a CSP (`default-src 'self'; script-src 'self' 'unsafe-inline'
-https://cdn.tailwindcss.com; …`) was added in commit `1d5e88c` and removed again in
-`7057995`. That policy did not allow Turnstile. There is currently no `_headers` file, no
-meta tag, and nothing in the repo that sets a CSP. Whether one is set in the Cloudflare
-dashboard is not visible from here. **If a CSP is ever re-added** (in `_headers`, a meta
-tag, or the dashboard), it must allow `https://challenges.cloudflare.com` in **both**
-`script-src` and `frame-src`, because Turnstile loads a script and renders in an iframe.
-It also needs `connect-src 'self'` for the form's POST to `/api/intake`. Turnstile fails
-*silently* when blocked, so after any header change confirm the widget actually renders.
-Do not assume a CSP problem exists, and do not assume one doesn't.
+**Content Security Policy: it lives in the Cloudflare dashboard, not in this repo.** The
+site's CSP is set by a Response Header Transform Rule named **"Static Site CSP"** on the
+aaronpitters.com zone (Cloudflare dashboard → Rules → Transform Rules → Modify Response
+Header). Nothing in the repo sets one: there is no `_headers` file and no meta tag. (A
+`_headers` file with a CSP was added in commit `1d5e88c` and removed in `7057995`; the
+dashboard rule is what actually applied to the live site.)
+
+That rule originally blocked Turnstile, which was the blocker when `/ai-help` first went
+live. Aaron fixed it in the dashboard: `https://challenges.cloudflare.com` is now in the
+rule's `script-src`, and `frame-src https://challenges.cloudflare.com` was added. Turnstile
+needs both, because it loads a script and renders in an iframe. The form works end to end
+with the rule as it stands.
+
+**Any new external script, stylesheet, font, frame or network destination the site starts
+using must be added to that dashboard rule**, or it will fail in production while working
+locally. It fails silently in the browser console, not in the page. That includes Google
+Fonts or a CDN if they ever come back, and anything the function's front end calls other
+than `/api/intake` (server-side calls to Resend, Turnstile and OpenAI from the function are
+not affected by the browser's CSP). Claude cannot see or edit the rule from here, so when a
+change needs a CSP edit, say so plainly and tell Aaron exactly which directive and origin
+to add. If the rule is ever moved into the repo (`_headers`), it must keep the Turnstile
+entries above. After any header change, confirm the widget actually renders. Do not assume
+a CSP problem exists, and do not assume one doesn't.
 
 **No secrets in the repo.** API keys live in Cloudflare Pages encrypted environment
 variables, set by Aaron in the dashboard. Local development uses `.dev.vars`. `.gitignore`

@@ -62,11 +62,11 @@ is the app trap in miniature.
 `main` is an old snapshot from before the Replit rewrite of `index.html` — don't build on
 it. Push to `replit-version` directly or open a pull request into it.
 
-The repo's live state is one `index.html` at the root, favicons, a webmanifest, and
-Replit leftovers (`.replit`, `replit.md`, `server.py`, which do nothing on Pages). No
-`functions/`, no `_headers` (one existed briefly — see §4), no build step. A `.gitignore`
-already exists with Python and OS entries; the new entries are **appended** to it, not a
-replacement. Everything in the tree below is new except that `.gitignore`.
+Before the intake work, the repo was one `index.html` at the root, favicons, a webmanifest,
+and Replit leftovers (`.replit`, `replit.md`, `server.py`, which do nothing on Pages). No
+`functions/`, no `_headers` (the CSP is a dashboard rule — see §4), no build step. A
+`.gitignore` already existed with Python and OS entries; the new entries are **appended**
+to it, not a replacement. Everything in the tree below is new except that `.gitignore`.
 
 ```
 /.gitignore                      EXISTS — append the entries below before the first commit
@@ -112,13 +112,21 @@ and palette so the page reads as part of the site. Copy the relevant rules from 
 page's style block rather than refactoring them into a shared file; there is no build step
 and this is not the moment to add one. `ai-help/index.html` has been restyled this way.
 
-**CSP: verify, don't assume.** There is no CSP in the repo today, but there was one. A
-`_headers` file with a CSP was added in commit `1d5e88c` and removed in `7057995`; it did
-not allow Turnstile. Whether the Cloudflare dashboard sets one is not visible from here.
-Turnstile loads from `challenges.cloudflare.com` and fails *silently* when blocked, so
-confirm the widget renders on the deployed page. **If a CSP is re-added anywhere**, it must
-include `https://challenges.cloudflare.com` in **both** `script-src` and `frame-src`, and
-`connect-src 'self'` for the POST to `/api/intake`.
+**CSP: it lives in the Cloudflare dashboard, not the repo.** The site's CSP is a Response
+Header Transform Rule named **"Static Site CSP"** on the aaronpitters.com zone (dashboard →
+Rules → Transform Rules → Modify Response Header). The repo sets none: no `_headers` file
+and no meta tag. (A `_headers` CSP was added in `1d5e88c` and removed in `7057995`; the
+dashboard rule is what applied to the live site.) Turnstile loads a script from
+`challenges.cloudflare.com` and renders in an iframe, and it fails *silently* when blocked.
+That rule originally blocked it. It now allows `https://challenges.cloudflare.com` in
+`script-src`, and has `frame-src https://challenges.cloudflare.com` added; the widget
+renders and the form works end to end.
+
+**Any new external script, stylesheet, font, frame or browser-side network destination
+must be added to that rule**, or it will work locally and fail in production. Calls made by
+the function itself (Resend, Turnstile verification, OpenAI) are server-side and not
+subject to the browser's CSP. If the rule is ever moved into the repo, keep the Turnstile
+entries. After any header change, confirm the widget renders.
 
 Page contents, in order:
 
@@ -284,7 +292,8 @@ an interviewer notices.
 1. DNS and domain verification for Resend. Do this next — it can take time to propagate
    and everything else is blocked behind it.
 2. Confirm Turnstile renders on a throwaway page. Fix the CSP only if it turns out one
-   exists and blocks it.
+   exists and blocks it. *(Done: the dashboard rule "Static Site CSP" did block it and has
+   been updated — see §4.)*
 3. The `/ai-help` page, static, form posting nowhere.
 4. `build-prompt.mjs` and the Pages build command.
 5. The function — validation, Turnstile, the raw submission to Aaron, **and the
@@ -311,12 +320,12 @@ contact form and you are open for business.
    comparison is itself a documentable evaluation.
 3. **Does `/ai-help` appear in the site nav, or is it an unlinked page you send people
    to?** **Decided: yes, it goes in the nav** — as the last item, after Contact, on both
-   the root `index.html` and `ai-help/index.html` (marked as the current page there). It is
-   **not added yet**: it goes in only *after* the form is confirmed working end to end, so
-   the page stays unlinked while it's being tested. When it is added, the root page's
-   script must select `.nav-link[data-target]` instead of `.nav-link`, so it doesn't
-   intercept the new link (which has no `data-target` and is a real page, not a hash
-   section). The link keeps the `nav-link` class for styling.
+   the root `index.html` and `ai-help/index.html` (marked as the current page there). It
+   was added only *after* the form was confirmed working end to end, so the page stayed
+   unlinked while it was being tested. **Done.** The root page's script now selects
+   `.nav-link[data-target]` instead of `.nav-link`, so it doesn't intercept the new link
+   (which has no `data-target` and is a real page, not a hash section). The link keeps the
+   `nav-link` class for styling.
 
 4. **Which domain sends the email?** The site's published contact address is
    `contact@storicore.com`, but the intake lives on aaronpitters.com. Resend verifies a
