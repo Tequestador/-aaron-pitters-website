@@ -448,6 +448,8 @@
           <li><a href="#storicore" class="nav-link" data-target="storicore">STORiCORE</a></li>
           <li><a href="#blog"      class="nav-link" data-target="blog">Blog</a></li>
           <li><a href="#contact"   class="nav-link" data-target="contact">Contact</a></li>
+          <!-- A real page, not a section: no data-target, so the script below leaves it alone. -->
+          <li><a href="/ai-help/"  class="nav-link">AI Help</a></li>
         </ul>
       </nav>
     </div>
@@ -533,7 +535,8 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const navLinks = document.querySelectorAll('.nav-link');
+      // Only links with a data-target are sections; the AI Help link is a normal page link.
+      const navLinks = document.querySelectorAll('.nav-link[data-target]');
       const contentSections = document.querySelectorAll('.content-section');
       const currentYearSpan = document.getElementById('current-year');
 
