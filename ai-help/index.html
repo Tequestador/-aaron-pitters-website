@@ -11,53 +11,234 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="shortcut icon" href="/favicon.ico">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
-        /* Matches the styles in the root index.html */
+        /* Copied from the root index.html (reset, container, header, nav, buttons, footer)
+           so this page looks like the rest of the site. The site has no shared stylesheet
+           and no build step, so the block is duplicated rather than refactored.
+           Everything below "This page only" is specific to the intake form. */
+
+        /* ── Reset & Base ───────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #111827;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                         'Helvetica Neue', Arial, sans-serif;
+            background: #111827;
             color: #d1d5db;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            line-height: 1.5;
         }
-        .btn {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            background-color: #3b82f6;
-            color: #ffffff;
-            font-weight: 500;
-            border-radius: 0.375rem;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-            text-align: center;
-            border: 1px solid transparent;
+
+        a { color: inherit; text-decoration: none; }
+        ul { list-style: none; }
+
+        /* ── Container ──────────────────────────────────────────── */
+        .container {
+            width: 100%;
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        /* ── Header ─────────────────────────────────────────────── */
+        .site-header {
+            background: #111827;
+            color: #d1d5db;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,.3), 0 2px 4px -2px rgba(0,0,0,.2);
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            position: relative;
+        }
+
+        .site-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* ── Mobile toggle ──────────────────────────────────────── */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: inherit;
+            padding: .5rem;
+            border-radius: .375rem;
             cursor: pointer;
         }
-        .btn:hover {
-            background-color: #2563eb;
-            color: #ffffff;
+        .mobile-toggle:hover { background: rgba(255,255,255,.1); }
+        .mobile-toggle svg { width: 1.5rem; height: 1.5rem; }
+
+        /* ── Nav ─────────────────────────────────────────────────── */
+        .primary-nav ul {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #d1d5db;
+            transition: color .3s;
+            padding-bottom: .25rem;
+            font-size: .9375rem;
+        }
+        .nav-link:hover { color: #fff; }
+        .nav-link.active {
+            font-weight: 700;
+            color: #fff;
+            border-bottom: 2px solid #fff;
+        }
+
+        /* ── Main ────────────────────────────────────────────────── */
+        .site-main {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        /* ── Buttons ─────────────────────────────────────────────── */
+        .btn {
+            display: inline-block;
+            padding: .75rem 1.5rem;
+            background: #3b82f6;
+            color: #fff;
+            font-weight: 500;
+            border-radius: .375rem;
             text-decoration: none;
+            transition: background .3s;
+            border: 1px solid transparent;
+            font-size: 1rem;
+            font-family: inherit; /* this page uses a <button>; buttons don't inherit the font by default */
+            cursor: pointer;
         }
-        .btn:disabled {
-            background-color: #374151;
-            cursor: not-allowed;
+        .btn:hover { background: #2563eb; color: #fff; }
+        .btn:disabled { background: #374151; cursor: not-allowed; }
+
+        /* ── Section headings ───────────────────────────────────── */
+        .section-heading {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2rem;
         }
-        main a:not(.btn) {
+
+        /* ── Content links ──────────────────────────────────────── */
+        .site-main a:not(.btn) {
             text-decoration: underline;
             color: #60a5fa;
         }
+        .site-main a:not(.btn):hover {
+            color: #93c5fd;
+        }
 
-        /* Form fields — new, not in the root page */
+        /* ── Footer ──────────────────────────────────────────────── */
+        .site-footer {
+            background: #111827;
+            color: #9ca3af;
+            margin-top: 4rem;
+            padding: 1.5rem 0;
+            text-align: center;
+            font-size: .875rem;
+        }
+
+        /* ── Hidden utility ──────────────────────────────────────── */
+        .hidden { display: none !important; }
+
+        /* ── This page only ─────────────────────────────────────── */
+        .ai-section { max-width: 48rem; margin: 0 auto; }
+
+        .page-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Stacked paragraphs, same rhythm as the About section on the root page */
+        .prose {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 3.5rem;
+        }
+        .prose--tight { gap: 1rem; }
+        .prose p { font-size: 1.125rem; line-height: 1.75; color: #d1d5db; }
+        .prose .muted { color: #9ca3af; }
+        .lead-in { color: #fff; font-weight: 600; }
+        .italic { font-style: italic; }
+
+        .section-heading--tight { margin-bottom: 1rem; }
+        .form-intro { font-size: 1.125rem; color: #d1d5db; margin-bottom: 2rem; }
+
+        /* The three service levels, and any other bordered box */
+        .tier-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .tier {
+            border: 1px solid #374151;
+            border-radius: .5rem;
+            padding: 1.5rem;
+        }
+        .tier-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: .5rem;
+            margin-bottom: .75rem;
+        }
+        .tier-name { font-size: 1.5rem; font-weight: 700; color: #fff; }
+        .tier-price { font-size: 1.25rem; font-weight: 700; color: #60a5fa; }
+        .tier-desc { font-size: 1.125rem; color: #d1d5db; margin-bottom: 1rem; }
+        .tier-label {
+            font-size: .875rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: .5rem;
+        }
+        .tier-example { color: #9ca3af; font-style: italic; }
+        .tier-examples {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        /* Form */
+        .intake-form { display: flex; flex-direction: column; gap: 1.5rem; }
+        .field-label {
+            display: block;
+            color: #fff;
+            font-weight: 500;
+            margin-bottom: .5rem;
+        }
+        .field-label .req { color: #60a5fa; }
+        .field-label .opt { color: #6b7280; font-weight: 400; }
+        .field-group--spaced { padding-top: 1rem; }
         .field {
             width: 100%;
-            background-color: #1f2937;
+            background: #1f2937;
             border: 1px solid #374151;
             color: #f3f4f6;
-            border-radius: 0.375rem;
-            padding: 0.625rem 0.75rem;
+            border-radius: .375rem;
+            padding: .625rem .75rem;
             font-family: inherit;
             font-size: 1rem;
         }
@@ -67,69 +248,124 @@
             box-shadow: 0 0 0 1px #3b82f6;
         }
         .field::placeholder { color: #6b7280; }
-        .tier {
-            border: 1px solid #374151;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
+        .form-error { color: #f87171; }
+
+        /* The AI-use notice above the submit button */
+        .notice {
+            background: rgba(31,41,55,.4);
+            border-color: #4b5563;
+            font-size: 1rem;
+            line-height: 1.625;
+        }
+        .notice-title { color: #fff; font-weight: 600; margin-bottom: .75rem; }
+        .notice p { color: #d1d5db; margin-bottom: .75rem; }
+        .notice p.muted { color: #9ca3af; margin-bottom: 0; }
+
+        /* Success state */
+        .success-title { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; }
+        .success p { font-size: 1.125rem; color: #d1d5db; margin-bottom: .75rem; }
+        .success p:last-child { margin-bottom: 0; }
+
+        /* ── Responsive ──────────────────────────────────────────── */
+        @media (min-width: 640px) {
+            .container { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .site-main { padding-top: 3rem; padding-bottom: 3rem; }
+            .page-title { font-size: 3rem; }
+            .section-heading { font-size: 2.25rem; }
+        }
+
+        @media (min-width: 768px) {
+            .mobile-toggle { display: none !important; }
+            .primary-nav { display: block !important; }
+        }
+
+        @media (max-width: 767px) {
+            .mobile-toggle { display: block; }
+            .primary-nav {
+                display: none;
+                position: absolute;
+                left: 0; right: 0; top: 100%;
+                background: #111827;
+                border-top: 1px solid rgba(255,255,255,.1);
+            }
+            .primary-nav.open { display: block; }
+            .primary-nav ul {
+                flex-direction: column;
+                gap: .75rem;
+                padding: 1rem;
+                align-items: flex-start;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .container { padding-left: 2rem; padding-right: 2rem; }
         }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <header class="bg-gray-900 text-gray-300 sticky top-0 z-50 shadow-md">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <div class="text-xl font-bold text-white"></div>
-            <nav>
-                <!-- Hash links point back to the root page, which is where the sections live.
-                     To add this page to the nav, add:
-                     <li><a href="/ai-help" class="text-white font-bold pb-1">AI Help</a></li> -->
-                <ul class="flex space-x-6 sm:space-x-8">
-                    <li><a href="/#home" class="hover:text-white transition duration-300 pb-1">Home</a></li>
-                    <li><a href="/#about" class="hover:text-white transition duration-300 pb-1">About</a></li>
-                    <li><a href="/#books" class="hover:text-white transition duration-300 pb-1">Books</a></li>
-                    <li><a href="/#storicore" class="hover:text-white transition duration-300 pb-1">STORiCORE</a></li>
-                    <li><a href="/#blog" class="hover:text-white transition duration-300 pb-1">Blog</a></li>
-                    <li><a href="/#contact" class="hover:text-white transition duration-300 pb-1">Contact</a></li>
+    <!-- Header: same markup as the root page. The links go back to the root page's sections
+         (hash routes), because that's where the sections live. -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <div class="site-logo"></div>
+
+            <button id="mobile-toggle" class="mobile-toggle"
+                    aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+
+            <nav id="primary-nav" class="primary-nav">
+                <ul>
+                    <li><a href="/#home" class="nav-link">Home</a></li>
+                    <li><a href="/#about" class="nav-link">About</a></li>
+                    <li><a href="/#books" class="nav-link">Books</a></li>
+                    <li><a href="/#storicore" class="nav-link">STORiCORE</a></li>
+                    <li><a href="/#blog" class="nav-link">Blog</a></li>
+                    <li><a href="/#contact" class="nav-link">Contact</a></li>
                 </ul>
             </nav>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <main class="site-main container">
 
-        <section class="max-w-3xl mx-auto">
+        <section class="ai-section">
 
-            <h1 class="text-4xl sm:text-5xl font-bold text-white mb-6">AI Help</h1>
+            <h1 class="page-title">AI Help</h1>
 
-            <div class="space-y-5 text-lg leading-relaxed text-gray-300 mb-14">
+            <div class="prose">
                 <p>Tell me what you're trying to do. I'll tell you whether AI can actually help, what it would take, and whether you need to pay me anything to find out.</p>
                 <p>Most people who write to me aren't sure what's possible. That's the normal starting point, not a problem — and knowing what's out there is often the whole answer.</p>
             </div>
 
             <!-- THE THREE LEVELS -->
 
-            <h2 class="text-3xl font-bold text-white mb-8">Three ways I can help</h2>
+            <h2 class="section-heading">Three ways I can help</h2>
 
-            <div class="space-y-6 mb-10">
+            <div class="tier-list">
 
                 <div class="tier">
-                    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-                        <h3 class="text-2xl font-bold text-white">Quick Read</h3>
-                        <span class="text-xl font-bold text-blue-400">Free</span>
+                    <div class="tier-head">
+                        <h3 class="tier-name">Quick Read</h3>
+                        <span class="tier-price">Free</span>
                     </div>
-                    <p class="text-lg text-gray-300 mb-4">A direction. I'll tell you whether AI is the right tool for what you're describing, point you at the one thing most worth knowing, and say plainly if you don't need to hire me. Answer within one business day.</p>
-                    <p class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Sounds like</p>
-                    <p class="text-gray-400 italic">"I run a cleaning business and I keep hearing AI could help with the office work. Is there something here?"</p>
+                    <p class="tier-desc">A direction. I'll tell you whether AI is the right tool for what you're describing, point you at the one thing most worth knowing, and say plainly if you don't need to hire me. Answer within one business day.</p>
+                    <p class="tier-label">Sounds like</p>
+                    <p class="tier-example">"I run a cleaning business and I keep hearing AI could help with the office work. Is there something here?"</p>
                 </div>
 
                 <div class="tier">
-                    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-                        <h3 class="text-2xl font-bold text-white">Explainer</h3>
-                        <span class="text-xl font-bold text-blue-400">$50</span>
+                    <div class="tier-head">
+                        <h3 class="tier-name">Explainer</h3>
+                        <span class="tier-price">$50</span>
                     </div>
-                    <p class="text-lg text-gray-300 mb-4">A written answer to one specific question. What a tool actually does, where it breaks, what to watch out for. An explanation, not a plan. Within three business days.</p>
-                    <p class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Sounds like</p>
-                    <ul class="text-gray-400 italic space-y-2">
+                    <p class="tier-desc">A written answer to one specific question. What a tool actually does, where it breaks, what to watch out for. An explanation, not a plan. Within three business days.</p>
+                    <p class="tier-label">Sounds like</p>
+                    <ul class="tier-examples">
                         <li>"Is it safe to put my clients' financial information into ChatGPT? What actually happens to it?"</li>
                         <li>"Everything AI writes for me sounds generic. Is there a way to make it sound like me?"</li>
                         <li>"Someone told me Claude is better than ChatGPT for my kind of work. How do I tell which one I should be paying for?"</li>
@@ -137,72 +373,72 @@
                 </div>
 
                 <div class="tier">
-                    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-                        <h3 class="text-2xl font-bold text-white">Workflow Review</h3>
-                        <span class="text-xl font-bold text-blue-400">$200</span>
+                    <div class="tier-head">
+                        <h3 class="tier-name">Workflow Review</h3>
+                        <span class="tier-price">$200</span>
                     </div>
-                    <p class="text-lg text-gray-300 mb-4">A diagnosis and a plan. What's actually going on, what I'd recommend, in what order, roughly what it costs — and, just as important, what you shouldn't automate. Within three business days.</p>
-                    <p class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Sounds like</p>
-                    <p class="text-gray-400 italic">"My customer inquiries come in by phone, text, Facebook, and my website. My calendar is separate from my customer list. Right now I'm the thing connecting all of it."</p>
+                    <p class="tier-desc">A diagnosis and a plan. What's actually going on, what I'd recommend, in what order, roughly what it costs — and, just as important, what you shouldn't automate. Within three business days.</p>
+                    <p class="tier-label">Sounds like</p>
+                    <p class="tier-example">"My customer inquiries come in by phone, text, Facebook, and my website. My calendar is separate from my customer list. Right now I'm the thing connecting all of it."</p>
                 </div>
 
             </div>
 
-            <div class="space-y-4 text-lg leading-relaxed text-gray-300 mb-14">
-                <p><span class="text-white font-semibold">Start with the Quick Read.</span> It's free, and part of what you get is my honest opinion about which of these you actually need — including "none of them."</p>
-                <p class="text-gray-400">Everything is written and remote. I don't do site visits, and I don't take on ongoing retainer work — what I sell is a defined piece of work with an end to it.</p>
+            <div class="prose prose--tight">
+                <p><span class="lead-in">Start with the Quick Read.</span> It's free, and part of what you get is my honest opinion about which of these you actually need — including "none of them."</p>
+                <p class="muted">Everything is written and remote. I don't do site visits, and I don't take on ongoing retainer work — what I sell is a defined piece of work with an end to it.</p>
             </div>
 
             <!-- THE FORM -->
 
-            <h2 class="text-3xl font-bold text-white mb-4">Four questions</h2>
-            <p class="text-lg text-gray-300 mb-8">Short answers are fine. Your name, email, and questions 1 and 3 are required; the rest help.</p>
+            <h2 class="section-heading section-heading--tight">Four questions</h2>
+            <p class="form-intro">Short answers are fine. Your name, email, and questions 1 and 3 are required; the rest help.</p>
 
             <!-- method/action matter: without them, a no-JavaScript submit sends every answer
                  as a GET query string into the URL, browser history, and server logs. -->
-            <form id="intake-form" class="space-y-6" method="post" action="/api/intake" novalidate>
+            <form id="intake-form" class="intake-form" method="post" action="/api/intake" novalidate>
 
                 <div>
-                    <label for="name" class="block text-white font-medium mb-2">Your name <span class="text-blue-400">*</span></label>
+                    <label for="name" class="field-label">Your name <span class="req">*</span></label>
                     <input class="field" type="text" id="name" name="name" maxlength="100" required autocomplete="name">
                 </div>
 
                 <div>
-                    <label for="email" class="block text-white font-medium mb-2">Email <span class="text-blue-400">*</span></label>
+                    <label for="email" class="field-label">Email <span class="req">*</span></label>
                     <input class="field" type="email" id="email" name="email" maxlength="200" required autocomplete="email">
                 </div>
 
                 <div>
-                    <label for="business" class="block text-white font-medium mb-2">What do you do? <span class="text-gray-500 font-normal">(optional)</span></label>
+                    <label for="business" class="field-label">What do you do? <span class="opt">(optional)</span></label>
                     <input class="field" type="text" id="business" name="business" maxlength="200" placeholder="Bookkeeper, novelist, cleaning company, retired and curious...">
                 </div>
 
-                <div class="pt-4">
-                    <label for="q1" class="block text-white font-medium mb-2">1. What made you contact me? <span class="text-blue-400">*</span></label>
+                <div class="field-group--spaced">
+                    <label for="q1" class="field-label">1. What made you contact me? <span class="req">*</span></label>
                     <textarea class="field" id="q1" name="q1" rows="4" maxlength="4000" required></textarea>
                 </div>
 
                 <div>
-                    <label for="q2" class="block text-white font-medium mb-2">2. How are you doing it now?</label>
+                    <label for="q2" class="field-label">2. How are you doing it now?</label>
                     <textarea class="field" id="q2" name="q2" rows="4" maxlength="4000"></textarea>
                 </div>
 
                 <div>
-                    <label for="q3" class="block text-white font-medium mb-2">3. What would you like to make easier? <span class="text-blue-400">*</span></label>
+                    <label for="q3" class="field-label">3. What would you like to make easier? <span class="req">*</span></label>
                     <textarea class="field" id="q3" name="q3" rows="4" maxlength="4000" required></textarea>
                 </div>
 
                 <div>
-                    <label for="q4" class="block text-white font-medium mb-2">4. What kind of help are you hoping for?</label>
+                    <label for="q4" class="field-label">4. What kind of help are you hoping for?</label>
                     <textarea class="field" id="q4" name="q4" rows="4" maxlength="4000" placeholder="&quot;I'm not sure&quot; is a real answer."></textarea>
                 </div>
 
                 <!-- THE NOTICE — must stay directly above the submit button -->
-                <div class="tier bg-gray-800/40 !border-gray-600 text-base leading-relaxed">
-                    <p class="text-white font-semibold mb-3">How I work: AI-assisted, human-directed.</p>
-                    <p class="text-gray-300 mb-3">I use AI throughout this process. It reads your answers, prepares a summary for me, and helps me draft a response. I direct it, edit it, and decide what you get. Every response ends with a short section called <span class="italic">My take</span>, which I write myself.</p>
-                    <p class="text-gray-300 mb-3">I'm not going to recommend AI to you and then pretend I don't use it.</p>
-                    <p class="text-gray-400">Please don't include client names, account numbers, or records — describe the situation instead.</p>
+                <div class="tier notice">
+                    <p class="notice-title">How I work: AI-assisted, human-directed.</p>
+                    <p>I use AI throughout this process. It reads your answers, prepares a summary for me, and helps me draft a response. I direct it, edit it, and decide what you get. Every response ends with a short section called <span class="italic">My take</span>, which I write myself.</p>
+                    <p>I'm not going to recommend AI to you and then pretend I don't use it.</p>
+                    <p class="muted">Please don't include client names, account numbers, or records — describe the situation instead.</p>
                 </div>
 
                 <div class="cf-turnstile" data-sitekey="0x4AAAAAAFEviA0_Q81WJaka" data-theme="dark"></div>
@@ -211,28 +447,36 @@
                     <button type="submit" id="submit-btn" class="btn">Send</button>
                 </div>
 
-                <p id="form-error" class="text-red-400 hidden"></p>
+                <p id="form-error" class="form-error hidden"></p>
 
             </form>
 
-            <div id="form-success" class="hidden tier">
-                <h2 class="text-2xl font-bold text-white mb-4">Got it.</h2>
-                <p class="text-lg text-gray-300 mb-3">I've sent a copy to your email so you have a record of what you wrote.</p>
-                <p class="text-lg text-gray-300">You'll hear back from me within one business day.</p>
+            <div id="form-success" class="hidden tier success">
+                <h2 class="success-title">Got it.</h2>
+                <p>I've sent a copy to your email so you have a record of what you wrote.</p>
+                <p>You'll hear back from me within one business day.</p>
             </div>
 
         </section>
 
     </main>
 
-    <footer class="bg-gray-900 text-gray-400 mt-16 py-6 text-center text-sm">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <footer class="site-footer">
+        <div class="container">
             &copy; <span id="current-year"></span> Aaron Pitters &amp; STORiCORE. All rights reserved.
         </div>
     </footer>
 
     <script>
         document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Mobile menu toggle (same behavior as the root page)
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const primaryNav = document.getElementById('primary-nav');
+        mobileToggle.addEventListener('click', () => {
+            const isOpen = primaryNav.classList.toggle('open');
+            mobileToggle.setAttribute('aria-expanded', String(isOpen));
+        });
 
         const form = document.getElementById('intake-form');
         const errorEl = document.getElementById('form-error');
