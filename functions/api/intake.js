@@ -1,12 +1,14 @@
 // POST /api/intake — the AI Help form's backend (Cloudflare Pages Function).
 //
-// Current stage (docs/build-spec.md §11 step 5): validate, verify Turnstile, email Aaron the
-// raw submission, email the submitter a confirmation. There is no OpenAI call yet; when it is
-// added (step 6) it slots in between "verify Turnstile" and "email Aaron", and the raw-email
-// path below becomes the [TRIAGE FAILED] fallback.
+// Flow (docs/build-spec.md §5): validate, verify Turnstile, ask OpenAI to triage the
+// submission (see _triage.js), email Aaron the brief, email the submitter a confirmation.
 //
-// The one rule: a valid submission must never vanish. If Aaron's email can't be sent, we say
-// so to the submitter (who is then pointed at a direct email address) instead of pretending.
+// The one rule: a valid submission must never vanish. If the AI step fails in any way, Aaron
+// gets the raw submission with [TRIAGE FAILED] in the subject instead of a brief. If Aaron's
+// email can't be sent at all, we say so to the submitter (who is then pointed at a direct
+// email address) instead of pretending.
+
+import { runTriage } from './_triage.js';
 
 // Shown to people when something goes wrong. Same address the page itself uses.
 const FALLBACK_EMAIL = 'contact@storicore.com';
@@ -45,9 +47,10 @@ class IntakeError extends Error {
   }
 }
 
-export async function onRequest({ request, env }) {
+export async function onRequest(context) {
+  const { request, env } = context;
   try {
-    return await handleIntake(request, env);
+    return await handleIntake(request, env, context);
   } catch (err) {
     if (err instanceof IntakeError) return errorResponse(err.status, err.message, request);
     // Anything else is our bug. Log it, and still answer with something readable, never a bare 500.
@@ -56,7 +59,7 @@ export async function onRequest({ request, env }) {
   }
 }
 
-async function handleIntake(request, env) {
+async function handleIntake(request, env, context) {
   // 1. Method and content type
   if (request.method !== 'POST') {
     throw new IntakeError(405, 'This address only accepts form submissions.');
@@ -95,16 +98,44 @@ async function handleIntake(request, env) {
     throw new IntakeError(400, "The spam check didn't pass. Please reload the page and try again.");
   }
 
-  // 4–5. (OpenAI triage goes here in step 6.)
+  // 4–8. Triage, email Aaron, confirm to the submitter.
+  //
+  // The AI call can take a while. If the visitor closes the tab meanwhile, the platform may
+  // stop the request, and the lead would vanish mid-triage. Registering the work with
+  // waitUntil lets it run to completion either way; we still await it so the visitor gets a
+  // real answer when they stay. (Called as context.waitUntil, never pulled out into a
+  // variable: on Workers it has to be called on the object it belongs to.)
+  const delivery = deliver(env, submission);
+  if (context.waitUntil) context.waitUntil(delivery.catch(() => {})); // errors are handled by the await below
+  const { confirmationSent } = await delivery;
 
-  // 6/7. Email Aaron. This is the email that matters: if it fails, the lead is lost, so the
-  // visitor must be told.
+  // 9. Done.
+  if (kind === 'form') {
+    return Response.redirect(new URL('/ai-help/?sent=1', request.url).toString(), 303);
+  }
+  return json({ ok: true, confirmationSent }, 200);
+}
+
+// Everything after the visitor has been verified. Throws an IntakeError only if Aaron could
+// not be emailed, which is the one outcome that means the lead is lost.
+async function deliver(env, submission) {
+  const submissionText = formatSubmission(submission);
+
+  // 4–5. The AI step. Never throws; either a brief or a reason there isn't one.
+  const triage = await runTriage(env, submissionText);
+
+  // 6/7. Email Aaron. On success the brief; on any AI failure the raw submission, marked
+  // [TRIAGE FAILED]. Either way this is the email that matters: if it fails, the lead is
+  // lost, so the visitor must be told.
+  const name = oneLine(submission.name, 60);
+  const toAaron = triage.ok
+    ? { subject: triage.subject, text: triage.text }
+    : {
+        subject: `[TRIAGE FAILED] New AI Help submission from ${name}`,
+        text: triageFailedEmail(submission, submissionText, triage.reason),
+      };
   try {
-    await sendEmail(env, {
-      to: env.NOTIFY_EMAIL,
-      subject: `[AI Help] New submission from ${oneLine(submission.name, 60)}`,
-      text: rawSubmissionEmail(submission),
-    });
+    await sendEmail(env, { to: env.NOTIFY_EMAIL, ...toAaron });
   } catch (err) {
     console.error('intake: could not email the submission to NOTIFY_EMAIL:', err.message);
     throw new IntakeError(502, "I couldn't deliver your message to me.");
@@ -121,18 +152,13 @@ async function handleIntake(request, env) {
       // hits reply to add a detail sends it nowhere and nobody finds out.
       replyTo: env.NOTIFY_EMAIL,
       subject: 'I got your AI Help request',
-      text: confirmationEmail(submission),
+      text: confirmationEmail(submission, submissionText),
     });
   } catch (err) {
     confirmationSent = false;
     console.error('intake: confirmation email failed:', err.message);
   }
-
-  // 9. Done.
-  if (kind === 'form') {
-    return Response.redirect(new URL('/ai-help/?sent=1', request.url).toString(), 303);
-  }
-  return json({ ok: true, confirmationSent }, 200);
+  return { confirmationSent };
 }
 
 // ── Request parsing ──────────────────────────────────────────────────────────────────────
@@ -258,32 +284,43 @@ async function sendEmail(env, { to, subject, text, replyTo }) {
 
 // ── Email text ───────────────────────────────────────────────────────────────────────────
 
-// Plain text on purpose: nothing a visitor types can be interpreted as markup.
-function answersBlock(submission) {
-  return FIELDS
+// The visitor's words as plain text, in one place so the model, the raw-submission email
+// and the confirmation all see exactly the same thing. Plain text on purpose: nothing a
+// visitor types can be interpreted as markup.
+function formatSubmission(submission) {
+  const answers = FIELDS
     .filter((f) => f.key.startsWith('q'))
     .map((f) => `${f.label}\n${submission[f.key] || '(no answer)'}`)
     .join('\n\n');
-}
-
-function rawSubmissionEmail(submission) {
   return [
-    'New submission from the AI Help form.',
-    'AI triage is not connected yet, so this is the raw submission.',
-    '',
     `Name:     ${submission.name}`,
     `Email:    ${submission.email}`,
     `Business: ${submission.business || '(not given)'}`,
+    '',
+    answers,
+  ].join('\n');
+}
+
+// What Aaron gets instead of a brief when the AI step didn't produce one. The reason is
+// there so he can tell a bad key from a slow model; the submission is there so the lead is
+// not lost.
+function triageFailedEmail(submission, submissionText, reason) {
+  return [
+    '[TRIAGE FAILED] The AI step did not produce a brief for this submission.',
+    `Reason: ${reason}`,
+    '',
+    'Nothing is lost: below is exactly what the visitor submitted. Read it yourself and',
+    'reply to them directly.',
+    '',
     `Received: ${new Date().toISOString()}`,
     '',
-    '----------------------------------------',
-    '',
-    answersBlock(submission),
+    '--- SUBMISSION (verbatim) ---',
+    submissionText,
     '',
   ].join('\n');
 }
 
-function confirmationEmail(submission) {
+function confirmationEmail(submission, submissionText) {
   return [
     `Hi ${oneLine(submission.name, 100)},`,
     '',
@@ -293,7 +330,7 @@ function confirmationEmail(submission) {
     '',
     '----------------------------------------',
     '',
-    answersBlock(submission),
+    submissionText,
     '',
     '----------------------------------------',
     '',
