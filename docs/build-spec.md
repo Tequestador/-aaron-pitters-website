@@ -156,8 +156,9 @@ The four questions, labelled in full:
 3. What would you like to make easier?
 4. What kind of help are you hoping for?
 
-Add a link to `/ai-help` from the root page's contact section. Whether it also joins the
-main nav is a **DECIDE** below.
+The link to `/ai-help` is the "AI Help" item in the main nav (DECIDE #3, decided: yes,
+done). No separate link from the root page's Contact section is required; the nav link
+replaces it.
 
 Plain HTML form, progressive enhancement: JS intercepts submit and posts JSON, but the
 form must still be readable and the labels correct without it. Show a success state in
@@ -192,6 +193,17 @@ Steps, in order:
 
    The rubric is deliberately provider-neutral. Nothing in it depends on which model reads
    it, which is what makes the comparison run in DECIDE #2 possible.
+
+   *As built:* the call is in `functions/api/_triage.js`, using OpenAI's Responses API
+   (`instructions` = the rubric, `input` = the delimited submission, `store: false` so
+   OpenAI doesn't keep the visitor's words). The model is the constant `OPENAI_MODEL`,
+   currently `gpt-6-sol`, the mid tier of OpenAI's GPT-6 family (`gpt-6-luna` is the small
+   tier for the DECIDE #2 comparison). The model ID and pricing were taken from web-search
+   summaries of OpenAI's announcement and models pages, because the docs themselves were
+   not reachable from the build environment. **Re-check the model ID, the request shape and
+   current pricing against OpenAI's own docs before publishing any number.** A wrong ID or
+   rejected parameter fails safe: the call errors, and the `[TRIAGE FAILED]` email names
+   the HTTP status and error code. The timeout is 40 seconds.
 6. **Email the brief to Aaron** via Resend. Subject line comes from the brief's own
    `SUBJECT:` line. Body: the brief verbatim, then the raw submission.
 7. **Fallback — this is the important one.** If the API call fails, times out, or returns
@@ -237,6 +249,21 @@ subject line and the raw submission at the bottom.
 One formatting requirement: render `My take:` and its `[LEAVE BLANK — Aaron writes this.]`
 placeholder so they're unmissable at a glance — the point is that an unfilled *My take* is
 visible before sending, not after.
+
+*As built,* `functions/api/_triage.js` makes three deterministic changes to the model's
+brief, so they hold whatever the model wrote:
+
+1. The `SUBJECT:` line becomes the email subject and is removed from the body.
+2. Every draft's *My take* is replaced by a fixed slot: a banner reading "MY TAKE IS EMPTY.
+   YOU WRITE THIS. DO NOT SEND UNTIL IT IS.", then `My take:` and the placeholder, then a
+   closing rule. If the model wrote anything there, it is discarded and the email opens
+   with a NOTE saying so.
+3. The model's own `--- SUBMISSION (verbatim) ---` section is replaced with the visitor's
+   real submission, so the bottom of the email is what they typed and not the model's copy
+   of it.
+
+A brief that doesn't start with a `SUBJECT:` line, or has no valid `VERDICT:`, is treated
+as a failed triage and Aaron gets the `[TRIAGE FAILED]` email with the raw submission.
 
 ---
 

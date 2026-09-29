@@ -198,10 +198,9 @@ changed and why. That commit is part of the artifact.
 **G1.** The nav link is decided: **yes**, "AI Help" goes in the main nav as the last item,
 after Contact, on both the root `index.html` and `ai-help/index.html` (marked as the
 current page there), once the form is confirmed working. *(Done. The root page's script now
-selects `.nav-link[data-target]`, so it doesn't intercept the new link.)* Still open: build-spec
-§4 also asks for a link from the root page's Contact section. That is separate from the nav
-link and not yet added — a positioning call, since the Contact section is deliberately
-just an email address today.
+selects `.nav-link[data-target]`, so it doesn't intercept the new link.)* The nav link is
+the only link to the page: the build spec no longer asks for a separate one from the
+Contact section.
 
 **G2.** Send the link to two or three people who'll give you a straight reaction to the
 page before strangers see it.

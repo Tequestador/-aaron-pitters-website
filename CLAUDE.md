@@ -17,9 +17,12 @@ Replit leftovers (`.replit`, `replit.md`, `server.py` — they only serve the si
 Replit and do nothing on Cloudflare Pages). It is a one-page site with six hash-routed
 sections — home, about, books, storicore, blog, contact — shown and hidden by a small
 inline script at the bottom of the file, with a hamburger menu below 768px. There is no
-build step and no framework. The intake function lives in `functions/api/intake.js`
-(deployed, working: validation, Turnstile, raw-submission email, confirmation email; the
-OpenAI triage step is not added yet).
+framework. There is one build command, `node scripts/build-prompt.mjs`, set in the
+Cloudflare Pages dashboard, which generates the rubric module. The intake function lives in
+`functions/api/intake.js` (validation, Turnstile, the triage step, the brief or
+`[TRIAGE FAILED]` email to Aaron, the confirmation email to the submitter), with the OpenAI
+call and brief-building in `functions/api/_triage.js`. The model name is one constant,
+`OPENAI_MODEL`, at the top of that file.
 
 **Styling:** all inline. The live site uses one `<style>` block in the head with plain
 hand-written CSS and semantic class names (`.site-header`, `.nav-link`, `.btn`,
