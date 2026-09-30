@@ -1,4 +1,4 @@
-# Build Spec — AI Help intake
+# Build Spec — AI Consulting intake
 
 Written to be handed to Claude Code. It should not need to make design decisions; where
 something is genuinely open it's marked **DECIDE**.
@@ -19,7 +19,7 @@ No database. No dashboard. No login. No payment processing. Aaron's inbox is the
 of record and his mail client is the interface.
 
 ```
-visitor → /ai-help form
+visitor → /ai-consulting form
             ↓
         POST /api/intake  (Cloudflare Pages Function)
             ↓
@@ -58,13 +58,19 @@ is the app trap in miniature.
 
 ## 3. Repo layout
 
-The repo currently holds one `index.html` at the root, favicons, and a webmanifest.
-Nothing else — no `functions/`, no `_headers`, no `.gitignore`, no build step. Everything
-below is new.
+**Branch: `replit-version` is production.** It is the only branch Cloudflare Pages deploys.
+`main` is an old snapshot from before the Replit rewrite of `index.html` — don't build on
+it. Push to `replit-version` directly or open a pull request into it.
+
+Before the intake work, the repo was one `index.html` at the root, favicons, a webmanifest,
+and Replit leftovers (`.replit`, `replit.md`, `server.py`, which do nothing on Pages). No
+`functions/`, no `_headers` (the CSP is a dashboard rule — see §4), no build step. A
+`.gitignore` already existed with Python and OS entries; the new entries are **appended**
+to it, not a replacement. Everything in the tree below is new except that `.gitignore`.
 
 ```
-/.gitignore                      NEW — must exist before the first commit
-/ai-help/index.html              the page and form
+/.gitignore                      EXISTS — append the entries below before the first commit
+/ai-consulting/index.html              the page and form
 /functions/api/intake.js         the POST handler
 /prompts/triage-rubric.md        the rubric — source of truth, human-edited
 /scripts/build-prompt.mjs        generates the importable prompt module
@@ -76,8 +82,8 @@ below is new.
 ```
 
 `.gitignore` must contain at least `.dev.vars` and
-`functions/api/_rubric.generated.js`. Create it first; a key committed once is in the
-history forever.
+`functions/api/_rubric.generated.js`. Append them first (done); a key committed once is in
+the history forever.
 
 Adding a `functions/` directory is all that's needed to turn on Pages Functions — no
 dashboard change, no configuration.
@@ -90,25 +96,37 @@ source of truth and never drifts from what runs.
 
 ---
 
-## 4. The page — `/ai-help`
+## 4. The page — `/ai-consulting`
 
 **A separate page, not a seventh hash section.** The root `index.html` is a one-page site
 with six sections shown and hidden by an inline script. The intake page needs a real URL
 people can be sent to, and the existing file shouldn't grow to absorb a form. Cloudflare
-Pages serves `/ai-help/index.html` at `/ai-help` with no configuration.
+Pages serves `/ai-consulting/index.html` at `/ai-consulting` with no configuration.
 
-**Match the existing look.** The site uses Tailwind from `cdn.tailwindcss.com`, Inter from
-Google Fonts, and a custom `<style>` block — dark theme, `#111827` background, `#d1d5db`
-text, blue-500 accents, `.btn` and `.btn-secondary` classes. Reuse the same header, footer,
-and palette so the page reads as part of the site. Copy the style block rather than
-refactoring it into a shared file; there is no build step and this is not the moment to add
-one.
+**Match the existing look.** The live site uses inline CSS only: one hand-written
+`<style>` block with semantic class names. It does **not** use Tailwind and does **not**
+load Google Fonts (the font stack is `Inter, -apple-system, …`, so it falls back to the
+system font). Dark theme, `#111827` background, `#d1d5db` text, blue-500 accents, `.btn`
+and `.btn-secondary` classes. Reuse the same header (including the hamburger menu), footer,
+and palette so the page reads as part of the site. Copy the relevant rules from the root
+page's style block rather than refactoring them into a shared file; there is no build step
+and this is not the moment to add one. `ai-consulting/index.html` has been restyled this way.
 
-**CSP: verify, don't assume.** There is no CSP in this repo — no meta tag, no `_headers`
-file. If one exists it's set in the Cloudflare dashboard. Turnstile loads from
-`challenges.cloudflare.com` and fails *silently* when blocked, so put the widget on a
-throwaway page and confirm it renders before building on it. Ten minutes now or an
-afternoon later.
+**CSP: it lives in the Cloudflare dashboard, not the repo.** The site's CSP is a Response
+Header Transform Rule named **"Static Site CSP"** on the aaronpitters.com zone (dashboard →
+Rules → Transform Rules → Modify Response Header). The repo sets none: no `_headers` file
+and no meta tag. (A `_headers` CSP was added in `1d5e88c` and removed in `7057995`; the
+dashboard rule is what applied to the live site.) Turnstile loads a script from
+`challenges.cloudflare.com` and renders in an iframe, and it fails *silently* when blocked.
+That rule originally blocked it. It now allows `https://challenges.cloudflare.com` in
+`script-src`, and has `frame-src https://challenges.cloudflare.com` added; the widget
+renders and the form works end to end.
+
+**Any new external script, stylesheet, font, frame or browser-side network destination
+must be added to that rule**, or it will work locally and fail in production. Calls made by
+the function itself (Resend, Turnstile verification, OpenAI) are server-side and not
+subject to the browser's CSP. If the rule is ever moved into the repo, keep the Turnstile
+entries. After any header change, confirm the widget renders.
 
 Page contents, in order:
 
@@ -138,8 +156,9 @@ The four questions, labelled in full:
 3. What would you like to make easier?
 4. What kind of help are you hoping for?
 
-Add a link to `/ai-help` from the root page's contact section. Whether it also joins the
-main nav is a **DECIDE** below.
+The link to `/ai-consulting` is the "AI Consulting" item in the main nav (DECIDE #3, decided: yes,
+done). No separate link from the root page's Contact section is required; the nav link
+replaces it.
 
 Plain HTML form, progressive enhancement: JS intercepts submit and posts JSON, but the
 form must still be readable and the labels correct without it. Show a success state in
@@ -156,7 +175,7 @@ Steps, in order:
 1. **Method and content type.** Reject anything but POST. Accept both
    `application/json` (the JavaScript path) and `application/x-www-form-urlencoded` (the
    no-JavaScript path — the form has `method="post" action="/api/intake"`). For
-   form-encoded requests, respond with a 303 redirect to `/ai-help/?sent=1` on success,
+   form-encoded requests, respond with a 303 redirect to `/ai-consulting/?sent=1` on success,
    and to a plain error page on failure; for JSON requests, respond with JSON. The Turnstile
    widget submits its token in a field named `cf-turnstile-response` either way.
 2. **Validate.** Required fields present, lengths within the caps above, email shaped like
@@ -174,6 +193,17 @@ Steps, in order:
 
    The rubric is deliberately provider-neutral. Nothing in it depends on which model reads
    it, which is what makes the comparison run in DECIDE #2 possible.
+
+   *As built:* the call is in `functions/api/_triage.js`, using OpenAI's Responses API
+   (`instructions` = the rubric, `input` = the delimited submission, `store: false` so
+   OpenAI doesn't keep the visitor's words). The model is the constant `OPENAI_MODEL`,
+   currently `gpt-6-sol`, the mid tier of OpenAI's GPT-6 family (`gpt-6-luna` is the small
+   tier for the DECIDE #2 comparison). The model ID and pricing were taken from web-search
+   summaries of OpenAI's announcement and models pages, because the docs themselves were
+   not reachable from the build environment. **Re-check the model ID, the request shape and
+   current pricing against OpenAI's own docs before publishing any number.** A wrong ID or
+   rejected parameter fails safe: the call errors, and the `[TRIAGE FAILED]` email names
+   the HTTP status and error code. The timeout is 40 seconds.
 6. **Email the brief to Aaron** via Resend. Subject line comes from the brief's own
    `SUBJECT:` line. Body: the brief verbatim, then the raw submission.
 7. **Fallback — this is the important one.** If the API call fails, times out, or returns
@@ -219,6 +249,21 @@ subject line and the raw submission at the bottom.
 One formatting requirement: render `My take:` and its `[LEAVE BLANK — Aaron writes this.]`
 placeholder so they're unmissable at a glance — the point is that an unfilled *My take* is
 visible before sending, not after.
+
+*As built,* `functions/api/_triage.js` makes three deterministic changes to the model's
+brief, so they hold whatever the model wrote:
+
+1. The `SUBJECT:` line becomes the email subject and is removed from the body.
+2. Every draft's *My take* is replaced by a fixed slot: a banner reading "MY TAKE IS EMPTY.
+   YOU WRITE THIS. DO NOT SEND UNTIL IT IS.", then `My take:` and the placeholder, then a
+   closing rule. If the model wrote anything there, it is discarded and the email opens
+   with a NOTE saying so.
+3. The model's own `--- SUBMISSION (verbatim) ---` section is replaced with the visitor's
+   real submission, so the bottom of the email is what they typed and not the model's copy
+   of it.
+
+A brief that doesn't start with a `SUBJECT:` line, or has no valid `VERDICT:`, is treated
+as a failed triage and Aaron gets the `[TRIAGE FAILED]` email with the raw submission.
 
 ---
 
@@ -274,8 +319,9 @@ an interviewer notices.
 1. DNS and domain verification for Resend. Do this next — it can take time to propagate
    and everything else is blocked behind it.
 2. Confirm Turnstile renders on a throwaway page. Fix the CSP only if it turns out one
-   exists and blocks it.
-3. The `/ai-help` page, static, form posting nowhere.
+   exists and blocks it. *(Done: the dashboard rule "Static Site CSP" did block it and has
+   been updated — see §4.)*
+3. The `/ai-consulting` page, static, form posting nowhere.
 4. `build-prompt.mjs` and the Pages build command.
 5. The function — validation, Turnstile, the raw submission to Aaron, **and the
    confirmation email to the submitter.** The page's success message says a copy was sent,
@@ -299,17 +345,21 @@ contact form and you are open for business.
    set between a mid and a small model, since the cost difference at this volume is
    trivial but the quality difference on lead 3 and lead 5 might not be — and that
    comparison is itself a documentable evaluation.
-3. **Does `/ai-help` appear in the site nav, or is it an unlinked page you send people
-   to?** Unlinked is defensible while you're testing, and keeps the author site clean.
-   Adding a seventh nav item to a site that currently reads purely as an author page is a
-   positioning decision, not a technical one.
+3. **Does `/ai-consulting` appear in the site nav, or is it an unlinked page you send people
+   to?** **Decided: yes, it goes in the nav** — as the last item, after Contact, on both
+   the root `index.html` and `ai-consulting/index.html` (marked as the current page there). It
+   was added only *after* the form was confirmed working end to end, so the page stayed
+   unlinked while it was being tested. **Done.** The root page's script now selects
+   `.nav-link[data-target]` instead of `.nav-link`, so it doesn't intercept the new link
+   (which has no `data-target` and is a real page, not a hash section). The link keeps the
+   `nav-link` class for styling.
 
 4. **Which domain sends the email?** The site's published contact address is
    `contact@storicore.com`, but the intake lives on aaronpitters.com. Resend verifies a
    sending domain, so pick one — probably aaronpitters.com, since that's where the form is
    and a reply from a different domain than the site invites a spam filter's attention.
 
-5. **Tailwind CDN.** The site loads `cdn.tailwindcss.com`, which compiles in the browser
-   and is explicitly not intended for production use. The new page should match the site
-   as it is — don't fix this as part of this work. Worth knowing it's there, and worth
-   suspecting it if anything CSP-related does turn up.
+5. **Tailwind CDN.** *Resolved by the Replit rewrite:* the live site no longer loads
+   `cdn.tailwindcss.com` or Google Fonts, and `/ai-consulting` doesn't either. (The old CSP
+   allowed the Tailwind CDN specifically, which is why it's worth remembering that the
+   CSP and the CDN went together.)
