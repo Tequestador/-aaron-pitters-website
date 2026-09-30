@@ -40,15 +40,15 @@ document explains which obvious improvements were considered and rejected.
 
 ## Hard constraints
 
-**The new page is a separate file at `/ai-help/index.html`,** not a seventh hash section in
+**The new page is a separate file at `/ai-consulting/index.html`,** not a seventh hash section in
 the root `index.html`. It needs a real shareable URL, and the single-page file should not
-grow to absorb a form. Cloudflare Pages serves `/ai-help/index.html` at `/ai-help`
+grow to absorb a form. Cloudflare Pages serves `/ai-consulting/index.html` at `/ai-consulting`
 automatically.
 
 **Match the existing site's look** — same dark palette, same inline CSS approach (copy the
 relevant rules from the root `index.html`'s `<style>` block; no Tailwind, no Google
 Fonts), same header and footer markup — so the page doesn't read as bolted on. Reuse the
-`.btn` styles. `ai-help/index.html` already does this; keep it in step if the root page's
+`.btn` styles. `ai-consulting/index.html` already does this; keep it in step if the root page's
 styles change.
 
 **Content Security Policy: it lives in the Cloudflare dashboard, not in this repo.** The
@@ -58,7 +58,7 @@ Header). Nothing in the repo sets one: there is no `_headers` file and no meta t
 `_headers` file with a CSP was added in commit `1d5e88c` and removed in `7057995`; the
 dashboard rule is what actually applied to the live site.)
 
-That rule originally blocked Turnstile, which was the blocker when `/ai-help` first went
+That rule originally blocked Turnstile, which was the blocker when `/ai-consulting` first went
 live. Aaron fixed it in the dashboard: `https://challenges.cloudflare.com` is now in the
 rule's `script-src`, and `frame-src https://challenges.cloudflare.com` was added. Turnstile
 needs both, because it loads a script and renders in an iframe. The form works end to end

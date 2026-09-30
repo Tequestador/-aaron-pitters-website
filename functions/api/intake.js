@@ -1,4 +1,4 @@
-// POST /api/intake — the AI Help form's backend (Cloudflare Pages Function).
+// POST /api/intake — the AI Consulting form's backend (Cloudflare Pages Function).
 //
 // Flow (docs/build-spec.md §5): validate, verify Turnstile, ask OpenAI to triage the
 // submission (see _triage.js), email Aaron the brief, email the submitter a confirmation.
@@ -111,7 +111,7 @@ async function handleIntake(request, env, context) {
 
   // 9. Done.
   if (kind === 'form') {
-    return Response.redirect(new URL('/ai-help/?sent=1', request.url).toString(), 303);
+    return Response.redirect(new URL('/ai-consulting/?sent=1', request.url).toString(), 303);
   }
   return json({ ok: true, confirmationSent }, 200);
 }
@@ -131,7 +131,7 @@ async function deliver(env, submission) {
   const toAaron = triage.ok
     ? { subject: triage.subject, text: triage.text }
     : {
-        subject: `[TRIAGE FAILED] New AI Help submission from ${name}`,
+        subject: `[TRIAGE FAILED] New AI Consulting submission from ${name}`,
         text: triageFailedEmail(submission, submissionText, triage.reason),
       };
   try {
@@ -151,7 +151,7 @@ async function deliver(env, submission) {
       // FROM_EMAIL is send-only, with no mailbox behind it. Without reply_to, a client who
       // hits reply to add a detail sends it nowhere and nobody finds out.
       replyTo: env.NOTIFY_EMAIL,
-      subject: 'I got your AI Help request',
+      subject: 'I got your AI Consulting request',
       text: confirmationEmail(submission, submissionText),
     });
   } catch (err) {
@@ -388,7 +388,7 @@ function errorResponse(status, message, request) {
 <main>
 <h1>Your message wasn't sent</h1>
 <p>${escapeHtml(message)}</p>
-<p>You can go <a href="/ai-help/">back to the form</a>, or email me directly at <a href="mailto:${FALLBACK_EMAIL}">${FALLBACK_EMAIL}</a> and I'll pick it up from there.</p>
+<p>You can go <a href="/ai-consulting/">back to the form</a>, or email me directly at <a href="mailto:${FALLBACK_EMAIL}">${FALLBACK_EMAIL}</a> and I'll pick it up from there.</p>
 </main>
 </body>
 </html>`;
