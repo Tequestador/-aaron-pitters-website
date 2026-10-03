@@ -195,8 +195,8 @@ changed and why. That commit is part of the artifact.
 
 ## Part G — Actually live
 
-**G1.** The nav link is decided: **yes**, "AI Consulting" goes in the main nav as the last item,
-after Contact, on both the root `index.html` and `ai-consulting/index.html` (marked as the
+**G1.** The nav link is decided: **yes**, "AI Consulting" goes in the main nav between STORiCORE and Blog,
+on both the root `index.html` and `ai-consulting/index.html` (marked as the
 current page there), once the form is confirmed working. *(Done. The root page's script now
 selects `.nav-link[data-target]`, so it doesn't intercept the new link.)* The nav link is
 the only link to the page: the build spec no longer asks for a separate one from the

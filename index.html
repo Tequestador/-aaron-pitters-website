@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Aaron Pitters - Author & Founder of STORiCORE</title>
+  <meta name="description" content="Aaron Pitters is an author and the founder of STORiCORE. Books, writing tools, and plain-spoken help with AI.">
+  <link rel="canonical" href="https://aaronpitters.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Aaron Pitters">
+  <meta property="og:title" content="Aaron Pitters - Author & Founder of STORiCORE">
+  <meta property="og:description" content="Aaron Pitters is an author and the founder of STORiCORE. Books, writing tools, and plain-spoken help with AI.">
+  <meta property="og:url" content="https://aaronpitters.com/">
+  <meta property="og:image" content="https://aaronpitters.com/android-chrome-512x512.png">
+  <meta name="twitter:card" content="summary">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -123,54 +132,6 @@
     .home-subtitle {
       font-size: 1.25rem;
       color: #9ca3af;
-    }
-
-    /* ── Beta banner ────────────────────────────────────────── */
-    .beta-banner {
-      margin: 20vh auto 0;
-      width: 100%;
-      max-width: 42rem;
-      border-radius: .75rem;
-      border: 1px solid rgba(255,255,255,.1);
-      background: rgba(255,255,255,.05);
-      padding: 1rem;
-    }
-
-    .beta-inner {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .beta-badge {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 9999px;
-      background: rgba(255,255,255,.1);
-      padding: .125rem .625rem;
-      font-size: .6875rem;
-      font-weight: 600;
-      letter-spacing: .05em;
-      color: #d1d5db;
-    }
-
-    .beta-text { text-align: left; flex: 1; }
-    .beta-text h2 {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: #fff;
-    }
-    .beta-text p {
-      font-size: .875rem;
-      color: #d1d5db;
-      margin-top: .25rem;
-    }
-
-    .beta-actions {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
     }
 
     /* ── Buttons ─────────────────────────────────────────────── */
@@ -385,10 +346,6 @@
       .home-section { padding-top: 6rem; padding-bottom: 6rem; }
       .home-title { font-size: 3rem; }
       .home-subtitle { font-size: 1.5rem; }
-      .beta-banner { margin-top: 18vh; padding: 1.25rem; }
-      .beta-inner { flex-direction: row; gap: 1.25rem; }
-      .beta-text h2 { font-size: 1.25rem; }
-      .beta-text p { font-size: 1rem; }
       .section-heading { font-size: 2.25rem; }
       .about-section .section-heading { text-align: left; }
       .storicore-section .section-heading { text-align: left; }
@@ -398,7 +355,6 @@
       .mobile-toggle { display: none !important; }
       .primary-nav { display: block !important; }
       .home-title { font-size: 3.75rem; }
-      .beta-banner { margin-top: 16vh; }
     }
 
     @media (max-width: 767px) {
@@ -446,10 +402,10 @@
           <li><a href="#about"     class="nav-link" data-target="about">About</a></li>
           <li><a href="#books"     class="nav-link" data-target="books">Books</a></li>
           <li><a href="#storicore" class="nav-link" data-target="storicore">STORiCORE</a></li>
-          <li><a href="#blog"      class="nav-link" data-target="blog">Blog</a></li>
-          <li><a href="#contact"   class="nav-link" data-target="contact">Contact</a></li>
           <!-- A real page, not a section: no data-target, so the script below leaves it alone. -->
           <li><a href="/ai-consulting/"  class="nav-link">AI Consulting</a></li>
+          <li><a href="#blog"      class="nav-link" data-target="blog">Blog</a></li>
+          <li><a href="#contact"   class="nav-link" data-target="contact">Contact</a></li>
         </ul>
       </nav>
     </div>
@@ -461,21 +417,6 @@
       <h1 class="home-title">Aaron Pitters</h1>
       <p class="home-subtitle">Author & Founder of STORiCORE</p>
 
-      <div id="beta-banner" class="beta-banner" role="status" aria-live="polite">
-        <div class="beta-inner">
-          <span class="beta-badge">Now Available</span>
-
-          <div class="beta-text">
-            <h2>1st Draft is live</h2>
-            <p>Your voice-first writing assistant is now available. Try it free today! A fun and relaxed way to tell your story.</p>
-          </div>
-
-          <div class="beta-actions">
-            <a href="https://1stdraft.storicore.com" target="_blank" rel="noopener noreferrer" class="btn">Open the app</a>
-            <a href="https://storicore.com/apps" target="_blank" rel="noopener noreferrer" class="btn-secondary">Learn more</a>
-          </div>
-        </div>
-      </div>
     </section>
 
     <section id="about" class="content-section about-section">
@@ -559,11 +500,6 @@
         });
       }
 
-      // Beta banner (no dismiss; only show on Home)
-      const betaBanner = document.getElementById('beta-banner');
-      const showBeta = () => betaBanner && betaBanner.classList.remove('hidden');
-      const hideBeta = () => betaBanner && betaBanner.classList.add('hidden');
-
       // Footer year
       if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
 
@@ -572,8 +508,6 @@
         (document.getElementById(targetId) || document.getElementById('home')).classList.add('active');
 
         navLinks.forEach(link => link.classList.toggle('active', link.dataset.target === targetId));
-
-        if (targetId === 'home') showBeta(); else hideBeta();
       }
 
       navLinks.forEach(link => {
