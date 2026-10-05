@@ -394,7 +394,7 @@ contact form and you are open for business.
    trivial but the quality difference on lead 3 and lead 5 might not be — and that
    comparison is itself a documentable evaluation.
 3. **Does `/ai-consulting` appear in the site nav, or is it an unlinked page you send people
-   to?** **Decided: yes, it goes in the nav** — as the last item, after Contact, on both
+   to?** **Decided: yes, it goes in the nav** — between STORiCORE and Blog, on both
    the root `index.html` and `ai-consulting/index.html` (marked as the current page there). It
    was added only *after* the form was confirmed working end to end, so the page stayed
    unlinked while it was being tested. **Done.** The root page's script now selects
