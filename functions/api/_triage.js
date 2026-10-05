@@ -156,13 +156,17 @@ function extractText(data) {
 
 // ── Turning the answer into the email ────────────────────────────────────────────────────
 
-// The rubric (§7) defines the brief's format. The email is that brief with three changes,
+// The rubric (§7) defines the brief's format. The email is that brief with four changes,
 // each made in code so it holds no matter what the model wrote:
 //   1. The SUBJECT: line becomes the email subject and is removed from the body.
 //   2. Every draft's My take is replaced with an unmissable empty slot (§7 of the build
 //      spec). The model is forbidden to write it; this makes sure it never arrives filled.
+//      The one thing kept from after the placeholder is a single "Aaron" sign-off line
+//      (rubric §8: the name comes after My take).
 //   3. The model's own copy of the submission is replaced with the real one, so what Aaron
 //      sees at the bottom is what the visitor typed, not the model's rendition of it.
+//   4. If a tool from TOOLS TO RESEARCH shows up in a draft, a warning goes at the top.
+//      The field is for Aaron only (rubric §10); this only warns, it never blocks the brief.
 // Throws a TriageError if the text isn't a brief at all.
 export function buildBriefEmail(modelText, submissionText) {
   let text = modelText.replace(/\r\n?/g, '\n').trim();
@@ -193,20 +197,39 @@ export function buildBriefEmail(modelText, submissionText) {
   const echoAt = body.search(/^---\s*SUBMISSION\b.*$/im);
   if (echoAt !== -1) body = body.slice(0, echoAt);
 
-  // 2. Replace each draft's My take with the empty slot.
+  // 2. Replace each draft's My take with the empty slot, keeping only a lone "Aaron" sign-off.
+  // 4. While we're in each draft, look for tools the brief said were for Aaron's eyes only.
   let filledCount = 0;
   const pieces = body.split(/^(?=---\s*DRAFT\b)/im);
+  const toolsToResearch = parseToolsToResearch(pieces[0]);
+  const toolLeaks = []; // e.g. "Zapier (Draft A)"
   const cleaned = pieces.map((piece, index) => {
     if (index === 0) return piece; // everything before the first draft
     const { before, myTake } = splitOffMyTake(piece);
-    // Only text that isn't the placeholder counts as the model having written something.
-    // A draft with no My take at all just gets the slot added.
-    const written = myTake.replace(/\s+/g, ' ').trim();
-    if (written !== '' && written !== MY_TAKE_PLACEHOLDER) filledCount++;
-    return `${before.trimEnd()}\n\n${MY_TAKE_SLOT}\n\n`;
+    // Only text that isn't the placeholder or the sign-off counts as the model having
+    // written something. A draft with no My take at all just gets the slot added.
+    const { written, signOff } = readMyTake(myTake);
+    if (written) filledCount++;
+
+    const label = (/^---\s*DRAFT\s+([A-Z])\b/i.exec(piece) || [])[1] || String(index);
+    const draftBody = before.split('\n').slice(1).join('\n'); // skip the "--- DRAFT A ---" line
+    for (const tool of toolsToResearch) {
+      // The rubric lets a draft name a tool the client already used or named.
+      if (mentions(draftBody, tool, true) && !mentions(submissionText, tool, false)) {
+        toolLeaks.push(`${tool} (Draft ${label.toUpperCase()})`);
+      }
+    }
+    return `${before.trimEnd()}\n\n${mySlot(signOff)}\n\n`;
   });
 
   const parts = [];
+  if (toolLeaks.length > 0) {
+    parts.push(
+      `WARNING: a tool from TOOLS TO RESEARCH appears in a draft: ${toolLeaks.join(', ')}.`,
+      'Those are unchecked suggestions for you only. Verify them or cut them before sending.',
+      '',
+    );
+  }
   if (filledCount > 0) {
     parts.push(
       `NOTE: the model wrote text under My take in ${filledCount} draft(s). I removed it.`,
@@ -221,17 +244,84 @@ export function buildBriefEmail(modelText, submissionText) {
 }
 
 // Loud on purpose: the point (build-spec §7) is that an unfilled My take is visible before
-// sending, not after. Plain text, so it survives any mail client.
-const MY_TAKE_SLOT = [
-  '################################################################',
-  '##  MY TAKE IS EMPTY. YOU WRITE THIS. DO NOT SEND UNTIL IT IS. ##',
-  '################################################################',
-  '',
-  'My take:',
-  MY_TAKE_PLACEHOLDER,
-  '',
-  '################################################################',
-].join('\n');
+// sending, not after. Plain text, so it survives any mail client. The sign-off, when there
+// is one, sits right under the placeholder so My take and "Aaron" read as one block, as they
+// will in the reply; the closing banner goes below both.
+function mySlot(signOff) {
+  return [
+    '################################################################',
+    '##  MY TAKE IS EMPTY. YOU WRITE THIS. DO NOT SEND UNTIL IT IS. ##',
+    '################################################################',
+    '',
+    'My take:',
+    MY_TAKE_PLACEHOLDER,
+    '',
+    ...(signOff ? ['Aaron', ''] : []),
+    '################################################################',
+  ].join('\n');
+}
+
+// A line that is just the name, with or without markdown bold/italics around it.
+const SIGN_OFF_LINE = /^[*_]*aaron[*_]*$/i;
+
+// Reads whatever the model put after "My take:". Returns whether it wrote anything other than
+// the placeholder and one sign-off, and whether a sign-off line was there to keep. A second
+// "Aaron" line is extra text, not a second sign-off.
+function readMyTake(myTake) {
+  const lines = myTake.split('\n').map((l) => l.trim()).filter((l) => l !== '');
+  const signOffs = lines.filter((l) => SIGN_OFF_LINE.test(l));
+  const rest = lines.filter((l) => !SIGN_OFF_LINE.test(l)).join(' ').replace(/\s+/g, ' ').trim();
+  return {
+    written: (rest !== '' && rest !== MY_TAKE_PLACEHOLDER) || signOffs.length > 1,
+    signOff: signOffs.length > 0,
+  };
+}
+
+// ── TOOLS TO RESEARCH ────────────────────────────────────────────────────────────────────
+
+// The field labels from rubric §7. The TOOLS TO RESEARCH field runs until the next one.
+const FIELD_LABELS = [
+  'VERDICT', 'ONE-LINE READ', 'THEY THINK THEY NEED', 'THEY PROBABLY NEED', 'LEVEL',
+  'RESEARCH LOAD', 'FLAGS', 'THE ONE USEFUL THING', 'WHERE YOUR JUDGMENT IS NEEDED',
+  'FOLLOW-UP QUESTIONS', 'CONFIDENCE',
+];
+const NEXT_FIELD = new RegExp(`^\\s*(?:${FIELD_LABELS.join('|')})\\s*:`, 'i');
+
+// The tool names in the brief's TOOLS TO RESEARCH field, from the text before the first
+// draft. The rubric says one per line, each marked "(unverified)" with a short reason after
+// it, so a line is cut at the marker, a dash, or a colon, whichever comes first. Returns []
+// if the field is missing or says "none": the brief is never rejected over this field.
+function parseToolsToResearch(beforeDrafts) {
+  const lines = beforeDrafts.split('\n');
+  const start = lines.findIndex((l) => /^\s*TOOLS TO RESEARCH\b[^:\n]*:/i.test(l));
+  if (start === -1) return [];
+
+  const fieldLines = [lines[start].replace(/^[^:]*:/, '')];
+  for (const line of lines.slice(start + 1)) {
+    if (NEXT_FIELD.test(line)) break;
+    fieldLines.push(line);
+  }
+
+  const names = [];
+  for (const line of fieldLines) {
+    const name = line
+      .replace(/^\s*(?:[-*•]|\d+[.)])\s+/, '')   // list marker (needs a space, so **bold** survives)
+      .replace(/\*\*|__/g, '')                     // bold
+      .split(/\s+\(unverified\)|\s+[—–-]\s+|:/i)[0]
+      .replace(/[\s.,;]+$/, '')
+      .trim();
+    if (name !== '' && !/^none\b/i.test(name) && !names.includes(name)) names.push(name);
+  }
+  return names;
+}
+
+// Whole-word match of a tool name. For drafts it is case-sensitive: "Make" is a real
+// product and "make" is in nearly every draft, and the model writes product names in their
+// brand case. Matching the submission is case-insensitive, since people type "zapier".
+function mentions(text, name, caseSensitive) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?<![\\w])${escaped}(?![\\w])`, caseSensitive ? '' : 'i').test(text);
+}
 
 // Splits one draft into the text before its "My take:" line and whatever the model put
 // after it. Uses the last such line, since the rubric puts My take at the end of a draft.

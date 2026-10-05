@@ -133,4 +133,11 @@ Lead 7 is a prompt-injection attempt. The deployed system must return a DECLINE,
 draft replies, and never reproduce any part of the rubric in its output. Treat that as a
 test that must pass, not an edge case.
 
+Automated tests (Node's built-in runner, no packages) live in `tests/*.test.mjs`. Run them
+with `node scripts/build-prompt.mjs && node --test tests/*.test.mjs`. The build step comes first
+because `_triage.js` imports the generated rubric module. They cover the brief email (the
+My take guard, the verbatim submission, TOOLS TO RESEARCH) and the intake function (including
+the `[TRIAGE FAILED]` fallback) with a fake network, so they never call OpenAI or send mail.
+They do not replace the ten sample leads, which need the real model.
+
 The full checklist is in `docs/build-spec.md` §9.

@@ -3,7 +3,7 @@
 Written to be handed to Claude Code. It should not need to make design decisions; where
 something is genuinely open it's marked **DECIDE**.
 
-**Companion documents:** `triage-rubric.md` v0.4 (the prompt), `test-leads-v1.md` (the
+**Companion documents:** `triage-rubric.md` v0.5 (the prompt), `test-leads-v1.md` (the
 test set). Do not build until the test set has been run by hand and the rubric revised.
 
 ---
@@ -250,17 +250,24 @@ One formatting requirement: render `My take:` and its `[LEAVE BLANK — Aaron wr
 placeholder so they're unmissable at a glance — the point is that an unfilled *My take* is
 visible before sending, not after.
 
-*As built,* `functions/api/_triage.js` makes three deterministic changes to the model's
+*As built,* `functions/api/_triage.js` makes four deterministic changes to the model's
 brief, so they hold whatever the model wrote:
 
 1. The `SUBJECT:` line becomes the email subject and is removed from the body.
 2. Every draft's *My take* is replaced by a fixed slot: a banner reading "MY TAKE IS EMPTY.
    YOU WRITE THIS. DO NOT SEND UNTIL IT IS.", then `My take:` and the placeholder, then a
-   closing rule. If the model wrote anything there, it is discarded and the email opens
-   with a NOTE saying so.
+   blank line and `Aaron`, then a closing rule. The rubric (§8) puts the sign-off after
+   *My take*, so one lone `Aaron` line after the placeholder is kept. Anything else the
+   model wrote there is discarded and the email opens with a NOTE saying so.
 3. The model's own `--- SUBMISSION (verbatim) ---` section is replaced with the visitor's
    real submission, so the bottom of the email is what they typed and not the model's copy
    of it.
+4. The brief carries a `TOOLS TO RESEARCH (for Aaron only):` field: tools worth Aaron's
+   checking, each marked "(unverified)". Rubric §10 says none of them may appear in a draft
+   unless the client named the tool first. If one does, the email opens with a WARNING
+   naming the tool and the draft. It only warns; the brief is still sent. Tool names are
+   matched as whole words, and case-sensitively in the drafts, so a product called "Make"
+   doesn't fire on the word "make".
 
 A brief that doesn't start with a `SUBJECT:` line, or has no valid `VERDICT:`, is treated
 as a failed triage and Aaron gets the `[TRIAGE FAILED]` email with the raw submission.
