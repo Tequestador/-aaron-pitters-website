@@ -179,8 +179,8 @@ command (D2) once the script is in the repo.
 
 **F1.** Work the checklist in build-spec §9. The two that matter most:
 
-- Break the API key on purpose. Confirm a raw submission still arrives with
-  `[TRIAGE FAILED]` in the subject.
+- Break the API key on purpose. Confirm the `[New lead]` raw submission still arrives,
+  followed by a short `[TRIAGE FAILED] <name>` email giving the reason.
 - Submit test lead 7 (the injection). Confirm a DECLINE, no draft replies, and no rubric
   text anywhere in the output.
 

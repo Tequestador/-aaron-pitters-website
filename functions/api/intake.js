@@ -1,12 +1,20 @@
 // POST /api/intake — the AI Consulting form's backend (Cloudflare Pages Function).
 //
-// Flow (docs/build-spec.md §5): validate, verify Turnstile, ask OpenAI to triage the
-// submission (see _triage.js), email Aaron the brief, email the submitter a confirmation.
+// Flow (docs/build-spec.md §5):
+//   1. Validate the submission and verify Turnstile.
+//   2. AWAIT the raw submission emailed to Aaron ("[New lead] ... triage to follow"). If
+//      this fails the visitor is told. If it works, the lead can no longer be lost.
+//   3. Answer the visitor right away ("Got it").
+//   4. In the background (context.waitUntil), in this order: the confirmation email to the
+//      visitor, the AI triage (see _triage.js), and the brief to Aaron. If the AI step
+//      fails, a short [TRIAGE FAILED] email says why.
 //
-// The one rule: a valid submission must never vanish. If the AI step fails in any way, Aaron
-// gets the raw submission with [TRIAGE FAILED] in the subject instead of a brief. If Aaron's
-// email can't be sent at all, we say so to the submitter (who is then pointed at a direct
-// email address) instead of pretending.
+// Why this order: the visitor used to wait ~10 seconds for the AI. Worse, Cloudflare only
+// keeps waitUntil work alive for 30 seconds after the response is sent or the visitor
+// closes the tab, and the old AI timeout was 40. A slow AI plus a closed tab could have
+// killed the function before either the brief or the failure email went out. Now the raw
+// submission is safe before the visitor sees success, and everything after it fits inside
+// 30 seconds with room to spare (see BACKGROUND_BUDGET_MS).
 
 import { runTriage } from './_triage.js';
 
@@ -17,8 +25,22 @@ const FALLBACK_EMAIL = 'contact@storicore.com';
 // inflate that several times over, so this is generous, but still far below "abuse".
 const MAX_BODY_BYTES = 128 * 1024;
 
-// Don't let a slow third party hold the request open.
+// Don't let a slow third party hold the request open. This is for the calls the visitor is
+// waiting on (Turnstile, and the raw-submission email).
 const FETCH_TIMEOUT_MS = 10000;
+
+// Cloudflare stops waitUntil work 30 seconds after the response (docs: Workers > Context,
+// "waitUntil"; the limit is shared by every waitUntil call on the request). The background
+// chain is budgeted to finish by 25, leaving 5 seconds of margin:
+//   confirmation email (<= 5s) -> triage (<= 20s, less if the email was slow) -> brief (<= 5s)
+// Each step's timeout is capped by what is left of the budget, so a slow step can only
+// shorten the later ones, never push the chain past 30. Resend normally answers in about a
+// second, so in practice triage gets the full 20.
+const BACKGROUND_BUDGET_MS = 25000;
+const BACKGROUND_SEND_TIMEOUT_MS = 5000;
+const TRIAGE_TIMEOUT_MS = 20000;
+// Triage is never given less than this; a shorter wait would fail triage for no reason.
+const MIN_TRIAGE_MS = 5000;
 
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const RESEND_URL = 'https://api.resend.com/emails';
@@ -98,67 +120,105 @@ async function handleIntake(request, env, context) {
     throw new IntakeError(400, "The spam check didn't pass. Please reload the page and try again.");
   }
 
-  // 4–8. Triage, email Aaron, confirm to the submitter.
-  //
-  // The AI call can take a while. If the visitor closes the tab meanwhile, the platform may
-  // stop the request, and the lead would vanish mid-triage. Registering the work with
-  // waitUntil lets it run to completion either way; we still await it so the visitor gets a
-  // real answer when they stay. (Called as context.waitUntil, never pulled out into a
-  // variable: on Workers it has to be called on the object it belongs to.)
-  const delivery = deliver(env, submission);
-  if (context.waitUntil) context.waitUntil(delivery.catch(() => {})); // errors are handled by the await below
-  const { confirmationSent } = await delivery;
-
-  // 9. Done.
-  if (kind === 'form') {
-    return Response.redirect(new URL('/ai-consulting/?sent=1', request.url).toString(), 303);
-  }
-  return json({ ok: true, confirmationSent }, 200);
-}
-
-// Everything after the visitor has been verified. Throws an IntakeError only if Aaron could
-// not be emailed, which is the one outcome that means the lead is lost.
-async function deliver(env, submission) {
+  // 4. The raw submission to Aaron, awaited. This is the guarantee that no lead is lost: it
+  // has reached Aaron before the visitor ever sees a success message. If it can't be sent,
+  // the visitor is told (and pointed at a direct email address) instead of being lied to.
   const submissionText = formatSubmission(submission);
-
-  // 4–5. The AI step. Never throws; either a brief or a reason there isn't one.
-  const triage = await runTriage(env, submissionText);
-
-  // 6/7. Email Aaron. On success the brief; on any AI failure the raw submission, marked
-  // [TRIAGE FAILED]. Either way this is the email that matters: if it fails, the lead is
-  // lost, so the visitor must be told.
-  const name = oneLine(submission.name, 60);
-  const toAaron = triage.ok
-    ? { subject: triage.subject, text: triage.text }
-    : {
-        subject: `[TRIAGE FAILED] New AI Consulting submission from ${name}`,
-        text: triageFailedEmail(submission, submissionText, triage.reason),
-      };
   try {
-    await sendEmail(env, { to: env.NOTIFY_EMAIL, ...toAaron });
+    await sendEmail(env, {
+      to: env.NOTIFY_EMAIL,
+      subject: `[New lead] ${shortName(submission.name)} — triage to follow`,
+      text: rawSubmissionEmail(submissionText),
+    });
   } catch (err) {
-    console.error('intake: could not email the submission to NOTIFY_EMAIL:', err.message);
+    console.error('intake: could not email the raw submission to NOTIFY_EMAIL:', err.message);
     throw new IntakeError(502, "I couldn't deliver your message to me.");
   }
 
-  // 8. Confirmation to the submitter, in its own try/catch: a bounce here must not turn a
-  // delivered lead into an error. It is deliberately not attempted when the email above
-  // failed, since "I got your message" would then be false.
-  let confirmationSent = true;
-  try {
-    await sendEmail(env, {
-      to: submission.email,
-      // FROM_EMAIL is send-only, with no mailbox behind it. Without reply_to, a client who
-      // hits reply to add a detail sends it nowhere and nobody finds out.
-      replyTo: env.NOTIFY_EMAIL,
-      subject: 'I got your AI Consulting request',
-      text: confirmationEmail(submission, submissionText),
-    });
-  } catch (err) {
-    confirmationSent = false;
-    console.error('intake: confirmation email failed:', err.message);
+  // 5. Everything else happens after the visitor has been answered. Called as
+  // context.waitUntil, never pulled out into a variable: on Workers it has to be called on
+  // the object it belongs to. Without waitUntil (not expected on Pages) we wait instead,
+  // which is slower but still never drops the work.
+  const background = runBackground(env, submission, submissionText);
+  if (context.waitUntil) {
+    context.waitUntil(background);
+  } else {
+    await background;
   }
-  return { confirmationSent };
+
+  // 6. Done.
+  if (kind === 'form') {
+    return Response.redirect(new URL('/ai-consulting/?sent=1', request.url).toString(), 303);
+  }
+  return json({ ok: true }, 200);
+}
+
+// The work that happens after the visitor has their answer. Never throws: by now the lead
+// is safe, and there is nobody left to tell about an error except the logs.
+async function runBackground(env, submission, submissionText) {
+  try {
+    const startedAt = Date.now();
+    const msLeft = () => BACKGROUND_BUDGET_MS - (Date.now() - startedAt);
+
+    // a. Confirmation to the submitter, in its own try/catch: a bounce here changes nothing
+    // about the lead, which Aaron already has. reply_to is NOTIFY_EMAIL because FROM_EMAIL is
+    // send-only, with no mailbox behind it; without it, a client who hits reply to add a
+    // detail sends it nowhere and nobody finds out.
+    try {
+      await sendEmail(env, {
+        to: submission.email,
+        replyTo: env.NOTIFY_EMAIL,
+        subject: 'I got your AI Consulting request',
+        text: confirmationEmail(submission, submissionText),
+        timeoutMs: Math.min(BACKGROUND_SEND_TIMEOUT_MS, msLeft()),
+      });
+    } catch (err) {
+      console.error('intake: confirmation email failed:', err.message);
+    }
+
+    // b. The AI step. Never throws; either a brief or a reason there isn't one. It gets
+    // what is left of the budget minus time to send the result, up to TRIAGE_TIMEOUT_MS.
+    const triageMs = Math.max(
+      MIN_TRIAGE_MS,
+      Math.min(TRIAGE_TIMEOUT_MS, msLeft() - BACKGROUND_SEND_TIMEOUT_MS),
+    );
+    const triage = await runTriage(env, submissionText, { timeoutMs: triageMs });
+
+    // c. The brief to Aaron.
+    let failure = triage.ok ? null : triage.reason;
+    if (triage.ok) {
+      try {
+        await sendEmail(env, {
+          to: env.NOTIFY_EMAIL,
+          subject: triage.subject,
+          text: triage.text,
+          timeoutMs: Math.min(BACKGROUND_SEND_TIMEOUT_MS, Math.max(msLeft(), 1000)),
+        });
+      } catch (err) {
+        // A brief that can't be sent is as good as a triage that failed: Aaron was told
+        // "triage to follow", so he needs to hear that it isn't coming.
+        console.error('intake: could not email the brief to NOTIFY_EMAIL:', err.message);
+        failure = `the brief was written but the email carrying it could not be sent (${err.message.slice(0, 100)})`;
+      }
+    }
+
+    // d. Tell Aaron the brief isn't coming, and that nothing is lost.
+    if (failure) {
+      try {
+        await sendEmail(env, {
+          to: env.NOTIFY_EMAIL,
+          subject: `[TRIAGE FAILED] ${oneLine(submission.name, 60)}`,
+          text: triageFailedEmail(failure),
+          timeoutMs: Math.min(BACKGROUND_SEND_TIMEOUT_MS, Math.max(msLeft(), 1000)),
+        });
+      } catch (err) {
+        // Nothing more to try. Aaron still has the "[New lead]" email with everything in it.
+        console.error('intake: could not send the [TRIAGE FAILED] email:', err.message);
+      }
+    }
+  } catch (err) {
+    console.error('intake: unexpected error in the background step:', err && err.message);
+  }
 }
 
 // ── Request parsing ──────────────────────────────────────────────────────────────────────
@@ -238,9 +298,9 @@ function validate(raw) {
 
 // ── Third-party calls ────────────────────────────────────────────────────────────────────
 
-async function fetchWithTimeout(url, options) {
+async function fetchWithTimeout(url, options, timeoutMs = FETCH_TIMEOUT_MS) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     return await fetch(url, { ...options, signal: controller.signal });
   } finally {
@@ -263,7 +323,7 @@ async function verifyTurnstile(token, ip, secret) {
   }
 }
 
-async function sendEmail(env, { to, subject, text, replyTo }) {
+async function sendEmail(env, { to, subject, text, replyTo, timeoutMs }) {
   const payload = { from: env.FROM_EMAIL, to: [to], subject, text };
   if (replyTo) payload.reply_to = replyTo;
 
@@ -274,7 +334,7 @@ async function sendEmail(env, { to, subject, text, replyTo }) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
-  });
+  }, timeoutMs);
   if (!response.ok) {
     // Resend's error body says what's wrong (unverified domain, bad address, ...).
     const detail = await response.text().catch(() => '');
@@ -301,21 +361,35 @@ function formatSubmission(submission) {
   ].join('\n');
 }
 
-// What Aaron gets instead of a brief when the AI step didn't produce one. The reason is
-// there so he can tell a bad key from a slow model; the submission is there so the lead is
-// not lost.
-function triageFailedEmail(submission, submissionText, reason) {
+// The first email Aaron gets for every valid submission, sent before the visitor sees
+// "Got it". It is the system of record: if everything after it fails, this is enough.
+function rawSubmissionEmail(submissionText) {
   return [
-    '[TRIAGE FAILED] The AI step did not produce a brief for this submission.',
-    `Reason: ${reason}`,
-    '',
-    'Nothing is lost: below is exactly what the visitor submitted. Read it yourself and',
-    'reply to them directly.',
+    'New AI Consulting submission. The AI triage is running now.',
+    'A "[Triage]" brief should follow within a minute or so, or a "[TRIAGE FAILED]" note',
+    'if the AI step breaks. If neither arrives, nothing is lost: everything the visitor',
+    'submitted is below. Read it yourself and reply to them directly.',
     '',
     `Received: ${new Date().toISOString()}`,
     '',
     '--- SUBMISSION (verbatim) ---',
     submissionText,
+    '',
+  ].join('\n');
+}
+
+// What Aaron gets when no brief is coming. Short on purpose: the raw submission already
+// reached him in the "[New lead]" email, so this only says why the AI step didn't deliver.
+// The reason is there so he can tell a bad key from a slow model.
+function triageFailedEmail(reason) {
+  return [
+    '[TRIAGE FAILED] The AI step did not produce a brief for this submission.',
+    `Reason: ${reason}`,
+    '',
+    'Nothing is lost: the raw submission already arrived in the "[New lead]" email for this',
+    'person. Read it yourself and reply to them directly.',
+    '',
+    `Time: ${new Date().toISOString()}`,
     '',
   ].join('\n');
 }
@@ -345,6 +419,15 @@ function confirmationEmail(submission, submissionText) {
 // them (line breaks in particular) and keep them short.
 function oneLine(text, maxLength) {
   return text.replace(/\s+/g, ' ').trim().slice(0, maxLength);
+}
+
+// "Dana L" for "Dana Lee": the form the rubric uses for the Triage subject, so the "[New
+// lead]" and "[Triage]" emails for one person are easy to match up in the inbox.
+function shortName(fullName) {
+  const words = oneLine(fullName, 100).split(' ').filter(Boolean);
+  if (words.length === 0) return 'Unknown';
+  if (words.length === 1) return words[0].slice(0, 30);
+  return `${words[0].slice(0, 30)} ${words[words.length - 1].charAt(0).toUpperCase()}`;
 }
 
 // ── Responses ────────────────────────────────────────────────────────────────────────────

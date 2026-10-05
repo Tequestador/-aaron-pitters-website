@@ -2,8 +2,9 @@
 // email Aaron receives. Helper for intake.js; the leading underscore marks it as not a route.
 //
 // The rule this file is built around (CLAUDE.md, "the non-negotiable behavior"): the AI step
-// may fail in any way at all and the lead must still reach Aaron. So runTriage() never
-// throws. It returns either a finished brief or a reason it couldn't make one, and
+// may fail in any way at all and Aaron must still hear about it. (The lead itself is already
+// safe: intake.js emails him the raw submission before triage even starts.) So runTriage()
+// never throws. It returns either a finished brief or a reason it couldn't make one, and
 // intake.js turns the second case into the [TRIAGE FAILED] email. The happy path and the
 // failure path are written together on purpose.
 
@@ -22,9 +23,12 @@ const OPENAI_URL = 'https://api.openai.com/v1/responses';
 // model the limit also counts thinking tokens, and a brief cut off at the limit is useless.
 const MAX_OUTPUT_TOKENS = 8000;
 
-// The visitor is waiting on the form while this runs, and it is comfortably longer than a
-// normal answer. Past this we give up and send the raw submission instead.
-const OPENAI_TIMEOUT_MS = 40000;
+// Triage runs in the background after the visitor has been answered, inside Cloudflare's
+// 30-second waitUntil limit (see intake.js, BACKGROUND_BUDGET_MS). This was 40 seconds,
+// which could outlive that limit if the visitor closed the tab. intake.js passes its own,
+// possibly shorter, value; this default only matters to a caller that doesn't. Past the limit
+// we give up and Aaron gets a [TRIAGE FAILED] note; the raw submission reached him already.
+const OPENAI_TIMEOUT_MS = 20000;
 
 // The five verdicts in rubric §4. A brief without one of these is not a brief.
 const VERDICTS = ['FREE_SUFFICIENT', 'PAID_EXPLAINER', 'PAID_REVIEW', 'DECLINE', 'UNCLEAR'];

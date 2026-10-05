@@ -19,8 +19,9 @@ sections — home, about, books, storicore, blog, contact — shown and hidden b
 inline script at the bottom of the file, with a hamburger menu below 768px. There is no
 framework. There is one build command, `node scripts/build-prompt.mjs`, set in the
 Cloudflare Pages dashboard, which generates the rubric module. The intake function lives in
-`functions/api/intake.js` (validation, Turnstile, the triage step, the brief or
-`[TRIAGE FAILED]` email to Aaron, the confirmation email to the submitter), with the OpenAI
+`functions/api/intake.js` (validation, Turnstile, the raw-submission email to Aaron, then in
+the background the confirmation to the submitter, the triage step, and the brief or
+`[TRIAGE FAILED]` email to Aaron), with the OpenAI
 call and brief-building in `functions/api/_triage.js`. The model name is one constant,
 `OPENAI_MODEL`, at the top of that file.
 
@@ -90,12 +91,42 @@ obviously missing, it was deliberately excluded — check `docs/build-spec.md` �
 
 ## The non-negotiable behavior
 
-If the OpenAI API call fails, times out, or returns something unparseable, the function
-**must still email Aaron the raw submission** with `[TRIAGE FAILED]` in the subject.
+**The raw submission reaches Aaron before the visitor sees "Got it".** The order in
+`intake.js` is fixed:
+
+1. Validate the submission and verify Turnstile.
+2. **Await** the raw-submission email to `NOTIFY_EMAIL`, subject
+   `[New lead] <First name, last initial> — triage to follow`. If this send fails, the
+   visitor gets the error (and `contact@storicore.com`), exactly as before. If it succeeds,
+   the lead cannot be lost, whatever happens next.
+3. Return success to the visitor (JSON, or a 303 for a no-JavaScript post).
+4. In `context.waitUntil`, in this order: the confirmation email to the visitor, triage
+   (about 20 seconds at most), then the brief to `NOTIFY_EMAIL`. If triage fails, or the
+   brief can't be sent, a short `[TRIAGE FAILED] <name>` email says why and notes that the
+   raw submission already arrived.
+
+If the OpenAI API call fails, times out, or returns something unparseable, Aaron still
+gets that `[TRIAGE FAILED]` email, on top of the raw submission he already has.
+
+**Why it is in this order.** It used to be: run triage, then email the brief (or the raw
+submission marked `[TRIAGE FAILED]`), with the visitor waiting on all of it, about 10
+seconds. Cloudflare only keeps `waitUntil` work running for **30 seconds** after the
+response is sent or the visitor disconnects (shared by every `waitUntil` call on the
+request), and the triage timeout was 40. If a visitor closed the tab while the AI was slow,
+Cloudflare could stop the function before either the brief or the failure email was sent,
+and the lead was lost. Now the one email that matters is sent and awaited first, and
+everything after it is budgeted to finish inside 25 seconds (`BACKGROUND_BUDGET_MS`): each
+background step's timeout is capped by what is left, so a slow step shortens the later
+ones instead of running past 30.
+
+Do not move the raw-submission email into `waitUntil`, do not make the background chain
+longer than the budget, and do not raise a timeout without re-checking the sum. Check the
+limit against Cloudflare's current docs (Workers > Context > `waitUntil`) if it is ever
+in question; it was 30 seconds when this was written (October 2026).
 
 A lead is never lost because the AI step broke. The premise of this system is that AI
-saves Aaron time, not that it stands between him and a prospective client. Write this path
-at the same time as the happy path, never afterward.
+saves Aaron time, not that it stands between him and a prospective client. Write the
+failure path at the same time as the happy path, never afterward.
 
 ## The rubric
 

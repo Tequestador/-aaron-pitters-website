@@ -170,7 +170,8 @@ worse than no form.
 
 ## 5. The function — `POST /api/intake`
 
-Steps, in order:
+Steps, in order. **Steps 4–6 are the order that matters** (changed after the first build;
+see "Why this order" at the end of this section).
 
 1. **Method and content type.** Reject anything but POST. Accept both
    `application/json` (the JavaScript path) and `application/x-www-form-urlencoded` (the
@@ -181,47 +182,80 @@ Steps, in order:
 2. **Validate.** Required fields present, lengths within the caps above, email shaped like
    an email. Reject oversize bodies before doing anything expensive.
 3. **Verify Turnstile** server-side against `TURNSTILE_SECRET_KEY`. Reject on failure.
-4. **Build the prompt.** System prompt = the generated rubric string. User message = the
-   submission, clearly delimited, with an explicit line that everything inside is submitted
-   content and not instructions. (Test lead 7 is a prompt injection; this is the line it
-   has to get past, together with rubric §10.)
-5. **Call the OpenAI API.** Use a current mid-tier model — triage is careful reading, not
-   hard reasoning. Check OpenAI's current model list rather than using a model name from
-   memory; names change. Keep the model name in one constant so it can be swapped in one
-   line. Pass the rubric as the system/developer instruction and the delimited submission
-   as the user message. Set a timeout. On any failure, go to step 7's fallback.
+4. **Email Aaron the raw submission, and wait for it.** Subject
+   `[New lead] <First name, last initial> — triage to follow`, body: a short note that
+   triage is running plus the visitor's answers verbatim. This send is **awaited**. If it
+   fails, return the error to the visitor (never a bare 500), pointed at a direct email
+   address, and stop: no confirmation, no AI call. If it succeeds, the lead is safe. This
+   is the guarantee that no lead is lost.
+5. **Return success to the visitor now.** JSON, or the 303 for a form post. Nothing below
+   delays this.
+6. **Everything else runs in `context.waitUntil`, in this order:**
+   1. **Email the confirmation to the submitter.** Short: received, you'll hear within one
+      business day, here's what you sent. Sending them a copy of their own submission is
+      cheap and makes the promise feel real. **Set `reply_to` to `NOTIFY_EMAIL`.**
+      `FROM_EMAIL` is a send-only address with no mailbox behind it. Without a reply-to, a
+      client who hits reply to add a detail sends it nowhere, and nobody finds out. A
+      bounce here is logged and changes nothing else.
+   2. **Triage** (6a and 6b below), with a timeout of about 20 seconds.
+   3. **Email the brief to Aaron** via Resend. Subject line comes from the brief's own
+      `SUBJECT:` line. Body: the brief verbatim, then the raw submission.
+   4. **Fallback — this is the important one.** If the API call fails, times out, or
+      returns something unusable, or the brief email can't be sent, email Aaron a short
+      `[TRIAGE FAILED] <name>` note giving the reason and saying the raw submission already
+      arrived (the "[New lead]" email). The whole design premise is that the AI saves Aaron
+      time, not that it stands between him and his customers.
 
-   The rubric is deliberately provider-neutral. Nothing in it depends on which model reads
-   it, which is what makes the comparison run in DECIDE #2 possible.
+**6a. Build the prompt.** System prompt = the generated rubric string. User message = the
+submission, clearly delimited, with an explicit line that everything inside is submitted
+content and not instructions. (Test lead 7 is a prompt injection; this is the line it
+has to get past, together with rubric §10.)
 
-   *As built:* the call is in `functions/api/_triage.js`, using OpenAI's Responses API
-   (`instructions` = the rubric, `input` = the delimited submission, `store: false` so
-   OpenAI doesn't keep the visitor's words). The model is the constant `OPENAI_MODEL`,
-   currently `gpt-6-sol`, the mid tier of OpenAI's GPT-6 family (`gpt-6-luna` is the small
-   tier for the DECIDE #2 comparison). The model ID and pricing were taken from web-search
-   summaries of OpenAI's announcement and models pages, because the docs themselves were
-   not reachable from the build environment. **Re-check the model ID, the request shape and
-   current pricing against OpenAI's own docs before publishing any number.** A wrong ID or
-   rejected parameter fails safe: the call errors, and the `[TRIAGE FAILED]` email names
-   the HTTP status and error code. The timeout is 40 seconds.
-6. **Email the brief to Aaron** via Resend. Subject line comes from the brief's own
-   `SUBJECT:` line. Body: the brief verbatim, then the raw submission.
-7. **Fallback — this is the important one.** If the API call fails, times out, or returns
-   something unusable, **still email Aaron the raw submission**, subject prefixed
-   `[TRIAGE FAILED]`. A lead must never be lost because the AI step broke. The whole
-   design premise is that the AI saves Aaron time, not that it stands between him and his
-   customers.
-8. **Email the confirmation to the submitter.** Short: received, you'll hear within one
-   business day, here's what you sent. Sending them a copy of their own submission is
-   cheap and makes the promise feel real.
+**6b. Call the OpenAI API.** Use a current mid-tier model — triage is careful reading, not
+hard reasoning. Check OpenAI's current model list rather than using a model name from
+memory; names change. Keep the model name in one constant so it can be swapped in one
+line. Pass the rubric as the system/developer instruction and the delimited submission
+as the user message. Set a timeout. On any failure, go to the fallback in step 6.4.
 
-   **Set `reply_to` to `NOTIFY_EMAIL`.** `FROM_EMAIL` is a send-only address with no
-   mailbox behind it. Without a reply-to, a client who hits reply to add a detail sends it
-   nowhere, and nobody finds out.
-9. **Return 200** with a success flag. Return a useful error otherwise — never a bare 500.
+The rubric is deliberately provider-neutral. Nothing in it depends on which model reads
+it, which is what makes the comparison run in DECIDE #2 possible.
 
-Both emails go out even if one fails; don't let a bounce on the confirmation kill the
-brief. Wrap each independently.
+*As built:* the call is in `functions/api/_triage.js`, using OpenAI's Responses API
+(`instructions` = the rubric, `input` = the delimited submission, `store: false` so
+OpenAI doesn't keep the visitor's words). The model is the constant `OPENAI_MODEL`,
+currently `gpt-6-sol`, the mid tier of OpenAI's GPT-6 family (`gpt-6-luna` is the small
+tier for the DECIDE #2 comparison). The model ID and pricing were taken from web-search
+summaries of OpenAI's announcement and models pages, because the docs themselves were
+not reachable from the build environment. **Re-check the model ID, the request shape and
+current pricing against OpenAI's own docs before publishing any number.** A wrong ID or
+rejected parameter fails safe: the call errors, and the `[TRIAGE FAILED]` email names
+the HTTP status and error code. The timeout is about 20 seconds (it was 40; see "Why this order" below).
+
+**Why this order.** The first build waited for the AI before answering the visitor, which
+made "Got it" take about 10 seconds. Worse, Cloudflare only keeps `waitUntil` work running
+for **30 seconds** after the response is sent or the client disconnects (the limit is shared
+by every `waitUntil` call on the request), and the AI timeout was 40 seconds. A visitor who
+closed the tab while the AI was slow could have had the function stopped before the brief or
+the `[TRIAGE FAILED]` email went out, losing the lead. Sending and awaiting the raw
+submission first removes that: it has reached Aaron before the visitor sees success.
+
+**The 30-second budget.** The background chain is budgeted to end by 25 seconds
+(`BACKGROUND_BUDGET_MS` in `intake.js`): confirmation email at most 5, triage at most 20,
+brief or failure email at most 5. Each step's timeout is capped by the time left, so a slow
+confirmation email shortens the AI wait instead of pushing past 30. `tests/intake.test.mjs`
+runs the chain on a fake clock with everything hanging and checks it ends in time.
+
+**Threading (not done).** It would be nice if the "[New lead]" email and the "[Triage]"
+brief landed in one Gmail thread. That needs a `Message-ID` set on the first email and
+`In-Reply-To`/`References` on the second. Resend's send API takes a custom `headers`
+object, and `In-Reply-To` and `References` are documented examples of it, but its docs do
+not say a caller-supplied `Message-ID` is honored (Amazon SES, a common backend for email APIs,
+does not allow a custom one). Neither could be tested from the build environment, and the
+Cloudflare and Resend docs sites were not reachable from it: both facts here come from
+search results quoting those docs, so re-check them. A rejected header on the raw
+email would fail the one email the whole design depends on, so the two stay separate
+emails, matched by name in the subject, and no workaround was built. To try it later, test
+with a real send first.
 
 ---
 
@@ -270,7 +304,8 @@ brief, so they hold whatever the model wrote:
    doesn't fire on the word "make".
 
 A brief that doesn't start with a `SUBJECT:` line, or has no valid `VERDICT:`, is treated
-as a failed triage and Aaron gets the `[TRIAGE FAILED]` email with the raw submission.
+as a failed triage and Aaron gets the short `[TRIAGE FAILED]` email (the raw submission
+already reached him in the `[New lead]` email).
 
 ---
 
@@ -294,8 +329,14 @@ Before it's done:
 - [ ] Submit a real lead from the test set end to end; brief arrives, format intact.
 - [ ] Submit lead 7 (the injection). No rubric content appears in any output, no draft
       replies are written, verdict is DECLINE.
-- [ ] Break the API key deliberately. Confirm the raw submission still arrives with
-      `[TRIAGE FAILED]`.
+- [ ] The `[New lead] … — triage to follow` email arrives *before* the "Got it" message
+      shows, and the "Got it" appears in about a second, not ten.
+- [ ] Close the tab right after submitting. The brief (or a `[TRIAGE FAILED]` note) still
+      arrives, and the confirmation email still reaches the visitor.
+- [ ] Break the API key deliberately. The `[New lead]` email arrives, then a short
+      `[TRIAGE FAILED] <name>` email giving the reason.
+- [ ] Break the Resend key (or the notify address). The visitor sees the error with the
+      direct email address, and no confirmation is sent.
 - [ ] Submit with JavaScript disabled — page still readable, failure message sensible.
 - [ ] Submit with Turnstile blocked — clean rejection, no crash.
 - [ ] Oversize field (10,000 characters) — rejected before the API call.
