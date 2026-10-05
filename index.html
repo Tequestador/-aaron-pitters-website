@@ -32,7 +32,19 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       line-height: 1.5;
+      /* Keep the footer at the bottom of the window on short pages. */
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
     }
+
+    /* The main area grows to fill the space above the footer. */
+    .site-main { flex: 1 0 auto; }
+
+    /* Sections are shown one at a time, so a link to #about must never scroll the
+       section up under the sticky header. A large scroll margin keeps the page at the top. */
+    .content-section { scroll-margin-top: 100vh; }
 
     a { color: inherit; text-decoration: none; }
     ul { list-style: none; }
@@ -515,16 +527,23 @@
           e.preventDefault();
           const id = link.dataset.target;
           showSection(id);
-          window.location.hash = id;
+          // pushState updates the address bar without the browser jumping to the
+          // section (setting location.hash scrolled tall sections under the sticky header).
+          history.pushState(null, '', '#' + id);
+          window.scrollTo(0, 0);
         });
       });
 
       const initialTarget = window.location.hash.substring(1) || 'home';
       showSection(initialTarget);
+      // A link straight to /#about would otherwise scroll that section under the header.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+      window.scrollTo(0, 0);
 
       window.addEventListener('popstate', () => {
         const id = window.location.hash.substring(1) || 'home';
         showSection(id);
+        window.scrollTo(0, 0);
       });
     });
   </script>
