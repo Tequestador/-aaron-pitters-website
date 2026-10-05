@@ -33,6 +33,23 @@ font. (Older copies of this repo, and the first version of the spec, describe a 
 CDN site; that was replaced.) Dark theme — `#111827` background, `#d1d5db` body text,
 blue-500 accents.
 
+## Start of every session: check for unmerged `claude/*` branches
+
+Work has been lost before: commit `419751c` was live on the site, then was missing from
+`replit-version`, and it was found only because Aaron noticed. So, **before doing anything
+else in a session:**
+
+1. Run `git fetch --all`.
+2. For every remote `claude/*` branch, list the commits that are not in `replit-version`:
+   `git log --oneline origin/replit-version..origin/<branch>` (use `origin/replit-version`
+   after the fetch, not a stale local copy).
+3. Tell Aaron what you found, even if the answer is "nothing".
+4. **Do not start the task** until each of those commits is merged into `replit-version` or
+   Aaron has said, in this session, to ignore it. A merge that conflicts is a stop-and-ask,
+   not something to resolve quietly.
+
+This applies to every task, including small ones.
+
 ## Current work
 
 Adding an AI intake form. Read `docs/build-spec.md` and `docs/project-context.md` before
