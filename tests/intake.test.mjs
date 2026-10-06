@@ -264,10 +264,12 @@ test('the visitor gets their answer before the confirmation, the AI call or the 
   assert.ok(run.emails.some(isBrief));
 });
 
-test('a plain form post (no JavaScript) is redirected with ?sent=1', async () => {
+test('a plain form post (no JavaScript) is redirected back to /consulting/ with ?sent=1', async () => {
   const { response, emails } = await submit({ contentType: 'form' });
   assert.equal(response.status, 303);
-  assert.equal(new URL(response.headers.get('location')).search, '?sent=1');
+  const location = new URL(response.headers.get('location'));
+  assert.equal(location.pathname, '/consulting/', 'straight to the page, not via a redirect');
+  assert.equal(location.search, '?sent=1');
   assert.ok(emails.some(isRaw));
   assert.ok(emails.some(isBrief));
 });
@@ -300,6 +302,7 @@ test('the same error comes back for a form post, as a readable page', async () =
   assert.equal(response.status, 502);
   assert.match(response.headers.get('content-type'), /text\/html/);
   assert.match(text, /contact@storicore\.com/);
+  assert.match(text, /<a href="\/consulting\/">back to the form<\/a>/, 'the error page links back to the new address');
 });
 
 // ── The [TRIAGE FAILED] fallback ─────────────────────────────────────────────────────────

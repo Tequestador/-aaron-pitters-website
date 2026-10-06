@@ -87,10 +87,10 @@ public one.
 
 ## Part C — The page (you, ~20 minutes)
 
-**C1.** Place `ai-consulting-index.html` at `ai-consulting/index.html`.
+**C1.** Place the page at `consulting/index.html`.
 
 **C2.** Put your Turnstile site key from A2 in the page (`data-sitekey` on the
-`cf-turnstile` div). *Done — the real site key is in `ai-consulting/index.html`.*
+`cf-turnstile` div). *Done — the real site key is in `consulting/index.html`.*
 
 **C3.** Do **not** link it from the site nav yet. It goes live unlinked so you can look at
 it, and test the form, before anyone else can find it. The nav link is decided (yes) and
@@ -98,7 +98,7 @@ goes in only once the form is confirmed working — see G1. *(The form is confir
 and the link has been added.)*
 
 **C4.** Commit and push to `replit-version`. Cloudflare Pages deploys automatically. Visit
-`aaronpitters.com/ai-consulting`.
+`aaronpitters.com/consulting/`.
 
 **C5. The one thing to verify:** does the Turnstile widget render above the Send button?
 
@@ -155,8 +155,8 @@ the script ran.
 Open Claude Code in the repo. Opening prompt:
 
 > Read CLAUDE.md, docs/build-spec.md, and docs/project-context.md. We're on the
-> `replit-version` branch, which is what deploys live. We're building the `/ai-consulting`
-> intake. The page is already live at ai-consulting/index.html and the Turnstile widget
+> `replit-version` branch, which is what deploys live. We're building the `/consulting`
+> intake. The page is already live at consulting/index.html and the Turnstile widget
 > renders. Start at build-spec §11 step 5: the function with validation, Turnstile
 > verification, the raw submission emailed to me, and the confirmation email to the
 > submitter. No OpenAI API call yet. Stop there so I can deploy and test it.
@@ -167,7 +167,7 @@ from the first working deploy, or the page is making a claim that isn't true. Su
 form. A raw submission should arrive in your inbox and a confirmation in the test address.
 **This is the real milestone** — the form works and no lead can be lost, with no AI
 involved. If the week goes sideways, you're still open for business. *(Reached: the form
-works end to end on aaronpitters.com/ai-consulting, both emails arrive, and reply-to works.)*
+works end to end on aaronpitters.com/consulting, both emails arrive, and reply-to works.)*
 
 **E2.** Then: the rubric build script, the OpenAI API call, the brief, and the
 `[TRIAGE FAILED]` fallback path — written at the same time, not after. Set the build
@@ -195,8 +195,8 @@ changed and why. That commit is part of the artifact.
 
 ## Part G — Actually live
 
-**G1.** The nav link is decided: **yes**, "AI Consulting" goes in the main nav between STORiCORE and Blog,
-on both the root `index.html` and `ai-consulting/index.html` (marked as the
+**G1.** The nav link is decided: **yes**, "Consulting" goes in the main nav between STORiCORE and Blog,
+on both the root `index.html` and `consulting/index.html` (marked as the
 current page there), once the form is confirmed working. *(Done. The root page's script now
 selects `.nav-link[data-target]`, so it doesn't intercept the new link.)* The nav link is
 the only link to the page: the build spec no longer asks for a separate one from the

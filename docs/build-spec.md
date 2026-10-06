@@ -19,7 +19,7 @@ No database. No dashboard. No login. No payment processing. Aaron's inbox is the
 of record and his mail client is the interface.
 
 ```
-visitor → /ai-consulting form
+visitor → /consulting form
             ↓
         POST /api/intake  (Cloudflare Pages Function)
             ↓
@@ -70,7 +70,7 @@ to it, not a replacement. Everything in the tree below is new except that `.giti
 
 ```
 /.gitignore                      EXISTS — append the entries below before the first commit
-/ai-consulting/index.html              the page and form
+/consulting/index.html                the page and form
 /functions/api/intake.js         the POST handler
 /prompts/triage-rubric.md        the rubric — source of truth, human-edited
 /scripts/build-prompt.mjs        generates the importable prompt module
@@ -96,12 +96,15 @@ source of truth and never drifts from what runs.
 
 ---
 
-## 4. The page — `/ai-consulting`
+## 4. The page — `/consulting`
 
 **A separate page, not a seventh hash section.** The root `index.html` is a one-page site
 with six sections shown and hidden by an inline script. The intake page needs a real URL
 people can be sent to, and the existing file shouldn't grow to absorb a form. Cloudflare
-Pages serves `/ai-consulting/index.html` at `/ai-consulting` with no configuration.
+Pages serves `/consulting/index.html` at `/consulting/` with no configuration. (The page was
+first published at an earlier address and moved; `_redirects` sends the earlier addresses
+to `/consulting/` in one 301 hop each, so shared links keep working. The nav tab reads
+"Consulting"; the page heading, title and emails read "AI Consulting".)
 
 **Match the existing look.** The live site uses inline CSS only: one hand-written
 `<style>` block with semantic class names. It does **not** use Tailwind and does **not**
@@ -110,7 +113,7 @@ system font). Dark theme, `#111827` background, `#d1d5db` text, blue-500 accents
 and `.btn-secondary` classes. Reuse the same header (including the hamburger menu), footer,
 and palette so the page reads as part of the site. Copy the relevant rules from the root
 page's style block rather than refactoring them into a shared file; there is no build step
-and this is not the moment to add one. `ai-consulting/index.html` has been restyled this way.
+and this is not the moment to add one. `consulting/index.html` has been restyled this way.
 
 **CSP: it lives in the Cloudflare dashboard, not the repo.** The site's CSP is a Response
 Header Transform Rule named **"Static Site CSP"** on the aaronpitters.com zone (dashboard →
@@ -156,7 +159,7 @@ The four questions, labelled in full:
 3. What would you like to make easier?
 4. What kind of help are you hoping for?
 
-The link to `/ai-consulting` is the "AI Consulting" item in the main nav (DECIDE #3, decided: yes,
+The link to `/consulting/` is the "Consulting" item in the main nav (DECIDE #3, decided: yes,
 done). No separate link from the root page's Contact section is required; the nav link
 replaces it.
 
@@ -176,7 +179,7 @@ see "Why this order" at the end of this section).
 1. **Method and content type.** Reject anything but POST. Accept both
    `application/json` (the JavaScript path) and `application/x-www-form-urlencoded` (the
    no-JavaScript path — the form has `method="post" action="/api/intake"`). For
-   form-encoded requests, respond with a 303 redirect to `/ai-consulting/?sent=1` on success,
+   form-encoded requests, respond with a 303 redirect to `/consulting/?sent=1` on success,
    and to a plain error page on failure; for JSON requests, respond with JSON. The Turnstile
    widget submits its token in a field named `cf-turnstile-response` either way.
 2. **Validate.** Required fields present, lengths within the caps above, email shaped like
@@ -392,7 +395,7 @@ an interviewer notices.
 2. Confirm Turnstile renders on a throwaway page. Fix the CSP only if it turns out one
    exists and blocks it. *(Done: the dashboard rule "Static Site CSP" did block it and has
    been updated — see §4.)*
-3. The `/ai-consulting` page, static, form posting nowhere.
+3. The `/consulting` page, static, form posting nowhere.
 4. `build-prompt.mjs` and the Pages build command.
 5. The function — validation, Turnstile, the raw submission to Aaron, **and the
    confirmation email to the submitter.** The page's success message says a copy was sent,
@@ -416,9 +419,9 @@ contact form and you are open for business.
    set between a mid and a small model, since the cost difference at this volume is
    trivial but the quality difference on lead 3 and lead 5 might not be — and that
    comparison is itself a documentable evaluation.
-3. **Does `/ai-consulting` appear in the site nav, or is it an unlinked page you send people
+3. **Does `/consulting` appear in the site nav, or is it an unlinked page you send people
    to?** **Decided: yes, it goes in the nav** — between STORiCORE and Blog, on both
-   the root `index.html` and `ai-consulting/index.html` (marked as the current page there). It
+   the root `index.html` and `consulting/index.html` (marked as the current page there). It
    was added only *after* the form was confirmed working end to end, so the page stayed
    unlinked while it was being tested. **Done.** The root page's script now selects
    `.nav-link[data-target]` instead of `.nav-link`, so it doesn't intercept the new link
@@ -431,6 +434,6 @@ contact form and you are open for business.
    and a reply from a different domain than the site invites a spam filter's attention.
 
 5. **Tailwind CDN.** *Resolved by the Replit rewrite:* the live site no longer loads
-   `cdn.tailwindcss.com` or Google Fonts, and `/ai-consulting` doesn't either. (The old CSP
+   `cdn.tailwindcss.com` or Google Fonts, and `/consulting` doesn't either. (The old CSP
    allowed the Tailwind CDN specifically, which is why it's worth remembering that the
    CSP and the CDN went together.)

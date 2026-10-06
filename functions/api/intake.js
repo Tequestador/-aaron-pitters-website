@@ -150,7 +150,7 @@ async function handleIntake(request, env, context) {
 
   // 6. Done.
   if (kind === 'form') {
-    return Response.redirect(new URL('/ai-consulting/?sent=1', request.url).toString(), 303);
+    return Response.redirect(new URL('/consulting/?sent=1', request.url).toString(), 303);
   }
   return json({ ok: true }, 200);
 }
@@ -475,7 +475,7 @@ function errorResponse(status, message, request) {
 <main>
 <h1>Your message wasn't sent</h1>
 <p>${escapeHtml(message)}</p>
-<p>You can go <a href="/ai-consulting/">back to the form</a>, or email me directly at <a href="mailto:${FALLBACK_EMAIL}">${FALLBACK_EMAIL}</a> and I'll pick it up from there.</p>
+<p>You can go <a href="/consulting/">back to the form</a>, or email me directly at <a href="mailto:${FALLBACK_EMAIL}">${FALLBACK_EMAIL}</a> and I'll pick it up from there.</p>
 </main>
 </body>
 </html>`;
