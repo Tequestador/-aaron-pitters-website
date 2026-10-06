@@ -3,7 +3,7 @@
 Written to be handed to Claude Code. It should not need to make design decisions; where
 something is genuinely open it's marked **DECIDE**.
 
-**Companion documents:** `triage-rubric.md` v0.5 (the prompt), `test-leads-v1.md` (the
+**Companion documents:** `triage-rubric.md` v0.6 (the prompt), `test-leads-v1.md` (the
 test set). Do not build until the test set has been run by hand and the rubric revised.
 
 ---
@@ -297,7 +297,7 @@ One formatting requirement: render `My take:` and its `[LEAVE BLANK — Aaron wr
 placeholder so they're unmissable at a glance — the point is that an unfilled *My take* is
 visible before sending, not after.
 
-*As built,* `functions/api/_triage.js` makes four deterministic changes to the model's
+*As built,* `functions/api/_triage.js` makes five deterministic changes to the model's
 brief, so they hold whatever the model wrote:
 
 1. The `SUBJECT:` line becomes the email subject and is removed from the body.
@@ -306,10 +306,19 @@ brief, so they hold whatever the model wrote:
    blank line and `Aaron`, then a closing rule. The rubric (§8) puts the sign-off after
    *My take*, so one lone `Aaron` line after the placeholder is kept. Anything else the
    model wrote there is discarded and the email opens with a NOTE saying so.
-3. The model's own `--- SUBMISSION (verbatim) ---` section is replaced with the visitor's
-   real submission, so the bottom of the email is what they typed and not the model's copy
-   of it.
-4. The brief carries a `TOOLS TO RESEARCH (for Aaron only):` field: tools worth Aaron's
+3. The visitor's real submission is appended at the bottom under `--- SUBMISSION (verbatim)
+   ---`, so the bottom of the email is what they typed. The model does not write it (rubric
+   v0.6: the first live v0.5 brief took 23.8 s, and about 750 of its 1,622 output tokens
+   were this copy, which the system already had). If a model echoes a submission anyway, its
+   copy is cut off first, so there is only ever the real one.
+4. In a draft, a line that is just `[STANDARD QUESTIONS]` becomes the seven standard
+   questions from rubric §11, numbered 1–7, one per line; the draft's own three follow
+   (numbered 8–10). The model writes the marker instead of the questions, for the same
+   speed reason. `scripts/build-prompt.mjs` extracts the seven from the rubric markdown into
+   the generated module (`STANDARD_QUESTIONS`), so the rubric remains the only place they
+   are written and they cannot drift. **The build fails** unless §11 holds exactly seven
+   numbered questions, each on a single line. A draft with no marker is left alone.
+5. The brief carries a `TOOLS TO RESEARCH (for Aaron only):` field: tools worth Aaron's
    checking, each marked "(unverified)". Rubric §10 says none of them may appear in a draft
    unless the client named the tool first. If one does, the email opens with a WARNING
    naming the tool and the draft. It only warns; the brief is still sent. Tool names are

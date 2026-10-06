@@ -7,6 +7,7 @@
 
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 let triage;
 try {
@@ -15,6 +16,7 @@ try {
   throw new Error(`Could not load _triage.js. Run "node scripts/build-prompt.mjs" first. (${err.message})`);
 }
 const { buildBriefEmail, runTriage, OPENAI_MODEL, OPENAI_REASONING_EFFORT } = triage;
+const { STANDARD_QUESTIONS } = await import('../functions/api/_rubric.generated.js');
 
 const PLACEHOLDER = '[LEAVE BLANK — Aaron writes this.]';
 const SUBMISSION = 'Name:     Dana Lee\nEmail:    dana@example.com\n\n1. What made you contact me?\nI run a cleaning business.';
@@ -207,6 +209,134 @@ test('text that is not a brief is refused', () => {
   );
 });
 
+// ── The submission is appended, not written by the model (rubric v0.6) ───────────────────
+
+test('v0.6 shape: the model stops after Draft B and the real submission is appended once, last', () => {
+  const { text } = build({ echo: '' });
+  assert.equal(count(text, '--- SUBMISSION (verbatim) ---'), 1);
+  assert.ok(text.endsWith(`--- SUBMISSION (verbatim) ---\n${SUBMISSION}\n`));
+  // Draft B (with its My take slot) comes before it, with nothing of the model's in between.
+  assert.ok(text.indexOf('--- DRAFT B') < text.indexOf('--- SUBMISSION'));
+});
+
+test('an echo of the submission is still cut off, whatever case the marker is in', () => {
+  const echoed = '--- Submission (verbatim) ---\nName: Someone Else\nI invented this.';
+  const { text } = build({ echo: echoed });
+  assert.ok(!text.includes('Someone Else'));
+  assert.ok(!text.includes('I invented this'));
+  assert.equal(count(text, '--- SUBMISSION (verbatim) ---'), 1);
+  assert.ok(text.endsWith(`--- SUBMISSION (verbatim) ---\n${SUBMISSION}\n`));
+});
+
+test('an echo is cut off even when it comes with the model\'s own copy of the draft sign-off', () => {
+  // The model writes Draft B's sign-off, then (against the rubric) an echo. The sign-off stays.
+  const { text } = build({ echo: '--- SUBMISSION (verbatim) ---\nstuff' });
+  const draftB = text.slice(text.indexOf('--- DRAFT B'), text.indexOf('--- SUBMISSION'));
+  assert.ok(draftB.includes(`${PLACEHOLDER}\n\nAaron\n`));
+});
+
+// ── [STANDARD QUESTIONS] (rubric v0.6) ───────────────────────────────────────────────────
+
+const PERSONALIZED = [
+  '8. How do you assign cleaners to jobs, and how much does travel time matter?',
+  '9. How do you set prices?',
+  '10. How many calls and texts do you handle in a week?',
+].join('\n');
+const PAID_DRAFT = [
+  'Dana,',
+  '',
+  'This is a Workflow Review, $200. Work begins once payment arrives: [PAYMENT LINK]',
+  '',
+  'You\'ve given me the outline. These questions get me the detail.',
+  '',
+  '[STANDARD QUESTIONS]',
+  PERSONALIZED,
+].join('\n');
+const SEVEN = STANDARD_QUESTIONS.map((q, i) => `${i + 1}. ${q}`).join('\n');
+
+test('the standard questions in the build are exactly the seven in the rubric file', () => {
+  // Read straight from the markdown, independently of the build script, to catch drift.
+  const rubric = readFileSync(new URL('../prompts/triage-rubric.md', import.meta.url), 'utf8');
+  const section = rubric.split('### The seven standard questions (Workflow Review only)')[1].split('\n###')[0];
+  const fromFile = section.split('\n').filter((line) => /^\d+\.\s/.test(line)).map((line) => line.replace(/^\d+\.\s+/, ''));
+  assert.equal(fromFile.length, 7);
+  assert.deepEqual(STANDARD_QUESTIONS, fromFile);
+});
+
+test('[STANDARD QUESTIONS] becomes the seven questions, numbered 1-7, with the three after them', () => {
+  const { text } = build({ draftA: PAID_DRAFT });
+  assert.ok(!text.includes('[STANDARD QUESTIONS]'));
+  assert.ok(text.includes(`${SEVEN}\n${PERSONALIZED}`), 'seven, then 8, 9 and 10, in order, one per line');
+  const lines = text.split('\n');
+  for (let n = 1; n <= 7; n++) {
+    assert.equal(lines.filter((l) => l.startsWith(`${n}. `)).length >= 1, true, `question ${n} present`);
+  }
+});
+
+test('the inserted questions are the rubric\'s words exactly, down to the dash and the asterisks', () => {
+  const { text } = build({ draftA: PAID_DRAFT });
+  assert.ok(text.includes('including ones that have nothing to do with AI? And have you tried'));
+  assert.ok(text.includes('6. What should AI *not* do in this process?'));
+  assert.ok(text.includes('7. What practical limits should I know about? Budget, deadlines,'));
+});
+
+test('the marker works in either draft, and in both', () => {
+  const { text } = build({ draftA: PAID_DRAFT, draftB: PAID_DRAFT });
+  assert.equal(count(text, '1. Walk me through the process'), 2);
+  assert.ok(!text.includes('[STANDARD QUESTIONS]'));
+  const onlyB = build({ draftB: PAID_DRAFT }).text;
+  assert.equal(count(onlyB, '1. Walk me through the process'), 1);
+  assert.ok(onlyB.indexOf('1. Walk me through') > onlyB.indexOf('--- DRAFT B'));
+});
+
+test('a draft with no marker is left alone', () => {
+  const draft = 'Dana,\n\nThis is a Quick Read.\n\n1. A question of my own.';
+  const { text } = build({ draftA: draft });
+  assert.ok(text.includes(draft));
+  assert.ok(!text.includes('Walk me through the process'));
+});
+
+test('the marker is only replaced when it is alone on its line', () => {
+  const draft = 'Dana,\n\nI would write [STANDARD QUESTIONS] here, but that is not a marker line.';
+  const { text } = build({ draftA: draft });
+  assert.ok(text.includes('I would write [STANDARD QUESTIONS] here'));
+  assert.ok(!text.includes('Walk me through the process'));
+});
+
+test('a bold or backticked marker on its own line still works', () => {
+  for (const wrapped of ['**[STANDARD QUESTIONS]**', '`[STANDARD QUESTIONS]`', '  [STANDARD QUESTIONS]  ']) {
+    const { text } = build({ draftA: `Dana,\n\n${wrapped}\n${PERSONALIZED}` });
+    assert.ok(text.includes(`${SEVEN}\n${PERSONALIZED}`), wrapped);
+  }
+});
+
+test('a marker outside the drafts (the brief section) is not expanded', () => {
+  const raw = brief().replace('CONFIDENCE:     high — clear question', 'CONFIDENCE:     high\n[STANDARD QUESTIONS]');
+  const { text } = buildBriefEmail(raw, SUBMISSION);
+  assert.ok(!text.includes('Walk me through the process'));
+  assert.equal(count(text, '[STANDARD QUESTIONS]'), 1);
+});
+
+test('the sign-off and My take slot still come after the inserted questions', () => {
+  const { text } = build({ draftA: PAID_DRAFT, takeA: `My take:\n${PLACEHOLDER}\n\nAaron` });
+  const draftA = text.slice(text.indexOf('--- DRAFT A'), text.indexOf('--- DRAFT B'));
+  assert.ok(draftA.indexOf('10. How many calls') < draftA.indexOf('MY TAKE IS EMPTY'));
+  assert.ok(draftA.indexOf(PLACEHOLDER) < draftA.indexOf('\nAaron\n'));
+});
+
+test('words in the standard questions do not trip the TOOLS TO RESEARCH warning', () => {
+  // "Budget" is in question 7. A researched tool with that name must not warn just because
+  // the rubric's own question contains the word.
+  const { text } = build({ tools: 'Budget (unverified) — a made-up tool name', draftA: PAID_DRAFT });
+  assert.ok(!text.includes('WARNING'));
+  assert.ok(text.includes('7. What practical limits should I know about? Budget'));
+});
+
+test('a tool the model really names in a paid draft still warns, with the questions in place', () => {
+  const { text } = build({ draftA: `${PAID_DRAFT}\nTry Zapier.` });
+  assert.match(text.split('\n')[0], /WARNING.*Zapier \(Draft A\)/);
+});
+
 // ── TOOLS TO RESEARCH (3b): not rejected, not garbled ────────────────────────────────────
 
 test('the TOOLS TO RESEARCH field comes through the brief untouched', () => {
@@ -351,7 +481,7 @@ test('runTriage: the submission is sent inside boundary lines, the rubric as ins
   let sent;
   await withFetch(async (url, init) => { sent = JSON.parse(init.body); return openAiAnswer(brief()); },
     () => runTriage({ OPENAI_API_KEY: 'k' }, SUBMISSION));
-  assert.match(sent.instructions, /Intake Triage Rubric — v0\.5/);
+  assert.match(sent.instructions, /Intake Triage Rubric — v0\.6/);
   assert.match(sent.input, /=====BEGIN SUBMISSION [0-9a-f-]+=====/);
   assert.ok(sent.input.includes(SUBMISSION));
   assert.equal(sent.store, false);

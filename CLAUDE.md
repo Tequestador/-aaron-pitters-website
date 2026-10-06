@@ -160,6 +160,14 @@ time, because Pages Functions cannot read markdown off disk at runtime. The gene
 is gitignored. Never edit the generated file, and never hand-copy rubric text into a
 JavaScript module — the drift is the bug.
 
+The same build step extracts the seven standard questions from §11 into the generated
+module (`STANDARD_QUESTIONS`, via `scripts/standard-questions.mjs`). The model writes the
+marker `[STANDARD QUESTIONS]` in Workflow Review drafts and `_triage.js` inserts them, so
+they reach clients exactly as the rubric gives them. §11 must stay exactly seven numbered
+questions, each on one line, or the build fails on purpose. Likewise the model does not
+write the submission; the function appends it. Both exist to cut output tokens: the model's
+time goes to the text it writes, not to thinking.
+
 Do not "improve," summarize, or restructure the rubric's content. Its wording is the result
 of a long set of decisions and some of its constraints exist for reasons the text doesn't
 explain.

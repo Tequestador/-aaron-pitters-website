@@ -6,12 +6,19 @@
 // stays the only place the rubric is written; the generated file is gitignored and is never
 // edited by hand.
 //
+// The same file also carries the seven standard questions from §11 as STANDARD_QUESTIONS.
+// The model writes a marker instead of those questions and the function inserts them, so
+// they reach clients exactly as the rubric gives them. They are extracted here, not copied
+// into a JavaScript file by hand, so they cannot drift. If the rubric doesn't contain
+// exactly seven, the build fails.
+//
 // Run by Cloudflare Pages as the build command:  node scripts/build-prompt.mjs
 // Uses only Node's built-in modules, so there is nothing to install.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { extractStandardQuestions } from './standard-questions.mjs';
 
 // Paths are relative to this script, not to wherever the command was run from.
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -33,6 +40,16 @@ if (rubric.trim().length === 0) {
   process.exit(1);
 }
 
+// Fails the build (rather than shipping wrong questions to clients) if §11 isn't exactly
+// seven single-line numbered questions.
+let standardQuestions;
+try {
+  standardQuestions = extractStandardQuestions(rubric);
+} catch (err) {
+  console.error(`build-prompt: ${err.message}`);
+  process.exit(1);
+}
+
 // JSON.stringify writes a string literal that is also valid JavaScript, and it escapes
 // backticks, quotes, backslashes and newlines correctly. That is why the markdown can hold
 // anything without the generated file breaking.
@@ -41,9 +58,12 @@ const output = `// GENERATED FILE. Do not edit; do not commit.
 // To change the rubric, edit the markdown file instead.
 
 export const RUBRIC = ${JSON.stringify(rubric)};
+
+// The seven standard questions from §11, in order, without their numbers.
+export const STANDARD_QUESTIONS = ${JSON.stringify(standardQuestions, null, 2)};
 `;
 
 writeFileSync(outputPath, output, 'utf8');
 
 // Shows up in the Cloudflare build log, which is how you confirm the script actually ran.
-console.log(`build-prompt: wrote functions/api/_rubric.generated.js (${rubric.length} characters from prompts/triage-rubric.md)`);
+console.log(`build-prompt: wrote functions/api/_rubric.generated.js (${rubric.length} characters and ${standardQuestions.length} standard questions from prompts/triage-rubric.md)`);

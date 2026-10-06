@@ -10,7 +10,8 @@
 
 // Generated at build time from prompts/triage-rubric.md by scripts/build-prompt.mjs.
 // It is gitignored, and this import is why the Pages build command must run that script.
-import { RUBRIC } from './_rubric.generated.js';
+// STANDARD_QUESTIONS comes from the same build step: the seven questions in rubric §11.
+import { RUBRIC, STANDARD_QUESTIONS } from './_rubric.generated.js';
 
 // The one place the model is named. To swap models, change this line.
 // (build-spec DECIDE #2 is a comparison run between a mid and a small model. Mid-tier is
@@ -206,16 +207,21 @@ function extractText(data) {
 
 // ── Turning the answer into the email ────────────────────────────────────────────────────
 
-// The rubric (§7) defines the brief's format. The email is that brief with four changes,
+// The rubric (§7) defines the brief's format. The email is that brief with five changes,
 // each made in code so it holds no matter what the model wrote:
 //   1. The SUBJECT: line becomes the email subject and is removed from the body.
 //   2. Every draft's My take is replaced with an unmissable empty slot (§7 of the build
 //      spec). The model is forbidden to write it; this makes sure it never arrives filled.
 //      The one thing kept from after the placeholder is a single "Aaron" sign-off line
 //      (rubric §8: the name comes after My take).
-//   3. The model's own copy of the submission is replaced with the real one, so what Aaron
-//      sees at the bottom is what the visitor typed, not the model's rendition of it.
-//   4. If a tool from TOOLS TO RESEARCH shows up in a draft, a warning goes at the top.
+//   3. The visitor's submission is appended verbatim at the bottom. The model no longer
+//      writes it (rubric §7, v0.6: writing it out cost about 750 output tokens, which is
+//      seconds), so what Aaron sees is what the visitor typed. If a model echoes one anyway,
+//      its copy is cut off first, so there is only ever the real one.
+//   4. A draft's [STANDARD QUESTIONS] line becomes the seven standard questions from rubric
+//      §11, numbered 1-7 (rubric §8, v0.6). The model doesn't write them out, for the same
+//      speed reason; the build script extracts them from the rubric, so they can't drift.
+//   5. If a tool from TOOLS TO RESEARCH shows up in a draft, a warning goes at the top.
 //      The field is for Aaron only (rubric §10); this only warns, it never blocks the brief.
 // Throws a TriageError if the text isn't a brief at all.
 export function buildBriefEmail(modelText, submissionText) {
@@ -243,12 +249,14 @@ export function buildBriefEmail(modelText, submissionText) {
     throw new TriageError('the answer had no valid VERDICT: line');
   }
 
-  // 3. Drop the model's copy of the submission (everything from its marker on).
+  // 3. Cut off a copy of the submission if the model wrote one despite the rubric (everything
+  // from its marker on). The real one is appended below either way.
   const echoAt = body.search(/^---\s*SUBMISSION\b.*$/im);
   if (echoAt !== -1) body = body.slice(0, echoAt);
 
   // 2. Replace each draft's My take with the empty slot, keeping only a lone "Aaron" sign-off.
-  // 4. While we're in each draft, look for tools the brief said were for Aaron's eyes only.
+  // 4. Insert the standard questions where the draft has the marker.
+  // 5. While we're in each draft, look for tools the brief said were for Aaron's eyes only.
   let filledCount = 0;
   const pieces = body.split(/^(?=---\s*DRAFT\b)/im);
   const toolsToResearch = parseToolsToResearch(pieces[0]);
@@ -262,6 +270,8 @@ export function buildBriefEmail(modelText, submissionText) {
     if (written) filledCount++;
 
     const label = (/^---\s*DRAFT\s+([A-Z])\b/i.exec(piece) || [])[1] || String(index);
+    // Checked on what the model wrote, before the standard questions go in: those are the
+    // rubric's words, not a tool recommendation.
     const draftBody = before.split('\n').slice(1).join('\n'); // skip the "--- DRAFT A ---" line
     for (const tool of toolsToResearch) {
       // The rubric lets a draft name a tool the client already used or named.
@@ -269,7 +279,7 @@ export function buildBriefEmail(modelText, submissionText) {
         toolLeaks.push(`${tool} (Draft ${label.toUpperCase()})`);
       }
     }
-    return `${before.trimEnd()}\n\n${mySlot(signOff)}\n\n`;
+    return `${insertStandardQuestions(before).trimEnd()}\n\n${mySlot(signOff)}\n\n`;
   });
 
   const parts = [];
@@ -309,6 +319,18 @@ function mySlot(signOff) {
     ...(signOff ? ['Aaron', ''] : []),
     '################################################################',
   ].join('\n');
+}
+
+// The line the model writes in a Workflow Review draft where the seven standard questions go
+// (rubric §8). Alone on its line; a stray bold/backtick around it is forgiven.
+const STANDARD_QUESTIONS_MARKER = /^[ \t]*[*_`]*\[STANDARD QUESTIONS\][*_`]*[ \t]*$/gm;
+
+// Replaces each marker line with the seven questions, numbered 1-7, one per line. A draft
+// with no marker comes back unchanged. (The replacement is a function so nothing in a
+// question can be read as a special "$" pattern.)
+function insertStandardQuestions(draftText) {
+  const numbered = STANDARD_QUESTIONS.map((question, i) => `${i + 1}. ${question}`).join('\n');
+  return draftText.replace(STANDARD_QUESTIONS_MARKER, () => numbered);
 }
 
 // A line that is just the name, with or without markdown bold/italics around it.
