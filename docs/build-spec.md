@@ -190,14 +190,15 @@ see "Why this order" at the end of this section).
    is the guarantee that no lead is lost.
 5. **Return success to the visitor now.** JSON, or the 303 for a form post. Nothing below
    delays this.
-6. **Everything else runs in `context.waitUntil`, in this order:**
+6. **Everything else runs in `context.waitUntil`.** The confirmation (6.1) and triage (6.2)
+   start at the same time; the brief (6.3) follows triage.
    1. **Email the confirmation to the submitter.** Short: received, you'll hear within one
       business day, here's what you sent. Sending them a copy of their own submission is
       cheap and makes the promise feel real. **Set `reply_to` to `NOTIFY_EMAIL`.**
       `FROM_EMAIL` is a send-only address with no mailbox behind it. Without a reply-to, a
       client who hits reply to add a detail sends it nowhere, and nobody finds out. A
       bounce here is logged and changes nothing else.
-   2. **Triage** (6a and 6b below), with a timeout of about 20 seconds.
+   2. **Triage** (6a and 6b below), with a timeout of 24 seconds.
    3. **Email the brief to Aaron** via Resend. Subject line comes from the brief's own
       `SUBJECT:` line. Body: the brief verbatim, then the raw submission.
    4. **Fallback — this is the important one.** If the API call fails, times out, or
@@ -229,7 +230,17 @@ summaries of OpenAI's announcement and models pages, because the docs themselves
 not reachable from the build environment. **Re-check the model ID, the request shape and
 current pricing against OpenAI's own docs before publishing any number.** A wrong ID or
 rejected parameter fails safe: the call errors, and the `[TRIAGE FAILED]` email names
-the HTTP status and error code. The timeout is about 20 seconds (it was 40; see "Why this order" below).
+the HTTP status and error code. The timeout is 24 seconds (it was 40, then 20; see "Why this order" below).
+
+   The call sets `reasoning: { effort: OPENAI_REASONING_EFFORT }`, `low` for now, a constant
+   next to `OPENAI_MODEL`. gpt-6-sol accepts none, low, medium (its default), high, xhigh
+   and max; the first live submission, at the default, did not answer in 19.9 seconds. The
+   parameter shape and the `usage` field names below were checked against search results
+   quoting OpenAI's docs, not the docs themselves, which were unreachable from the build
+   environment. The call's time and token counts (`usage.input_tokens`,
+   `usage.output_tokens`, `usage.output_tokens_details.reasoning_tokens`) are put on one line,
+   `Triage: 14.2 s · 9,800 in / 2,100 out (1,200 reasoning) · gpt-6-sol · effort low`, at the
+   bottom of every brief, in the `[TRIAGE FAILED]` email, and in the Cloudflare log.
 
 **Why this order.** The first build waited for the AI before answering the visitor, which
 made "Got it" take about 10 seconds. Worse, Cloudflare only keeps `waitUntil` work running
@@ -239,11 +250,13 @@ closed the tab while the AI was slow could have had the function stopped before 
 the `[TRIAGE FAILED]` email went out, losing the lead. Sending and awaiting the raw
 submission first removes that: it has reached Aaron before the visitor sees success.
 
-**The 30-second budget.** The background chain is budgeted to end by 25 seconds
-(`BACKGROUND_BUDGET_MS` in `intake.js`): confirmation email at most 5, triage at most 20,
-brief or failure email at most 5. Each step's timeout is capped by the time left, so a slow
-confirmation email shortens the AI wait instead of pushing past 30. `tests/intake.test.mjs`
-runs the chain on a fake clock with everything hanging and checks it ends in time.
+**The 30-second budget.** The background chain is budgeted to end by 27.5 seconds
+(`BACKGROUND_BUDGET_MS` in `intake.js`): the confirmation email and triage start together at
+0, triage gets up to 24, then the brief or failure note gets up to 3.5, and never more than
+the time left (a send with under 0.5 seconds left is skipped, and logged). Because the
+confirmation runs alongside triage, a slow email send costs triage nothing.
+`tests/intake.test.mjs` runs the chain on a fake clock with everything hanging and checks
+it ends in time.
 
 **Threading (not done).** It would be nice if the "[New lead]" email and the "[Triage]"
 brief landed in one Gmail thread. That needs a `Message-ID` set on the first email and

@@ -5,9 +5,9 @@
 //   2. AWAIT the raw submission emailed to Aaron ("[New lead] ... triage to follow"). If
 //      this fails the visitor is told. If it works, the lead can no longer be lost.
 //   3. Answer the visitor right away ("Got it").
-//   4. In the background (context.waitUntil), in this order: the confirmation email to the
-//      visitor, the AI triage (see _triage.js), and the brief to Aaron. If the AI step
-//      fails, a short [TRIAGE FAILED] email says why.
+//   4. In the background (context.waitUntil): the confirmation email to the visitor and the
+//      AI triage (see _triage.js) start at the same time, then the brief goes to Aaron. If
+//      the AI step fails, a short [TRIAGE FAILED] email says why.
 //
 // Why this order: the visitor used to wait ~10 seconds for the AI. Worse, Cloudflare only
 // keeps waitUntil work alive for 30 seconds after the response is sent or the visitor
@@ -31,16 +31,18 @@ const FETCH_TIMEOUT_MS = 10000;
 
 // Cloudflare stops waitUntil work 30 seconds after the response (docs: Workers > Context,
 // "waitUntil"; the limit is shared by every waitUntil call on the request). The background
-// chain is budgeted to finish by 25, leaving 5 seconds of margin:
-//   confirmation email (<= 5s) -> triage (<= 20s, less if the email was slow) -> brief (<= 5s)
-// Each step's timeout is capped by what is left of the budget, so a slow step can only
-// shorten the later ones, never push the chain past 30. Resend normally answers in about a
-// second, so in practice triage gets the full 20.
-const BACKGROUND_BUDGET_MS = 25000;
-const BACKGROUND_SEND_TIMEOUT_MS = 5000;
-const TRIAGE_TIMEOUT_MS = 20000;
-// Triage is never given less than this; a shorter wait would fail triage for no reason.
-const MIN_TRIAGE_MS = 5000;
+// chain is budgeted to end by 27.5, leaving 2.5 seconds of margin:
+//   confirmation email and triage start together at 0s
+//   triage (<= 24s), then the brief or the failure note (each <= 3.5s, and never more than
+//   the time left)
+// The confirmation runs alongside triage, not before it, so triage gets nearly the whole
+// budget instead of whatever a slow email send left over. Resend normally answers in about a
+// second, so the sends are cut off at 3.5.
+const BACKGROUND_BUDGET_MS = 27500;
+const BACKGROUND_SEND_TIMEOUT_MS = 3500;
+const TRIAGE_TIMEOUT_MS = BACKGROUND_BUDGET_MS - BACKGROUND_SEND_TIMEOUT_MS; // 24s
+// Below this much time left, a send could not finish; skip it rather than overrun.
+const MIN_SEND_MS = 500;
 
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const RESEND_URL = 'https://api.resend.com/emails';
@@ -159,41 +161,41 @@ async function runBackground(env, submission, submissionText) {
   try {
     const startedAt = Date.now();
     const msLeft = () => BACKGROUND_BUDGET_MS - (Date.now() - startedAt);
+    // A send is given up to BACKGROUND_SEND_TIMEOUT_MS, but never more than what is left, so
+    // the chain can't run past the budget. Returns false (sending nothing) if no time is left.
+    const sendWithinBudget = async (email) => {
+      const timeoutMs = Math.min(BACKGROUND_SEND_TIMEOUT_MS, msLeft());
+      if (timeoutMs < MIN_SEND_MS) {
+        console.error('intake: no time left in the background budget to send:', email.subject);
+        return false;
+      }
+      await sendEmail(env, { ...email, timeoutMs });
+      return true;
+    };
 
-    // a. Confirmation to the submitter, in its own try/catch: a bounce here changes nothing
-    // about the lead, which Aaron already has. reply_to is NOTIFY_EMAIL because FROM_EMAIL is
-    // send-only, with no mailbox behind it; without it, a client who hits reply to add a
-    // detail sends it nowhere and nobody finds out.
-    try {
-      await sendEmail(env, {
-        to: submission.email,
-        replyTo: env.NOTIFY_EMAIL,
-        subject: 'I got your AI Consulting request',
-        text: confirmationEmail(submission, submissionText),
-        timeoutMs: Math.min(BACKGROUND_SEND_TIMEOUT_MS, msLeft()),
-      });
-    } catch (err) {
+    // a. Confirmation to the submitter, started now and awaited at the end, so it runs
+    // alongside triage. Its own try/catch: a bounce here changes nothing about the lead,
+    // which Aaron already has. reply_to is NOTIFY_EMAIL because FROM_EMAIL is send-only, with
+    // no mailbox behind it; without it, a client who hits reply to add a detail sends it
+    // nowhere and nobody finds out.
+    const confirmation = sendEmail(env, {
+      to: submission.email,
+      replyTo: env.NOTIFY_EMAIL,
+      subject: 'I got your AI Consulting request',
+      text: confirmationEmail(submission, submissionText),
+      timeoutMs: BACKGROUND_SEND_TIMEOUT_MS,
+    }).catch((err) => {
       console.error('intake: confirmation email failed:', err.message);
-    }
+    });
 
-    // b. The AI step. Never throws; either a brief or a reason there isn't one. It gets
-    // what is left of the budget minus time to send the result, up to TRIAGE_TIMEOUT_MS.
-    const triageMs = Math.max(
-      MIN_TRIAGE_MS,
-      Math.min(TRIAGE_TIMEOUT_MS, msLeft() - BACKGROUND_SEND_TIMEOUT_MS),
-    );
-    const triage = await runTriage(env, submissionText, { timeoutMs: triageMs });
+    // b. The AI step. Never throws; either a brief or a reason there isn't one.
+    const triage = await runTriage(env, submissionText, { timeoutMs: TRIAGE_TIMEOUT_MS });
 
     // c. The brief to Aaron.
     let failure = triage.ok ? null : triage.reason;
     if (triage.ok) {
       try {
-        await sendEmail(env, {
-          to: env.NOTIFY_EMAIL,
-          subject: triage.subject,
-          text: triage.text,
-          timeoutMs: Math.min(BACKGROUND_SEND_TIMEOUT_MS, Math.max(msLeft(), 1000)),
-        });
+        await sendWithinBudget({ to: env.NOTIFY_EMAIL, subject: triage.subject, text: triage.text });
       } catch (err) {
         // A brief that can't be sent is as good as a triage that failed: Aaron was told
         // "triage to follow", so he needs to hear that it isn't coming.
@@ -205,17 +207,18 @@ async function runBackground(env, submission, submissionText) {
     // d. Tell Aaron the brief isn't coming, and that nothing is lost.
     if (failure) {
       try {
-        await sendEmail(env, {
+        await sendWithinBudget({
           to: env.NOTIFY_EMAIL,
           subject: `[TRIAGE FAILED] ${oneLine(submission.name, 60)}`,
-          text: triageFailedEmail(failure),
-          timeoutMs: Math.min(BACKGROUND_SEND_TIMEOUT_MS, Math.max(msLeft(), 1000)),
+          text: triageFailedEmail(failure, triage.statsLine),
         });
       } catch (err) {
         // Nothing more to try. Aaron still has the "[New lead]" email with everything in it.
         console.error('intake: could not send the [TRIAGE FAILED] email:', err.message);
       }
     }
+
+    await confirmation; // already finished in nearly every case; it never rejects
   } catch (err) {
     console.error('intake: unexpected error in the background step:', err && err.message);
   }
@@ -381,10 +384,11 @@ function rawSubmissionEmail(submissionText) {
 // What Aaron gets when no brief is coming. Short on purpose: the raw submission already
 // reached him in the "[New lead]" email, so this only says why the AI step didn't deliver.
 // The reason is there so he can tell a bad key from a slow model.
-function triageFailedEmail(reason) {
+function triageFailedEmail(reason, statsLine) {
   return [
     '[TRIAGE FAILED] The AI step did not produce a brief for this submission.',
     `Reason: ${reason}`,
+    statsLine,
     '',
     'Nothing is lost: the raw submission already arrived in the "[New lead]" email for this',
     'person. Read it yourself and reply to them directly.',

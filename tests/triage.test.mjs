@@ -5,7 +5,7 @@
 // (_triage.js imports the generated rubric module, so the build script has to run first.
 // No packages: this is Node's built-in test runner.)
 
-import { test } from 'node:test';
+import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
 let triage;
@@ -14,7 +14,7 @@ try {
 } catch (err) {
   throw new Error(`Could not load _triage.js. Run "node scripts/build-prompt.mjs" first. (${err.message})`);
 }
-const { buildBriefEmail, runTriage } = triage;
+const { buildBriefEmail, runTriage, OPENAI_MODEL, OPENAI_REASONING_EFFORT } = triage;
 
 const PLACEHOLDER = '[LEAVE BLANK — Aaron writes this.]';
 const SUBMISSION = 'Name:     Dana Lee\nEmail:    dana@example.com\n\n1. What made you contact me?\nI run a cleaning business.';
@@ -322,16 +322,22 @@ function withFetch(handler, fn) {
   const real = globalThis.fetch;
   globalThis.fetch = handler;
   const realError = console.error;
+  const realLog = console.log;
   console.error = () => {}; // runTriage logs failures; keep test output quiet
+  console.log = (...args) => { withFetch.logs.push(args.join(' ')); };
+  withFetch.logs = [];
   return Promise.resolve(fn()).finally(() => {
     globalThis.fetch = real;
     console.error = realError;
+    console.log = realLog;
   });
 }
 
-const openAiAnswer = (text) => new Response(JSON.stringify({
+const USAGE = { input_tokens: 9800, output_tokens: 2100, output_tokens_details: { reasoning_tokens: 1200 } };
+const openAiAnswer = (text, usage) => new Response(JSON.stringify({
   status: 'completed',
   output: [{ type: 'message', content: [{ type: 'output_text', text }] }],
+  ...(usage ? { usage } : {}),
 }), { status: 200 });
 
 test('runTriage: a good answer becomes a brief', async () => {
@@ -349,6 +355,93 @@ test('runTriage: the submission is sent inside boundary lines, the rubric as ins
   assert.match(sent.input, /=====BEGIN SUBMISSION [0-9a-f-]+=====/);
   assert.ok(sent.input.includes(SUBMISSION));
   assert.equal(sent.store, false);
+});
+
+test('runTriage: the request asks for low reasoning effort, from one constant next to the model name', async () => {
+  let sent;
+  await withFetch(async (url, init) => { sent = JSON.parse(init.body); return openAiAnswer(brief()); },
+    () => runTriage({ OPENAI_API_KEY: 'k' }, SUBMISSION));
+  assert.equal(OPENAI_REASONING_EFFORT, 'low');
+  assert.deepEqual(sent.reasoning, { effort: OPENAI_REASONING_EFFORT });
+  assert.equal(sent.model, OPENAI_MODEL);
+});
+
+// ── The "Triage:" measurement line ───────────────────────────────────────────────────────
+
+// Runs one call on a fake clock where the "OpenAI" answer takes `ms` milliseconds.
+async function timedTriage(ms, respond, env = { OPENAI_API_KEY: 'k' }) {
+  mock.timers.enable({ apis: ['Date'] });
+  try {
+    return await withFetch(async () => { mock.timers.tick(ms); return respond(); },
+      () => runTriage(env, SUBMISSION));
+  } finally {
+    mock.timers.reset();
+  }
+}
+
+test('Triage line: time, tokens, reasoning tokens, model and effort, at the bottom of the brief', async () => {
+  const result = await timedTriage(14200, () => openAiAnswer(brief(), USAGE));
+  assert.equal(result.ok, true);
+  const expected = 'Triage: 14.2 s · 9,800 in / 2,100 out (1,200 reasoning) · gpt-6-sol · effort low';
+  assert.equal(result.statsLine, expected);
+  assert.equal(result.text.trimEnd().split('\n').pop(), expected, 'last line of the brief');
+  // Below the verbatim submission, separated from it by a blank line.
+  assert.ok(result.text.includes(`${SUBMISSION}\n\n${expected}\n`));
+});
+
+test('Triage line: console.log gets the same line', async () => {
+  const result = await timedTriage(3000, () => openAiAnswer(brief(), USAGE));
+  assert.deepEqual(withFetch.logs, [`intake: ${result.statsLine}`]);
+});
+
+test('Triage line: no reasoning count from the model means no parenthesis', async () => {
+  const result = await timedTriage(1000, () => openAiAnswer(brief(), { input_tokens: 500, output_tokens: 300 }));
+  assert.equal(result.statsLine, 'Triage: 1.0 s · 500 in / 300 out · gpt-6-sol · effort low');
+});
+
+test('Triage line: an answer with no usage says so rather than inventing numbers', async () => {
+  const result = await timedTriage(2500, () => openAiAnswer(brief()));
+  assert.equal(result.statsLine, 'Triage: 2.5 s · no token counts · gpt-6-sol · effort low');
+});
+
+test('Triage line on failures: the time is there, and so is the log line', async () => {
+  const http500 = await timedTriage(1800, () => new Response('{"error":{"code":"server_error"}}', { status: 500 }));
+  assert.equal(http500.ok, false);
+  assert.equal(http500.statsLine, 'Triage: 1.8 s · no token counts · gpt-6-sol · effort low');
+  assert.deepEqual(withFetch.logs, [`intake: ${http500.statsLine}`]);
+});
+
+test('Triage line on an incomplete answer keeps the token counts: it shows what thinking cost', async () => {
+  const result = await timedTriage(9000, () => new Response(JSON.stringify({
+    status: 'incomplete',
+    incomplete_details: { reason: 'max_output_tokens' },
+    usage: { input_tokens: 9800, output_tokens: 8000, output_tokens_details: { reasoning_tokens: 8000 } },
+  }), { status: 200 }));
+  assert.equal(result.ok, false);
+  assert.equal(result.statsLine, 'Triage: 9.0 s · 9,800 in / 8,000 out (8,000 reasoning) · gpt-6-sol · effort low');
+});
+
+test('Triage line on a timeout: the elapsed time is the timeout', async () => {
+  mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  try {
+    const pending = withFetch((url, init) => new Promise((resolve, reject) => {
+      init.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })));
+    }), () => runTriage({ OPENAI_API_KEY: 'k' }, SUBMISSION, { timeoutMs: 24000 }));
+    await new Promise((resolve) => setImmediate(resolve));
+    mock.timers.tick(24000);
+    const result = await pending;
+    assert.equal(result.ok, false);
+    assert.match(result.reason, /did not answer within 24 seconds/);
+    assert.equal(result.statsLine, 'Triage: 24.0 s · no token counts · gpt-6-sol · effort low');
+  } finally {
+    mock.timers.reset();
+  }
+});
+
+test('Triage line when no call was made (no API key)', async () => {
+  const result = await timedTriage(0, () => openAiAnswer(brief()), {});
+  assert.equal(result.ok, false);
+  assert.equal(result.statsLine, 'Triage: no OpenAI call made · gpt-6-sol · effort low');
 });
 
 const failures = {

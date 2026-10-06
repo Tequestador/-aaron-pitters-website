@@ -3,7 +3,8 @@
 //
 // The order under test (see the header of intake.js for why):
 //   validate + Turnstile -> AWAIT raw email to Aaron -> answer the visitor
-//   -> in waitUntil: confirmation -> triage -> brief (or a short [TRIAGE FAILED] email)
+//   -> in waitUntil: confirmation and triage start together -> brief (or a short
+//      [TRIAGE FAILED] email)
 //
 // Run:  node scripts/build-prompt.mjs && node --test tests/*.test.mjs
 
@@ -66,6 +67,7 @@ const BRIEF = [
 const okBrief = () => new Response(JSON.stringify({
   status: 'completed',
   output: [{ type: 'message', content: [{ type: 'output_text', text: BRIEF }] }],
+  usage: { input_tokens: 9800, output_tokens: 2100, output_tokens_details: { reasoning_tokens: 1200 } },
 }), { status: 200 });
 const okMail = () => new Response('{"id":"x"}', { status: 200 });
 const failMail = () => new Response('{"message":"nope"}', { status: 500 });
@@ -96,8 +98,11 @@ async function start({
   const events = [];      // everything that happened, in order, for ordering checks
   const calls = { openai: 0, turnstile: 0, waitUntil: 0 };
   const realFetch = globalThis.fetch;
+  const logs = [];        // what the function console.log'd (the Cloudflare log lines)
   const realError = console.error;
+  const realLog = console.log;
   console.error = () => {};
+  console.log = (...args) => { logs.push(args.join(' ')); };
   globalThis.fetch = async (url, init) => {
     if (String(url).includes('challenges.cloudflare.com')) {
       calls.turnstile++;
@@ -137,6 +142,7 @@ async function start({
   const restore = () => {
     globalThis.fetch = realFetch;
     console.error = realError;
+    console.log = realLog;
   };
   let response;
   try {
@@ -150,7 +156,7 @@ async function start({
   try { json = JSON.parse(text); } catch (e) { /* a redirect or HTML page */ }
 
   return {
-    response, json, text, emails, events, calls,
+    response, json, text, emails, events, calls, logs,
     // Lets the background work finish, then restores the real fetch. Returns whether every
     // waitUntil promise settled without rejecting.
     async finish() {
@@ -172,16 +178,18 @@ async function submit(options) {
 
 // ── The order ────────────────────────────────────────────────────────────────────────────
 
-test('a good submission: raw email first, then confirmation, triage, brief', async () => {
+test('a good submission: raw email first, then confirmation and triage together, then the brief', async () => {
   const run = await submit();
   assert.equal(run.response.status, 200);
   assert.deepEqual(run.json, { ok: true });
-  assert.deepEqual(run.events, [
-    'send:raw', 'sent:raw',
-    'send:confirmation', 'sent:confirmation',
-    'openai',
-    'send:brief', 'sent:brief',
-  ]);
+  const at = (event) => run.events.indexOf(event);
+  assert.deepEqual(run.events.slice(0, 2), ['send:raw', 'sent:raw'], 'the raw email is first, and finished');
+  // The confirmation and the AI call both start before either has finished...
+  assert.ok(at('send:confirmation') > at('sent:raw') && at('openai') > at('sent:raw'));
+  assert.ok(at('send:confirmation') < at('sent:confirmation') && at('openai') < at('sent:confirmation'));
+  // ...and the brief comes after the AI answered.
+  assert.ok(at('send:brief') > at('openai'));
+  assert.equal(run.events.length, 7);
   assert.equal(run.calls.waitUntil, 1);
   assert.equal(run.emails.filter(isFailed).length, 0, 'no failure email when all went well');
 });
@@ -206,6 +214,34 @@ test('the brief and the confirmation are what they were before the reorder', asy
   assert.equal(confirmation.subject, 'I got your AI Consulting request');
   assert.equal(confirmation.reply_to, ENV.NOTIFY_EMAIL);
   assert.ok(confirmation.text.includes('keep hearing AI could help'));
+});
+
+test('the brief ends with the Triage line, and the same line is logged', async () => {
+  const { emails, logs } = await submit();
+  const lines = emails.find(isBrief).text.trimEnd().split('\n');
+  const last = lines[lines.length - 1];
+  assert.match(last, /^Triage: \d+\.\d s · 9,800 in \/ 2,100 out \(1,200 reasoning\) · gpt-6-sol · effort low$/);
+  assert.ok(logs.includes(`intake: ${last}`), 'console.log got the same line');
+});
+
+test('triage does not wait for the confirmation email', async () => {
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const run = await start({
+    resend: async (payload) => { if (isConfirmation(payload)) await gate; return okMail(); },
+  });
+  try {
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.ok(run.events.includes('send:confirmation'), 'the confirmation has started...');
+    assert.ok(!run.events.includes('sent:confirmation'), '...and is still stuck');
+    assert.ok(run.events.includes('openai'), 'but triage already started');
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.ok(run.events.includes('sent:brief'), 'and its brief went out while the confirmation hung');
+  } finally {
+    release();
+  }
+  assert.equal(await run.finish(), true);
+  assert.ok(run.emails.some(isConfirmation), 'the confirmation still goes out in the end');
 });
 
 test('the visitor gets their answer before the confirmation, the AI call or the brief', async () => {
@@ -298,6 +334,8 @@ for (const [name, options] of Object.entries(aiFailures)) {
     assert.equal(failed.subject, '[TRIAGE FAILED] Dana Lee');
     assert.match(failed.text, /^\[TRIAGE FAILED\]/);
     assert.match(failed.text, /Reason: .+/);
+    assert.match(failed.text, /^Triage: (\d+\.\d s · no token counts|no OpenAI call made) · gpt-6-sol · effort low$/m,
+      'the failure email says how long the call took');
     assert.match(failed.text, /already arrived in the "\[New lead\]" email/);
     assert.ok(!failed.text.includes(GOOD_BODY.q1), 'short: the submission is not repeated');
 
@@ -384,7 +422,7 @@ async function runOnFakeClock(options) {
   }
 }
 
-test('everything in the background hanging: the chain still ends well under 30 seconds', async () => {
+test('everything in the background hanging: the chain still ends under 28 seconds', async () => {
   const { run, elapsed } = await runOnFakeClock({
     openai: hang,
     // The raw email (before the response) must work; every background send hangs.
@@ -392,26 +430,50 @@ test('everything in the background hanging: the chain still ends well under 30 s
   });
   assert.equal(run.response.status, 200);
   assert.ok(elapsed < 28000, `took ${elapsed} ms of fake time`);
-  assert.ok(elapsed >= 15000, 'and it did actually wait for the timeouts, not skip them');
+  assert.ok(elapsed >= 24000, 'and it did actually wait for the timeouts, not skip them');
 });
 
-test('only the AI hangs: triage gives up at about 20 seconds and the failure email follows', async () => {
+test('only the AI hangs: triage gets 24 seconds, then the failure email follows', async () => {
   const { run, elapsed } = await runOnFakeClock({ openai: hang });
-  assert.ok(elapsed >= 19000 && elapsed <= 21000, `triage timed out after ${elapsed} ms`);
+  assert.ok(elapsed >= 23900 && elapsed <= 24300, `triage timed out after ${elapsed} ms`);
   const [failed] = run.emails.filter(isFailed);
   assert.ok(failed);
-  assert.match(failed.text, /did not answer within 20 seconds/);
+  assert.match(failed.text, /did not answer within 24 seconds/);
+  assert.match(failed.text, /^Triage: 24\.0 s · no token counts · gpt-6-sol · effort low$/m);
 });
 
-test('a slow confirmation email shortens the AI wait instead of pushing past 30 seconds', async () => {
+test('a hanging confirmation email costs triage nothing and the chain still ends under 28 seconds', async () => {
   const { run, elapsed } = await runOnFakeClock({
     openai: hang,
     resend: (payload, init) => (isConfirmation(payload) ? hang(init) : okMail()),
   });
-  // Confirmation 5s, then triage gets 25 - 5 - 5 = 15s: about 20s in all, not 25.
-  assert.ok(elapsed >= 19000 && elapsed <= 21000, `chain took ${elapsed} ms`);
+  // The confirmation runs alongside triage, so triage still gets its full 24 seconds.
+  assert.ok(elapsed >= 23900 && elapsed < 28000, `chain took ${elapsed} ms`);
   const [failed] = run.emails.filter(isFailed);
-  assert.match(failed.text, /did not answer within 15 seconds/);
+  assert.match(failed.text, /did not answer within 24 seconds/);
+});
+
+test('a late answer leaves the brief send only the time that is left, and the chain ends under 28 seconds', async () => {
+  const { run, elapsed } = await runOnFakeClock({
+    // The AI answers at 23 seconds; the brief email then hangs.
+    openai: () => new Promise((resolve) => { setTimeout(() => resolve(okBrief()), 23000); }),
+    resend: (payload, init) => (isBrief(payload) ? hang(init) : okMail()),
+  });
+  assert.ok(elapsed >= 26000 && elapsed < 28000, `chain took ${elapsed} ms`);
+  assert.equal(run.emails.filter(isBrief).length, 0);
+});
+
+test('if the brief send eats the last of the budget, the failure note is skipped rather than run past it', async () => {
+  const { run, elapsed } = await runOnFakeClock({
+    // The AI answers at 23.9 seconds, just inside its limit; then the brief email hangs
+    // until its cut-off, which leaves the failure note under 0.5 s: not enough to start.
+    openai: () => new Promise((resolve) => { setTimeout(() => resolve(okBrief()), 23900); }),
+    resend: (payload, init) => (isBrief(payload) ? hang(init) : okMail()),
+  });
+  assert.ok(elapsed < 28000, `chain took ${elapsed} ms`);
+  assert.equal(run.emails.filter(isBrief).length, 0);
+  assert.equal(run.emails.filter(isFailed).length, 0, 'skipped: the raw "[New lead]" email already has everything');
+  assert.ok(run.emails.some(isRaw));
 });
 
 // ── Validation and Turnstile come before anything that costs money ───────────────────────

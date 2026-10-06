@@ -117,10 +117,10 @@ obviously missing, it was deliberately excluded â€” check `docs/build-spec.md` Â
    visitor gets the error (and `contact@storicore.com`), exactly as before. If it succeeds,
    the lead cannot be lost, whatever happens next.
 3. Return success to the visitor (JSON, or a 303 for a no-JavaScript post).
-4. In `context.waitUntil`, in this order: the confirmation email to the visitor, triage
-   (about 20 seconds at most), then the brief to `NOTIFY_EMAIL`. If triage fails, or the
-   brief can't be sent, a short `[TRIAGE FAILED] <name>` email says why and notes that the
-   raw submission already arrived.
+4. In `context.waitUntil`: the confirmation email to the visitor and triage start at the
+   same time (triage gets up to 24 seconds), then the brief goes to `NOTIFY_EMAIL`. If
+   triage fails, or the brief can't be sent, a short `[TRIAGE FAILED] <name>` email says why
+   and notes that the raw submission already arrived.
 
 If the OpenAI API call fails, times out, or returns something unparseable, Aaron still
 gets that `[TRIAGE FAILED]` email, on top of the raw submission he already has.
@@ -132,9 +132,14 @@ response is sent or the visitor disconnects (shared by every `waitUntil` call on
 request), and the triage timeout was 40. If a visitor closed the tab while the AI was slow,
 Cloudflare could stop the function before either the brief or the failure email was sent,
 and the lead was lost. Now the one email that matters is sent and awaited first, and
-everything after it is budgeted to finish inside 25 seconds (`BACKGROUND_BUDGET_MS`): each
-background step's timeout is capped by what is left, so a slow step shortens the later
-ones instead of running past 30.
+everything after it is budgeted to finish inside 27.5 seconds (`BACKGROUND_BUDGET_MS`):
+each send's timeout is capped by what is left, so a slow step can't run past 30. (The
+first live submission timed out at 19.9 seconds when triage had to wait for the
+confirmation email and started with less than 20; the confirmation now runs alongside
+triage, and the model thinks at `low` effort, `OPENAI_REASONING_EFFORT` in `_triage.js`.)
+Every brief ends with a `Triage:` line (time, tokens, model, effort), which is also in the
+`[TRIAGE FAILED]` email and the Cloudflare logs; read it before changing the effort or
+the timeouts.
 
 Do not move the raw-submission email into `waitUntil`, do not make the background chain
 longer than the budget, and do not raise a timeout without re-checking the sum. Check the

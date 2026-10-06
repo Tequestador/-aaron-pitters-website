@@ -17,6 +17,13 @@ import { RUBRIC } from './_rubric.generated.js';
 // the right level for triage: careful reading, not hard reasoning.)
 export const OPENAI_MODEL = 'gpt-6-sol';
 
+// How hard the model thinks before answering: the Responses API's `reasoning.effort`. For
+// gpt-6-sol the values are none, low, medium (the default), high, xhigh and max. Thinking
+// tokens count against the time limit below, and the first live submission timed out at the
+// default, so this starts at low. Raise it (and re-read the "Triage:" line at the bottom of
+// each brief, which shows the time and tokens spent) if the briefs turn out too shallow.
+export const OPENAI_REASONING_EFFORT = 'low';
+
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
 // A brief is roughly 1-2.5k tokens. The limit is well above that because on a reasoning
@@ -42,26 +49,57 @@ class TriageError extends Error {}
 // ── Entry point ──────────────────────────────────────────────────────────────────────────
 
 // submissionText: the visitor's answers as plain text (built by intake.js).
-// Returns { ok: true, subject, text } or { ok: false, reason }. Never throws.
+// Returns { ok: true, subject, text, statsLine } or { ok: false, reason, statsLine }.
+// Never throws. statsLine is the one-line "Triage: 14.2 s · ..." summary of the call; it is
+// already at the bottom of `text`, and intake.js puts it in the [TRIAGE FAILED] email too.
 export async function runTriage(env, submissionText, { timeoutMs = OPENAI_TIMEOUT_MS } = {}) {
+  // Filled in by askOpenAI as the call goes, so a failure still reports how long it took.
+  const stats = { elapsedMs: null, usage: null };
   try {
     if (!env.OPENAI_API_KEY) {
       throw new TriageError('OPENAI_API_KEY is not set');
     }
-    const modelText = await askOpenAI(env.OPENAI_API_KEY, submissionText, timeoutMs);
-    return { ok: true, ...buildBriefEmail(modelText, submissionText) };
+    const modelText = await askOpenAI(env.OPENAI_API_KEY, submissionText, timeoutMs, stats);
+    const brief = buildBriefEmail(modelText, submissionText);
+    const statsLine = formatStatsLine(stats);
+    console.log(`intake: ${statsLine}`);
+    return { ok: true, subject: brief.subject, text: `${brief.text.trimEnd()}\n\n${statsLine}\n`, statsLine };
   } catch (err) {
     const reason = err instanceof TriageError
       ? err.message
       : `unexpected error: ${String(err && err.message).slice(0, 200)}`;
+    const statsLine = formatStatsLine(stats);
     console.error('intake: triage failed:', reason);
-    return { ok: false, reason };
+    console.log(`intake: ${statsLine}`);
+    return { ok: false, reason, statsLine };
   }
+}
+
+// "Triage: 14.2 s · 9,800 in / 2,100 out (1,200 reasoning) · gpt-6-sol · effort low"
+// Without token counts (the call failed before OpenAI said): "... · no token counts · ...".
+function formatStatsLine({ elapsedMs, usage }) {
+  const parts = [];
+  if (elapsedMs === null) {
+    parts.push('no OpenAI call made');
+  } else {
+    parts.push(`${(elapsedMs / 1000).toFixed(1)} s`);
+    if (usage && Number.isFinite(usage.input_tokens) && Number.isFinite(usage.output_tokens)) {
+      const n = (value) => value.toLocaleString('en-US');
+      const reasoning = usage.output_tokens_details && usage.output_tokens_details.reasoning_tokens;
+      parts.push(`${n(usage.input_tokens)} in / ${n(usage.output_tokens)} out`
+        + (Number.isFinite(reasoning) ? ` (${n(reasoning)} reasoning)` : ''));
+    } else {
+      parts.push('no token counts');
+    }
+  }
+  parts.push(OPENAI_MODEL, `effort ${OPENAI_REASONING_EFFORT}`);
+  return `Triage: ${parts.join(' · ')}`;
 }
 
 // ── The OpenAI call ──────────────────────────────────────────────────────────────────────
 
-async function askOpenAI(apiKey, submissionText, timeoutMs) {
+// `stats` is filled in as we go: how long the call took, and OpenAI's token counts.
+async function askOpenAI(apiKey, submissionText, timeoutMs, stats) {
   // The visitor controls everything inside the submission, including any text that looks
   // like a delimiter. A random boundary per request means they can't guess it and so can't
   // "close" the submission early and start writing instructions.
@@ -80,6 +118,7 @@ async function askOpenAI(apiKey, submissionText, timeoutMs) {
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const startedAt = Date.now();
   let response;
   let body;
   try {
@@ -94,6 +133,7 @@ async function askOpenAI(apiKey, submissionText, timeoutMs) {
         instructions: RUBRIC,   // the rubric is the system-level instruction
         input,                  // the delimited submission is the user message
         max_output_tokens: MAX_OUTPUT_TOKENS,
+        reasoning: { effort: OPENAI_REASONING_EFFORT },
         // Don't keep the visitor's words on OpenAI's side. The notice on the form asks people
         // not to send records, and nothing here needs the conversation stored.
         store: false,
@@ -110,6 +150,8 @@ async function askOpenAI(apiKey, submissionText, timeoutMs) {
     throw new TriageError(`could not reach OpenAI (${String(err && err.message).slice(0, 100)})`);
   } finally {
     clearTimeout(timer);
+    // Measured on every path (answer, error, timeout): this is the time the call cost us.
+    stats.elapsedMs = Date.now() - startedAt;
   }
 
   let data = null;
@@ -118,6 +160,10 @@ async function askOpenAI(apiKey, submissionText, timeoutMs) {
   } catch (err) {
     // handled just below; an HTML error page from a proxy lands here too
   }
+
+  // Token counts, when OpenAI sent them. An incomplete answer still carries them, which is
+  // the useful case: it shows whether thinking ate the output budget.
+  if (data && data.usage) stats.usage = data.usage;
 
   if (!response.ok) {
     // Status and error code only. That is enough to diagnose (401 = key, 404 = model name,
