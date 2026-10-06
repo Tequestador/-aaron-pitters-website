@@ -481,7 +481,7 @@ test('runTriage: the submission is sent inside boundary lines, the rubric as ins
   let sent;
   await withFetch(async (url, init) => { sent = JSON.parse(init.body); return openAiAnswer(brief()); },
     () => runTriage({ OPENAI_API_KEY: 'k' }, SUBMISSION));
-  assert.match(sent.instructions, /Intake Triage Rubric — v0\.6/);
+  assert.match(sent.instructions, /Intake Triage Rubric — v0\.7/);
   assert.match(sent.input, /=====BEGIN SUBMISSION [0-9a-f-]+=====/);
   assert.ok(sent.input.includes(SUBMISSION));
   assert.equal(sent.store, false);
