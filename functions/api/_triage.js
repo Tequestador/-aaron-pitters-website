@@ -52,7 +52,8 @@ class TriageError extends Error {}
 // submissionText: the visitor's answers as plain text (built by intake.js).
 // Returns { ok: true, subject, text, statsLine } or { ok: false, reason, statsLine }.
 // Never throws. statsLine is the one-line "Triage: 14.2 s · ..." summary of the call; it is
-// already at the bottom of `text`, and intake.js puts it in the [TRIAGE FAILED] email too.
+// already at the bottom of `text` (after a "---" rule), and intake.js puts it in the
+// [TRIAGE FAILED] email too.
 export async function runTriage(env, submissionText, { timeoutMs = OPENAI_TIMEOUT_MS } = {}) {
   // Filled in by askOpenAI as the call goes, so a failure still reports how long it took.
   const stats = { elapsedMs: null, usage: null };
@@ -64,7 +65,9 @@ export async function runTriage(env, submissionText, { timeoutMs = OPENAI_TIMEOU
     const brief = buildBriefEmail(modelText, submissionText);
     const statsLine = formatStatsLine(stats);
     console.log(`intake: ${statsLine}`);
-    return { ok: true, subject: brief.subject, text: `${brief.text.trimEnd()}\n\n${statsLine}\n`, statsLine };
+    // A blank line and a rule set the measurement apart from the verbatim submission above it;
+    // without them it ran straight on from the client's last sentence.
+    return { ok: true, subject: brief.subject, text: `${brief.text.trimEnd()}\n\n---\n${statsLine}\n`, statsLine };
   } catch (err) {
     const reason = err instanceof TriageError
       ? err.message

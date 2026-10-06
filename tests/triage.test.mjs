@@ -515,8 +515,25 @@ test('Triage line: time, tokens, reasoning tokens, model and effort, at the bott
   const expected = 'Triage: 14.2 s · 9,800 in / 2,100 out (1,200 reasoning) · gpt-6-sol · effort low';
   assert.equal(result.statsLine, expected);
   assert.equal(result.text.trimEnd().split('\n').pop(), expected, 'last line of the brief');
-  // Below the verbatim submission, separated from it by a blank line.
-  assert.ok(result.text.includes(`${SUBMISSION}\n\n${expected}\n`));
+  // Below the verbatim submission, set apart from it by a blank line and a "---" rule.
+  assert.ok(result.text.includes(`${SUBMISSION}\n\n---\n${expected}\n`));
+});
+
+test('Triage line: the submission ends, then a blank line, a --- divider, and only then the Triage line', async () => {
+  const result = await timedTriage(14200, () => openAiAnswer(brief(), USAGE));
+  const lines = result.text.split('\n');
+  const at = lines.findIndex((line) => line.startsWith('Triage: '));
+  assert.equal(lines[at - 1], '---');
+  assert.equal(lines[at - 2], '', 'a blank line before the divider');
+  assert.ok(lines[at - 3].includes('I run a cleaning business.'), "the client's last sentence comes right before the blank line");
+  assert.equal(result.text.match(/^---$/gm).length, 1, 'exactly one divider, and nothing else in the brief is a bare rule');
+  assert.equal(lines.slice(at + 1).join(''), '', 'the Triage line is the last thing in the email');
+});
+
+test('Triage line: the divider is not part of the logged line or the stats line', async () => {
+  const result = await timedTriage(3000, () => openAiAnswer(brief(), USAGE));
+  assert.ok(!result.statsLine.includes('---'));
+  assert.deepEqual(withFetch.logs, [`intake: ${result.statsLine}`]);
 });
 
 test('Triage line: console.log gets the same line', async () => {

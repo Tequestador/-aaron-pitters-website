@@ -240,7 +240,8 @@ the HTTP status and error code. The timeout is 24 seconds (it was 40, then 20; s
    environment. The call's time and token counts (`usage.input_tokens`,
    `usage.output_tokens`, `usage.output_tokens_details.reasoning_tokens`) are put on one line,
    `Triage: 14.2 s · 9,800 in / 2,100 out (1,200 reasoning) · gpt-6-sol · effort low`, at the
-   bottom of every brief, in the `[TRIAGE FAILED]` email, and in the Cloudflare log.
+   bottom of every brief (after a blank line and a `---` divider, so it doesn't run on from
+   the client's last sentence), in the `[TRIAGE FAILED]` email, and in the Cloudflare log.
 
 **Why this order.** The first build waited for the AI before answering the visitor, which
 made "Got it" take about 10 seconds. Worse, Cloudflare only keeps `waitUntil` work running
