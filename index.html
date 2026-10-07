@@ -460,6 +460,8 @@
     }
 
     /* ── STORiCORE ───────────────────────────────────────────── */
+    /* Keeps a phrase together: it wraps to the next line as one unit instead of splitting. */
+    .nowrap { white-space: nowrap; }
     .storicore-section p { font-size: 18px; color: var(--text); margin-bottom: 16px; }
     /* Subheadings: the same size as the card titles on Home (Fraunces 600 comes from the h3 rule). */
     .storicore-section .subheading { font-size: 28px; line-height: 1.2; margin: 40px 0 14px; }
@@ -576,7 +578,7 @@
           <a class="card" href="#storicore" data-target="storicore">
             <p class="eyebrow">STORiCORE</p>
             <h3 class="card-title">A multimedia storytelling company</h3>
-            <p class="card-desc">Original stories told across comics, audio, film, and games, plus apps like 1st Draft. AI‑assisted, human-directed.</p>
+            <p class="card-desc">Original stories told across comics, audio, film, and games, plus apps like 1st Draft. <span class="nowrap">AI-assisted, human-directed.</span></p>
             <span class="card-cta">Visit STORiCORE →</span>
           </a>
           <a class="card" href="/consulting/">
@@ -706,7 +708,7 @@
       <p>STORiCORE also builds apps, including 1st Draft, a voice-first writing assistant for writers. You'll find them on STORiCORE.com.</p>
 
       <h3 class="subheading">How the work gets made</h3>
-      <p>Behind the studio is a production system Aaron built himself. Each story is broken down once into its characters, places and scenes, and that foundation feeds every format. AI does the heavy lifting, and Aaron makes the creative calls at every step. AI‑assisted, human-directed.</p>
+      <p>Behind the studio is a production system Aaron built himself. Each story is broken down once into its characters, places and scenes, and that foundation feeds every format. AI does the heavy lifting, and Aaron makes the creative calls at every step. <span class="nowrap">AI-assisted, human-directed.</span></p>
 
       <h3 class="subheading">Helping others do the same</h3>
       <p>Building STORiCORE taught Aaron what AI can and can't do in real work. He now offers that experience through AI Consulting for writers, creators and small businesses. Tell him what you're trying to do, and he'll tell you plainly whether AI can help and how.</p>
