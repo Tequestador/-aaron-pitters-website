@@ -16,8 +16,9 @@ lands on `replit-version`, either pushed directly or through a pull request into
 Replit leftovers (`.replit`, `replit.md`, `server.py` — they only serve the site inside
 Replit and do nothing on Cloudflare Pages). It is a one-page site with six hash-routed
 sections — home, about, books, storicore, blog, contact — shown and hidden by a small
-inline script at the bottom of the file. On narrow screens the nav wraps under the
-wordmark; the hamburger button is still in the markup (with its script) but is hidden by CSS.
+inline script at the bottom of the file. Below 800px the nav becomes a hamburger menu
+(a slim sticky header and a full-width dropdown panel; the links fit on one row down to about 770px).
+The CSS breakpoint and the `matchMedia('(min-width: 800px)')` in each page's script must stay in step.
 There is no framework. There is one build command, `node scripts/build-prompt.mjs`, set in the
 Cloudflare Pages dashboard, which generates the rubric module. The intake function lives in
 `functions/api/intake.js` (validation, Turnstile, the raw-submission email to Aaron, then in

@@ -155,10 +155,29 @@
       color: var(--text);
     }
 
-    /* The design has the nav wrap under the wordmark on narrow screens instead of collapsing
-       into a menu. The toggle button and its script are still in the page; the button is just
-       hidden. */
-    .mobile-toggle { display: none !important; }
+    /* Below 800px the seven links no longer fit next to the wordmark on one row (they fit down to
+       about 770px), so they move into a menu: a slim sticky header with a button, and a full-width
+       panel that drops down under it. 800 is that cutoff plus a little room; keep the JS
+       matchMedia query below in step with it. */
+    .mobile-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      margin-right: -9px;          /* the 26px icon sits on the page gutter; the 44px target hangs out */
+      background: none;
+      border: 0;
+      border-radius: 8px;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .mobile-toggle svg { width: 26px; height: 26px; }
+    .mobile-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .mobile-toggle .icon-close { display: none; }
+    .mobile-toggle[aria-expanded="true"] .icon-open { display: none; }
+    .mobile-toggle[aria-expanded="true"] .icon-close { display: inline; }
 
     .primary-nav ul {
       display: flex;
@@ -179,6 +198,50 @@
       color: var(--text);
       font-weight: 600;
       border-bottom-color: var(--accent);
+    }
+
+    @media (max-width: 799px) {
+      .header-inner { flex-wrap: nowrap; padding-top: 10px; padding-bottom: 10px; }
+      .mobile-toggle { display: inline-flex; }
+
+      .primary-nav {
+        display: none;
+        position: absolute;        /* .site-header is sticky, so top: 100% is the header's bottom edge */
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        max-height: calc(100vh - 66px);   /* a phone held sideways scrolls the panel instead of clipping it */
+        max-height: calc(100dvh - 66px);
+        overflow-y: auto;
+      }
+      .primary-nav.open { display: block; }
+      .primary-nav ul { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 0; }
+
+      .nav-link {
+        position: relative;
+        display: flex;
+        align-items: center;
+        min-height: 48px;
+        padding: 0 16px;           /* same gutter as the wordmark */
+        font-size: 18px;
+        border-bottom: 0;
+      }
+      .nav-link.active::before {   /* the short amber bar on the left of the current page */
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 3px;
+        height: 24px;
+        margin-top: -12px;
+        background: var(--accent);
+        border-radius: 0 2px 2px 0;
+      }
+    }
+    @media (min-width: 640px) and (max-width: 799px) {
+      .nav-link { padding: 0 32px; }
     }
 
     /* ── Common patterns ────────────────────────────────────── */
@@ -270,12 +333,6 @@
       .container { padding-left: 32px; padding-right: 32px; }
     }
 
-    /* Below 640px the nav sits under the wordmark and takes two or three rows. A header that
-       tall shouldn't follow you down the page, so it scrolls away on phones. */
-    @media (max-width: 639px) {
-      .site-header { position: static; }
-      .primary-nav { width: 100%; }
-    }
 
     /* ══ This page only ════════════════════════════════════════
        Everything above this line is shared with consulting/index.html (the site has no
@@ -522,9 +579,12 @@
       <!-- Mobile toggle -->
       <button id="mobile-toggle" class="mobile-toggle"
               aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+             aria-hidden="true" focusable="false">
+          <path class="icon-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 6h16M4 12h16M4 18h16" />
+          <path class="icon-close" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M6 6l12 12M18 6L6 18" />
         </svg>
       </button>
 
@@ -752,23 +812,29 @@
       const contentSections = document.querySelectorAll('.content-section');
       const currentYearSpan = document.getElementById('current-year');
 
-      // Mobile menu toggle
+      // Mobile menu: the button toggles the panel; a link tap, Escape, or a tap outside closes it.
       const mobileToggle = document.getElementById('mobile-toggle');
       const primaryNav   = document.getElementById('primary-nav');
       if (mobileToggle && primaryNav) {
-        mobileToggle.addEventListener('click', () => {
-          const isOpen = primaryNav.classList.contains('open');
-          primaryNav.classList.toggle('open');
-          mobileToggle.setAttribute('aria-expanded', String(!isOpen));
+        const isOpen = () => primaryNav.classList.contains('open');
+        const setMenu = (open) => {
+          primaryNav.classList.toggle('open', open);
+          mobileToggle.setAttribute('aria-expanded', String(open));
+          mobileToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        };
+        mobileToggle.addEventListener('click', () => setMenu(!isOpen()));
+        document.querySelectorAll('.nav-link').forEach(link => {
+          link.addEventListener('click', () => setMenu(false));
         });
-        navLinks.forEach(link => {
-          link.addEventListener('click', () => {
-            if (window.innerWidth < 768) {
-              primaryNav.classList.remove('open');
-              mobileToggle.setAttribute('aria-expanded', 'false');
-            }
-          });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && isOpen()) { setMenu(false); mobileToggle.focus(); }
         });
+        document.addEventListener('click', (e) => {
+          if (isOpen() && !primaryNav.contains(e.target) && !mobileToggle.contains(e.target)) setMenu(false);
+        });
+        // Widening past the cutoff, or coming back to the page from history, never leaves the menu open.
+        window.matchMedia('(min-width: 800px)').addEventListener('change', () => setMenu(false));
+        window.addEventListener('pageshow', () => setMenu(false));
       }
 
       // Footer year
