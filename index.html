@@ -20,18 +20,77 @@
   <link rel="manifest" href="/site.webmanifest">
   <link rel="shortcut icon" href="/favicon.ico">
 
+  <!-- The two body weights and the heading weight are used on first paint, so fetch them early. -->
+  <link rel="preload" href="/fonts/source-sans-3/source-sans-3-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/source-sans-3/source-sans-3-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/fraunces/fraunces-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+
   <style>
+    /* ── Fonts ──────────────────────────────────────────────────
+       Self-hosted (fonts/). The site's Content Security Policy blocks external font hosts.
+       Fraunces for headings, Source Sans 3 for body text; both are under the SIL Open Font
+       License (see the OFL.txt in each folder under fonts/). */
+    @font-face {
+      font-family: 'Fraunces';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('/fonts/fraunces/fraunces-latin-600-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Fraunces';
+      font-style: italic;
+      font-weight: 400;
+      font-display: swap;
+      src: url('/fonts/fraunces/fraunces-latin-400-italic.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Source Sans 3';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('/fonts/source-sans-3/source-sans-3-latin-400-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Source Sans 3';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('/fonts/source-sans-3/source-sans-3-latin-600-normal.woff2') format('woff2');
+    }
+
+    /* ── Design tokens ──────────────────────────────────────── */
+    :root {
+      --bg: #0E1320;            /* page background */
+      --surface: #121929;       /* "Where to start" band, panels */
+      --border: #222B40;        /* header, footer and section dividers */
+      --card-border: #263049;   /* cards */
+      --button-border: #3A4560; /* outline buttons, form fields */
+      --text: #E7E3DA;          /* body text */
+      --heading: #F4F0E8;       /* headings */
+      --muted: #B6BCC9;         /* nav links, secondary text */
+      --subtle: #8E95A6;        /* small print, footer */
+      --lede: #C9CDD6;          /* tagline, blurbs */
+      --accent: #E8A33D;        /* eyebrows, active nav, primary buttons, links */
+      --accent-hover: #F3C77E;  /* link hover */
+      --on-accent: #15100A;     /* text on amber buttons */
+
+      --font-heading: Fraunces, Georgia, serif;
+      --font-body: 'Source Sans 3', system-ui, sans-serif;
+      color-scheme: dark;
+    }
+
     /* ── Reset & Base ───────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-                   'Helvetica Neue', Arial, sans-serif;
-      background: #111827;
-      color: #d1d5db;
+      font-family: var(--font-body);
+      font-size: 18px;
+      line-height: 1.6;
+      background: var(--bg);
+      color: var(--text);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      line-height: 1.5;
       /* Keep the footer at the bottom of the window on short pages. */
       min-height: 100vh;
       min-height: 100dvh;
@@ -42,353 +101,414 @@
     /* The main area grows to fill the space above the footer. */
     .site-main { flex: 1 0 auto; }
 
-    /* Sections are shown one at a time, so a link to #about must never scroll the
-       section up under the sticky header. A large scroll margin keeps the page at the top. */
-    .content-section { scroll-margin-top: 100vh; }
+    h1, h2, h3 {
+      font-family: var(--font-heading);
+      font-weight: 600;
+      color: var(--heading);
+    }
 
     a { color: inherit; text-decoration: none; }
     ul { list-style: none; }
+    img { max-width: 100%; }
 
-    /* ── Container ──────────────────────────────────────────── */
+    /* Every link and button gets a visible amber focus outline. */
+    a:focus-visible, button:focus-visible,
+    input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* ── Container: 1200px of content, 32px side padding (16px on phones) ── */
     .container {
       width: 100%;
-      max-width: 1280px;
+      max-width: 1264px;
       margin-left: auto;
       margin-right: auto;
-      padding-left: 1rem;
-      padding-right: 1rem;
+      padding-left: 16px;
+      padding-right: 16px;
     }
 
     /* ── Header ─────────────────────────────────────────────── */
     .site-header {
-      background: #111827;
-      color: #d1d5db;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 50;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,.3), 0 2px 4px -2px rgba(0,0,0,.2);
     }
 
     .header-inner {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      padding-top: 1rem;
-      padding-bottom: 1rem;
-      position: relative;
+      gap: 8px 24px;
+      padding-top: 18px;
+      padding-bottom: 18px;
     }
 
     .site-logo {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #fff;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 24px;
+      line-height: 1.2;
+      color: var(--text);
     }
 
-    /* ── Mobile toggle ──────────────────────────────────────── */
-    .mobile-toggle {
-      display: none;
-      background: none;
-      border: none;
-      color: inherit;
-      padding: .5rem;
-      border-radius: .375rem;
-      cursor: pointer;
-    }
-    .mobile-toggle:hover { background: rgba(255,255,255,.1); }
-    .mobile-toggle svg { width: 1.5rem; height: 1.5rem; }
+    /* The design has the nav wrap under the wordmark on narrow screens instead of collapsing
+       into a menu. The toggle button and its script are still in the page; the button is just
+       hidden. */
+    .mobile-toggle { display: none !important; }
 
-    /* ── Nav ─────────────────────────────────────────────────── */
     .primary-nav ul {
       display: flex;
-      gap: 2rem;
+      flex-wrap: wrap;
       align-items: center;
+      gap: 6px 28px;
     }
 
     .nav-link {
-      color: #d1d5db;
-      transition: color .3s;
-      padding-bottom: .25rem;
-      font-size: .9375rem;
+      color: var(--muted);
+      font-size: 16px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid transparent;
+      transition: color .2s, border-color .2s;
     }
-    .nav-link:hover { color: #fff; }
+    .nav-link:hover { color: var(--text); }
     .nav-link.active {
-      font-weight: 700;
-      color: #fff;
-      border-bottom: 2px solid #fff;
-    }
-
-    /* ── Main ────────────────────────────────────────────────── */
-    .site-main {
-      padding-top: 2rem;
-      padding-bottom: 2rem;
-    }
-
-    /* ── Content sections ───────────────────────────────────── */
-    .content-section { display: none; }
-    .content-section.active { display: block; }
-
-    /* ── Home ────────────────────────────────────────────────── */
-    .home-section {
-      text-align: center;
-      padding-top: 4rem;
-      padding-bottom: 4rem;
-    }
-
-    .home-title {
-      font-size: 2.25rem;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 1rem;
-    }
-
-    .home-subtitle {
-      font-size: 1.25rem;
-      color: #9ca3af;
-    }
-
-    /* ── Buttons ─────────────────────────────────────────────── */
-    .btn {
-      display: inline-block;
-      padding: .75rem 1.5rem;
-      background: #3b82f6;
-      color: #fff;
-      font-weight: 500;
-      border-radius: .375rem;
-      text-decoration: none;
-      transition: background .3s;
-      border: 1px solid transparent;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .btn:hover { background: #2563eb; color: #fff; }
-
-    .btn-secondary {
-      display: inline-block;
-      padding: .75rem 1.5rem;
-      background: transparent;
-      color: #93c5fd;
-      font-weight: 500;
-      border-radius: .375rem;
-      text-decoration: none;
-      transition: background .3s, color .3s, border-color .3s;
-      border: 1px solid #3b82f6;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .btn-secondary:hover {
-      background: rgba(59,130,246,.1);
-      color: #fff;
-      border-color: #60a5fa;
-    }
-
-    /* ── About ───────────────────────────────────────────────── */
-    .about-section {
-      max-width: 48rem;
-      margin: 0 auto;
-      padding-top: 2rem;
-      padding-bottom: 2rem;
-    }
-
-    .section-heading {
-      font-size: 1.875rem;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 2rem;
-    }
-
-    .about-section .section-heading { text-align: left; }
-
-    .about-body { display: flex; flex-direction: column; gap: 1.25rem; }
-    .about-body p {
-      font-size: 1.125rem;
-      line-height: 1.75;
-      color: #d1d5db;
-    }
-    .about-body .highlight {
+      color: var(--text);
       font-weight: 600;
-      font-style: italic;
-      color: #fff;
+      border-bottom-color: var(--accent);
     }
 
-    /* ── Books ───────────────────────────────────────────────── */
-    .books-section {
-      max-width: 42rem;
-      margin: 0 auto;
-      padding-top: 3rem;
-      padding-bottom: 3rem;
+    /* ── Common patterns ────────────────────────────────────── */
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      line-height: 1.4;
     }
 
-    .books-section .section-heading { text-align: center; }
+    /* Primary button */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 28px;
+      background: var(--accent);
+      color: var(--on-accent);
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.2;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--on-accent); }
+    .btn:disabled { background: var(--border); border-color: var(--border); color: var(--subtle); cursor: not-allowed; }
 
-    .books-section .under-construction {
-      font-size: 1.25rem;
-      color: #d1d5db;
-      margin-bottom: 1.5rem;
-      text-align: center;
+    /* Outline button */
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 28px;
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.2;
+      border: 1px solid var(--button-border);
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
     }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--heading); }
 
-    .books-section .meanwhile {
-      font-size: 1.125rem;
-      color: #9ca3af;
-      margin-bottom: 2rem;
-    }
-
-    .books-section .btn-wrap {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
-
-    /* ── STORiCORE ───────────────────────────────────────────── */
-    .storicore-section {
-      max-width: 48rem;
-      margin: 0 auto;
-      padding-top: 2rem;
-      padding-bottom: 2rem;
-    }
-
-    .storicore-section .section-heading { text-align: left; }
-
-    .storicore-section p {
-      font-size: 1.125rem;
-      line-height: 1.75;
-      color: #d1d5db;
-    }
-
-    .storicore-section .feature-list {
-      list-style: disc;
-      list-style-position: inside;
-      padding-left: 1rem;
-      margin: 1.5rem 0 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: .75rem;
-    }
-    .storicore-section .feature-list li {
-      font-size: 1.125rem;
-      color: #d1d5db;
-    }
-
-    .storicore-section .visit-link {
-      margin-top: 1.5rem;
-      font-size: 1.125rem;
-    }
-    .storicore-section .visit-link a {
-      color: #60a5fa;
-      text-decoration: underline;
-      font-weight: 500;
-    }
-    .storicore-section .visit-link a:hover { color: #93c5fd; }
-
-    /* ── Blog ────────────────────────────────────────────────── */
-    .blog-section {
-      max-width: 42rem;
-      margin: 0 auto;
-      padding-top: 3rem;
-      padding-bottom: 3rem;
-    }
-
-    .blog-section .section-heading {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
-
-    .blog-section p {
-      font-size: 1.125rem;
-      color: #9ca3af;
-      margin-bottom: 1.5rem;
-    }
-
-    .blog-section .btn-wrap {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    /* ── Contact ─────────────────────────────────────────────── */
-    .contact-section {
-      max-width: 42rem;
-      margin: 0 auto;
-      text-align: center;
-      padding-top: 3rem;
-      padding-bottom: 3rem;
-    }
-
-    .contact-section p {
-      font-size: 1.125rem;
-      color: #9ca3af;
-      margin-bottom: 1.5rem;
-    }
-
-    .contact-section .email-line {
-      font-size: 1.25rem;
-      margin-bottom: 2rem;
-      color: #d1d5db;
-    }
-    .contact-section .email-line a {
-      color: #60a5fa;
-      text-decoration: underline;
-    }
-    .contact-section .email-line a:hover { color: #93c5fd; }
+    /* Store buttons are a little smaller than the page-level buttons. */
+    .btn-store { min-height: 44px; padding: 0 22px; font-size: 16px; }
 
     /* ── Content links ──────────────────────────────────────── */
-    .site-main a:not(.btn):not(.btn-secondary) {
+    .site-main a:not(.btn):not(.btn-secondary):not(.card) {
+      color: var(--accent);
       text-decoration: underline;
-      color: #60a5fa;
+      text-underline-offset: 3px;
     }
-    .site-main a:not(.btn):not(.btn-secondary):hover {
-      color: #93c5fd;
-    }
+    .site-main a:not(.btn):not(.btn-secondary):not(.card):hover { color: var(--accent-hover); }
 
     /* ── Footer ──────────────────────────────────────────────── */
     .site-footer {
-      background: #111827;
-      color: #9ca3af;
-      margin-top: 4rem;
-      padding: 1.5rem 0;
-      text-align: center;
-      font-size: .875rem;
+      border-top: 1px solid var(--border);
+      color: var(--subtle);
+      font-size: 15px;
     }
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px 24px;
+      padding-top: 28px;
+      padding-bottom: 28px;
+    }
+    .site-footer a { color: var(--muted); }
+    .site-footer a:hover { color: var(--text); }
 
     /* ── Hidden utility ──────────────────────────────────────── */
     .hidden { display: none !important; }
 
+    @media (min-width: 640px) {
+      .container { padding-left: 32px; padding-right: 32px; }
+    }
+
+    /* Below 640px the nav sits under the wordmark and takes two or three rows. A header that
+       tall shouldn't follow you down the page, so it scrolls away on phones. */
+    @media (max-width: 639px) {
+      .site-header { position: static; }
+      .primary-nav { width: 100%; }
+    }
+
+    /* ══ This page only ════════════════════════════════════════
+       Everything above this line is shared with consulting/index.html (the site has no
+       shared stylesheet and no build step, so that block is duplicated; keep the two in step). */
+
+    /* Sections are shown one at a time, so a link to #about must never scroll the
+       section up under the sticky header. A large scroll margin keeps the page at the top. */
+    .content-section { scroll-margin-top: 100vh; }
+    .content-section { display: none; }
+    .content-section.active { display: block; }
+
+    /* ── Home: hero ──────────────────────────────────────────── */
+    .hero {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 48px;
+      padding-top: 96px;
+      padding-bottom: 88px;
+    }
+    .hero-text { flex: 1 1 480px; min-width: 0; }
+    .hero-title {
+      font-size: clamp(48px, 9vw, 80px);
+      line-height: 1.02;
+      margin: 18px 0 24px;
+    }
+    .hero-tagline {
+      font-size: 22px;
+      line-height: 1.5;
+      color: var(--lede);
+      max-width: 520px;
+      margin-bottom: 36px;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 16px; }
+
+    /* The fan of four covers. Each image keeps its own shape (height: auto), because House
+       Fly is wider than the others. Every size is a multiple of --u, which is 1px at full size
+       and shrinks only when the screen is too narrow for the fan (it is 572 units wide, and
+       the calc leaves room for the page padding). Below 640px it is capped at 60% (0.6px). */
+    .fan {
+      --u: min(1px, calc((100vw - 92px) / 572));
+      flex: 0 1 auto;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 20px 14px;
+    }
+    .fan img {
+      display: block;
+      position: relative;
+      flex: 0 0 auto;
+      height: auto;
+      border-radius: 3px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.45);
+    }
+    .fan .c1 { width: calc(150 * var(--u)); transform: rotate(-7deg); margin-right: calc(-36 * var(--u)); }
+    .fan .c2 { width: calc(160 * var(--u)); transform: rotate(-2deg); margin-right: calc(-36 * var(--u)); z-index: 1; }
+    .fan .c3 { width: calc(170 * var(--u)); transform: rotate(3deg);  margin-right: calc(-36 * var(--u)); z-index: 2; }
+    .fan .c4 {
+      width: calc(200 * var(--u));
+      transform: rotate(8deg) translateY(calc(-12 * var(--u)));
+      z-index: 3;
+      box-shadow: 0 22px 48px rgba(0,0,0,.55);
+    }
+
+    /* ── Home: Where to start ────────────────────────────────── */
+    .start-band {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding-top: 80px;
+      padding-bottom: 80px;
+    }
+    .start-band h2 { font-size: 36px; line-height: 1.15; margin-bottom: 36px; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 32px;
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: inherit;
+      transition: border-color .2s;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card-title { font-size: 28px; line-height: 1.2; }
+    .card-desc { color: var(--muted); }
+    .card-cta { margin-top: auto; padding-top: 8px; color: var(--accent); font-weight: 600; }
+
+    /* ── Home: Newest release ────────────────────────────────── */
+    .newest {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 56px;
+      padding-top: 88px;
+      padding-bottom: 88px;
+    }
+    .newest-cover {
+      flex: 0 0 auto;
+      width: 280px;
+      max-width: 100%;
+      height: auto;
+      border-radius: 3px;
+      box-shadow: 0 24px 56px rgba(0,0,0,.55);
+    }
+    .newest-text { flex: 1 1 360px; min-width: 0; }
+    .newest-text h2 { font-size: 48px; line-height: 1.1; margin: 10px 0 0; }
+    .subtitle { font-size: 16px; color: var(--subtle); margin-top: 12px; }
+    .newest-blurb { color: var(--lede); max-width: 620px; margin-top: 20px; }
+    .store-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+
+    /* ── Books ───────────────────────────────────────────────── */
+    .books-section { padding-top: 80px; padding-bottom: 32px; }
+    .books-head h1 {
+      font-size: clamp(44px, 7vw, 64px);
+      line-height: 1.05;
+      margin: 14px 0 16px;
+    }
+    .books-head p { color: var(--muted); }
+    .book {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 48px;
+      padding-top: 64px;
+      padding-bottom: 64px;
+      border-top: 1px solid var(--border);
+    }
+    .books-head { margin-bottom: 56px; }
+    .book-cover {
+      flex: 0 0 220px;
+      width: 220px;
+      height: auto;
+      align-self: flex-start;
+      border-radius: 3px;
+      box-shadow: 0 20px 44px rgba(0,0,0,.5);
+    }
+    .book-text { flex: 1 1 420px; min-width: 0; }
+    .book-text h2 { font-size: 40px; line-height: 1.1; margin-top: 8px; }
+    .book-text .subtitle { margin: 10px 0 24px; }
+    .book-text .blurb { font-size: 17px; color: var(--text); margin-bottom: 16px; max-width: 70ch; }
+    .book-text .blurb-line {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-weight: 400;
+      font-size: 21px;
+      color: var(--heading);
+    }
+
+    /* ── About ───────────────────────────────────────────────── */
+    .about-section,
+    .storicore-section {
+      max-width: calc(48rem + 64px);
+      margin: 0 auto;
+      padding: 56px 16px 48px;
+    }
+    .section-heading {
+      font-size: 32px;
+      line-height: 1.15;
+      margin-bottom: 28px;
+    }
+    .about-section .section-heading,
+    .storicore-section .section-heading { text-align: left; }
+
+    .about-body { display: flex; flex-direction: column; gap: 20px; }
+    .about-body p { font-size: 18px; color: var(--text); }
+    /* Book titles: Fraunces italic, the one real italic face the site loads. */
+    .about-body .highlight {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--heading);
+    }
+
+    /* ── STORiCORE ───────────────────────────────────────────── */
+    .storicore-section p { font-size: 18px; color: var(--text); }
+    .storicore-section .feature-list {
+      list-style: disc;
+      list-style-position: inside;
+      padding-left: 16px;
+      margin: 24px 0 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .storicore-section .feature-list li { font-size: 18px; color: var(--text); }
+    .storicore-section .feature-list li::marker { color: var(--accent); }
+    .storicore-section .visit-link { margin-top: 24px; }
+
+    /* ── Blog ────────────────────────────────────────────────── */
+    .blog-section {
+      max-width: calc(42rem + 64px);
+      margin: 0 auto;
+      padding: 56px 16px 48px;
+    }
+    .blog-section .section-heading { text-align: center; margin-bottom: 36px; }
+    .blog-section p { font-size: 18px; color: var(--text); margin-bottom: 24px; }
+    .blog-section .btn-wrap { text-align: center; margin-bottom: 32px; }
+
+    /* ── Contact ─────────────────────────────────────────────── */
+    .contact-section {
+      max-width: calc(42rem + 64px);
+      margin: 0 auto;
+      text-align: center;
+      padding: 56px 16px 48px;
+    }
+    .contact-section p { font-size: 18px; color: var(--text); margin-bottom: 24px; }
+    .contact-section .email-line { font-size: 20px; margin-bottom: 32px; }
+
     /* ── Responsive ──────────────────────────────────────────── */
     @media (min-width: 640px) {
-      .container { padding-left: 1.5rem; padding-right: 1.5rem; }
-      .site-main { padding-top: 3rem; padding-bottom: 3rem; }
-      .home-section { padding-top: 6rem; padding-bottom: 6rem; }
-      .home-title { font-size: 3rem; }
-      .home-subtitle { font-size: 1.5rem; }
-      .section-heading { font-size: 2.25rem; }
-      .about-section .section-heading { text-align: left; }
-      .storicore-section .section-heading { text-align: left; }
-    }
-
-    @media (min-width: 768px) {
-      .mobile-toggle { display: none !important; }
-      .primary-nav { display: block !important; }
-      .home-title { font-size: 3.75rem; }
-    }
-
-    @media (max-width: 767px) {
-      .mobile-toggle { display: block; }
-      .primary-nav {
-        display: none;
-        position: absolute;
-        left: 0; right: 0; top: 100%;
-        background: #111827;
-        border-top: 1px solid rgba(255,255,255,.1);
+      .about-section, .storicore-section, .blog-section, .contact-section {
+        padding-left: 32px;
+        padding-right: 32px;
       }
-      .primary-nav.open { display: block; }
-      .primary-nav ul {
-        flex-direction: column;
-        gap: .75rem;
-        padding: 1rem;
-        align-items: flex-start;
-      }
+      .section-heading { font-size: 36px; }
     }
 
-    @media (min-width: 1024px) {
-      .container { padding-left: 2rem; padding-right: 2rem; }
+    @media (max-width: 639px) {
+      /* The fan is scaled to about 60%, and a little less on the narrowest screens, so it fits
+         without side-scrolling. The tilted corners reach into the page padding. */
+      .fan { --u: min(.6px, calc((100vw - 32px) / 572)); padding-left: 0; padding-right: 0; }
+      /* Smaller cover, sitting above the text. */
+      .book-cover { flex: 0 0 auto; width: 160px; }
     }
   </style>
 </head>
@@ -397,7 +517,7 @@
   <!-- Header with responsive (hamburger) nav -->
   <header class="site-header">
     <div class="container header-inner">
-      <div class="site-logo"></div>
+      <div class="site-logo">Aaron Pitters</div>
 
       <!-- Mobile toggle -->
       <button id="mobile-toggle" class="mobile-toggle"
@@ -423,11 +543,68 @@
     </div>
   </header>
 
-  <main class="site-main container">
+  <main class="site-main">
 
     <section id="home" class="content-section home-section">
-      <h1 class="home-title">Aaron Pitters</h1>
-      <p class="home-subtitle">Author & Founder of STORiCORE</p>
+
+      <div class="container hero">
+        <div class="hero-text">
+          <p class="eyebrow">Author · Founder of STORiCORE</p>
+          <h1 class="hero-title">Aaron Pitters</h1>
+          <p class="hero-tagline">Stories that bridge the mundane and the sublime — and the dark corners of the mind in between.</p>
+          <div class="hero-actions">
+            <a class="btn" href="#books" data-target="books">Read the books</a>
+            <a class="btn-secondary" href="#about" data-target="about">About Aaron</a>
+          </div>
+        </div>
+        <div class="fan">
+          <img class="c1" src="/images/covers/monarch.jpg" alt="Monarch cover" width="600" height="960">
+          <img class="c2" src="/images/covers/psykosis.jpg" alt="Psykosis cover" width="600" height="962">
+          <img class="c3" src="/images/covers/michaelmas.jpg" alt="Michaelmas cover" width="600" height="925">
+          <img class="c4" src="/images/covers/house-fly.jpg" alt="House Fly cover" width="600" height="758">
+        </div>
+      </div>
+
+      <div class="start-band">
+        <div class="container">
+          <h2>Where to start</h2>
+          <div class="cards">
+          <a class="card" href="#books" data-target="books">
+            <p class="eyebrow">Books</p>
+            <h3 class="card-title">Four books of psychological suspense</h3>
+            <p class="card-desc">From a Michaelmas dinner in 1727 to a summer in Silver City in 2006.</p>
+            <span class="card-cta">See the books →</span>
+          </a>
+          <a class="card" href="#storicore" data-target="storicore">
+            <p class="eyebrow">STORiCORE</p>
+            <h3 class="card-title">A storyteller-led studio</h3>
+            <p class="card-desc">Turning prose into comics, audio, and new kinds of stories, with the creative decisions kept in human hands.</p>
+            <span class="card-cta">Visit STORiCORE →</span>
+          </a>
+          <a class="card" href="/consulting/">
+            <p class="eyebrow">Consulting</p>
+            <h3 class="card-title">Practical help with AI</h3>
+            <p class="card-desc">Tell me what you're trying to do. The first read is free, and I'll tell you plainly if you don't need to hire me.</p>
+            <span class="card-cta">Ask a question →</span>
+          </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="container newest">
+        <img class="newest-cover" src="/images/covers/house-fly.jpg" alt="House Fly cover" width="600" height="758">
+        <div class="newest-text">
+          <p class="eyebrow">Newest release</p>
+          <h2>House Fly</h2>
+          <p class="subtitle">Part One of a Two-Part Psychological Sci-fi Series · $2.99</p>
+          <p class="newest-blurb">In the summer of 2006, Harold Landis, a recent divorcee at a crossroads in his life, moved to Silver City to start all over again. The company that hired him owns most of the town. All he has to do is test products and provide feedback. What could go wrong?</p>
+          <div class="store-buttons">
+            <a class="btn btn-store" href="https://a.co/d/hQEEdMC" aria-label="House Fly on Amazon">Amazon</a>
+            <a class="btn-secondary btn-store" href="https://www.barnesandnoble.com/w/house-fly-aaron-pitters/1147055454" aria-label="House Fly on Barnes &amp; Noble">Barnes &amp; Noble</a>
+            <a class="btn-secondary btn-store" href="https://books.apple.com/us/book/house-fly/id6742505264" aria-label="House Fly on Apple Books">Apple Books</a>
+          </div>
+        </div>
+      </div>
 
     </section>
 
@@ -441,13 +618,78 @@
       </div>
     </section>
 
-    <section id="books" class="content-section books-section">
-      <h2 class="section-heading">Books</h2>
-      <p class="under-construction">This page is currently under construction.</p>
-      <p class="meanwhile">In the meantime, please explore Aaron's published works on his blog:</p>
-      <div class="btn-wrap">
-        <a href="https://aaronpitters.blogspot.com/p/books.html" target="_blank" rel="noopener noreferrer" class="btn">Go to Aaron's Book List</a>
+    <section id="books" class="content-section books-section container">
+      <div class="books-head">
+        <p class="eyebrow">Published works</p>
+        <h1>Books</h1>
+        <p>Available as ebooks from Amazon, Barnes &amp; Noble, and Apple Books.</p>
       </div>
+
+      <article class="book" aria-labelledby="book-house-fly">
+        <img class="book-cover" src="/images/covers/house-fly.jpg" alt="House Fly cover" width="600" height="758">
+        <div class="book-text">
+          <p class="eyebrow">Newest</p>
+          <h2 id="book-house-fly">House Fly</h2>
+          <p class="subtitle">Part One of a Two-Part Psychological Sci-fi Series · $2.99</p>
+          <p class="blurb">In the summer of 2006, Harold Landis, a recent divorcee at a crossroads in his life, moved to Silver City to start all over again. He was lured to the area by a too-good-to-pass-up job opportunity. The multi-billion dollar company that hired him owns most of the town and has set Harold up in a sweet house in a new neighborhood. In between dates that he's lined up for himself online, all he has to do is test products and provide feedback. What could go wrong?</p>
+          <p class="blurb">Desperate to get back into the game, Harold wanders into the world of online dating to try and find the right woman. His early efforts are trial and error as he learns the ropes of dating in the 21st century. Things get interesting when a house fly enters his new home and agitates Archie, Harold's playful yet territorial beagle hound.</p>
+          <div class="store-buttons">
+            <a class="btn btn-store" href="https://a.co/d/hQEEdMC" aria-label="House Fly on Amazon">Amazon</a>
+            <a class="btn-secondary btn-store" href="https://www.barnesandnoble.com/w/house-fly-aaron-pitters/1147055454" aria-label="House Fly on Barnes &amp; Noble">Barnes &amp; Noble</a>
+            <a class="btn-secondary btn-store" href="https://books.apple.com/us/book/house-fly/id6742505264" aria-label="House Fly on Apple Books">Apple Books</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="book" aria-labelledby="book-michaelmas">
+        <img class="book-cover" src="/images/covers/michaelmas.jpg" alt="Michaelmas cover" width="600" height="925" loading="lazy">
+        <div class="book-text">
+          <h2 id="book-michaelmas">Michaelmas</h2>
+          <p class="subtitle">Illustrated edition · $2.99</p>
+          <p class="blurb">On an autumn evening in 1727, Thomas Edward Downs sits down with his family to celebrate Michaelmas, in memory of the archangel casting Lucifer out of heaven. Their goose dinner is interrupted by the thunderous sound of a large horse-drawn carriage charging up the lane.</p>
+          <p class="blurb">Doctor Rathbone, a colleague from the local apothecary, implores Thomas to leave with him at once. His assistance is needed with an urgent situation out at the childhood home of the recently deceased Sir Isaac Newton.</p>
+          <p class="blurb">Drawn by duty and curiosity, Thomas kisses his wife and children goodbye and heads out the door and into the rainy night. Upon arriving at Woolsthorpe Manor, the men are ushered inside. Knowing Newton only as the father of modern science, they are unprepared for what they discover in the basement.</p>
+          <div class="store-buttons">
+            <a class="btn btn-store" href="https://a.co/d/b2BW4L6" aria-label="Michaelmas on Amazon">Amazon</a>
+            <a class="btn-secondary btn-store" href="https://www.barnesandnoble.com/w/michaelmas-aaron-pitters/1139928847" aria-label="Michaelmas on Barnes &amp; Noble">Barnes &amp; Noble</a>
+            <a class="btn-secondary btn-store" href="https://books.apple.com/us/book/x/id6476014676" aria-label="Michaelmas on Apple Books">Apple Books</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="book" aria-labelledby="book-psykosis">
+        <img class="book-cover" src="/images/covers/psykosis.jpg" alt="Psykosis cover" width="600" height="962" loading="lazy">
+        <div class="book-text">
+          <h2 id="book-psykosis">Psykosis</h2>
+          <p class="subtitle">$3.99</p>
+          <p class="blurb">When the newly appointed District Attorney is summoned to prison by the man he helped condemn to death, he is warned of an unnamed peril that shall soon befall him.</p>
+          <p class="blurb">After the execution, the mentally exhausted DA is reluctant to bring his stress and worries back home. He decides to visit a local hypnotherapist's office.</p>
+          <p class="blurb">Soon his life is turned upside down. Who he was is no longer who he is. The DA's waking life and his dreams become muddled, and he finds himself mixed up in the activities of a murderous criminal underground. Desperate to find an escape, he begins a search for the mysterious doctor behind it all.</p>
+          <div class="store-buttons">
+            <a class="btn btn-store" href="https://www.amazon.com/dp/B00SYPTMC0" aria-label="Psykosis on Amazon">Amazon</a>
+            <a class="btn-secondary btn-store" href="https://www.barnesandnoble.com/w/psykosis-aaron-pitters/1121144658" aria-label="Psykosis on Barnes &amp; Noble">Barnes &amp; Noble</a>
+            <a class="btn-secondary btn-store" href="https://books.apple.com/us/book/psykosis/id963355751" aria-label="Psykosis on Apple Books">Apple Books</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="book" aria-labelledby="book-monarch">
+        <img class="book-cover" src="/images/covers/monarch.jpg" alt="Monarch cover" width="600" height="960" loading="lazy">
+        <div class="book-text">
+          <h2 id="book-monarch">Monarch</h2>
+          <p class="subtitle">A Novel in Four Stages · $4.99</p>
+          <p class="blurb">To her suburban friends and neighbors, Ginger Reed, a beautiful housewife who is about to gracefully turn forty, seems to have it all: a nice home within a good school district, two wonderful and healthy children and a handsome husband who supports them. But inside, behind her brilliant green eyes, there flickers a flame of doubt; she believes, with every fiber of her being, that "all is not as it seems," and is afraid that her idyllic world may be coming to an end in less than two months.</p>
+          <p class="blurb">The story opens with one month and eleven days until the highly publicized end of the Mayan Calendar. That is why Ginger has driven to a downtown bookstore to buy the book Cipher, a work of fantasy fiction dealing with the approaching date. And that book is the reason why there is such an eclectic assortment of people lined out the door and around the corner to meet the author.</p>
+          <p class="blurb">Monarch is the life-changing journey of a woman obsessed with time. A fear of the future has seized the focus of Ginger's mind. She finds herself feeling alone amongst others, fretting over what tomorrow might bring.</p>
+          <p class="blurb blurb-line">Tick-tock, tick-tock, the seconds go flying off the clock.</p>
+          <p class="blurb">Now, if only she can finish the book, survive that ominous day, and keep her family and herself together, then maybe she can find her way through this dark psychological tunnel before it's too late.</p>
+          <div class="store-buttons">
+            <a class="btn btn-store" href="https://www.amazon.com/dp/B005GPRT62" aria-label="Monarch on Amazon">Amazon</a>
+            <a class="btn-secondary btn-store" href="https://www.barnesandnoble.com/w/monarch-aaron-pitters/1111816956?ean=2940033291090" aria-label="Monarch on Barnes &amp; Noble">Barnes &amp; Noble</a>
+            <a class="btn-secondary btn-store" href="https://books.apple.com/us/book/monarch-a-novel-in-four-stages/id538949984" aria-label="Monarch on Apple Books">Apple Books</a>
+          </div>
+        </div>
+      </article>
     </section>
 
     <section id="storicore" class="content-section storicore-section">
@@ -481,15 +723,18 @@
   </main>
 
   <footer class="site-footer">
-    <div class="container">
-      &copy; <span id="current-year"></span> Aaron Pitters & STORiCORE. All rights reserved.
+    <div class="container footer-inner">
+      <span>&copy; <span id="current-year"></span> Aaron Pitters &amp; STORiCORE. All rights reserved.</span>
+      <a href="mailto:contact@storicore.com">contact@storicore.com</a>
     </div>
   </footer>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Only links with a data-target are sections; the AI Consulting link is a normal page link.
+      // Only links with a data-target are sections; the Consulting link is a normal page link.
       const navLinks = document.querySelectorAll('.nav-link[data-target]');
+      // The hero buttons and the "Where to start" cards route the same way as the nav links.
+      const routeLinks = document.querySelectorAll('a[data-target]');
       const contentSections = document.querySelectorAll('.content-section');
       const currentYearSpan = document.getElementById('current-year');
 
@@ -522,7 +767,7 @@
         navLinks.forEach(link => link.classList.toggle('active', link.dataset.target === targetId));
       }
 
-      navLinks.forEach(link => {
+      routeLinks.forEach(link => {
         link.addEventListener('click', (e) => {
           e.preventDefault();
           const id = link.dataset.target;

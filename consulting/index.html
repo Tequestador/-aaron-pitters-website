@@ -20,294 +20,390 @@
     <link rel="manifest" href="/site.webmanifest">
     <link rel="shortcut icon" href="/favicon.ico">
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <!-- The two body weights and the heading weight are used on first paint, so fetch them early. -->
+    <link rel="preload" href="/fonts/source-sans-3/source-sans-3-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/source-sans-3/source-sans-3-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/fraunces/fraunces-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
     <style>
-        /* Copied from the root index.html (reset, container, header, nav, buttons, footer)
-           so this page looks like the rest of the site. The site has no shared stylesheet
-           and no build step, so the block is duplicated rather than refactored.
-           Everything below "This page only" is specific to the intake form. */
+      /* ── Fonts ──────────────────────────────────────────────────
+         Self-hosted (fonts/). The site's Content Security Policy blocks external font hosts.
+         Fraunces for headings, Source Sans 3 for body text; both are under the SIL Open Font
+         License (see the OFL.txt in each folder under fonts/). */
+      @font-face {
+        font-family: 'Fraunces';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/fraunces/fraunces-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Fraunces';
+        font-style: italic;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/fraunces/fraunces-latin-400-italic.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Source Sans 3';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/source-sans-3/source-sans-3-latin-400-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Source Sans 3';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/source-sans-3/source-sans-3-latin-600-normal.woff2') format('woff2');
+      }
 
-        /* ── Reset & Base ───────────────────────────────────────── */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      /* ── Design tokens ──────────────────────────────────────── */
+      :root {
+        --bg: #0E1320;            /* page background */
+        --surface: #121929;       /* "Where to start" band, panels */
+        --border: #222B40;        /* header, footer and section dividers */
+        --card-border: #263049;   /* cards */
+        --button-border: #3A4560; /* outline buttons, form fields */
+        --text: #E7E3DA;          /* body text */
+        --heading: #F4F0E8;       /* headings */
+        --muted: #B6BCC9;         /* nav links, secondary text */
+        --subtle: #8E95A6;        /* small print, footer */
+        --lede: #C9CDD6;          /* tagline, blurbs */
+        --accent: #E8A33D;        /* eyebrows, active nav, primary buttons, links */
+        --accent-hover: #F3C77E;  /* link hover */
+        --on-accent: #15100A;     /* text on amber buttons */
 
-        body {
-            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-                         'Helvetica Neue', Arial, sans-serif;
-            background: #111827;
-            color: #d1d5db;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            line-height: 1.5;
-        }
+        --font-heading: Fraunces, Georgia, serif;
+        --font-body: 'Source Sans 3', system-ui, sans-serif;
+        color-scheme: dark;
+      }
 
-        a { color: inherit; text-decoration: none; }
-        ul { list-style: none; }
+      /* ── Reset & Base ───────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* ── Container ──────────────────────────────────────────── */
-        .container {
-            width: 100%;
-            max-width: 1280px;
-            margin-left: auto;
-            margin-right: auto;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
+      body {
+        font-family: var(--font-body);
+        font-size: 18px;
+        line-height: 1.6;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Keep the footer at the bottom of the window on short pages. */
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
 
-        /* ── Header ─────────────────────────────────────────────── */
-        .site-header {
-            background: #111827;
-            color: #d1d5db;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,.3), 0 2px 4px -2px rgba(0,0,0,.2);
-        }
+      /* The main area grows to fill the space above the footer. */
+      .site-main { flex: 1 0 auto; }
 
-        .header-inner {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 1rem;
-            padding-bottom: 1rem;
-            position: relative;
-        }
+      h1, h2, h3 {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        color: var(--heading);
+      }
 
-        .site-logo {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #fff;
-        }
+      a { color: inherit; text-decoration: none; }
+      ul { list-style: none; }
+      img { max-width: 100%; }
 
-        /* ── Mobile toggle ──────────────────────────────────────── */
-        .mobile-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: inherit;
-            padding: .5rem;
-            border-radius: .375rem;
-            cursor: pointer;
-        }
-        .mobile-toggle:hover { background: rgba(255,255,255,.1); }
-        .mobile-toggle svg { width: 1.5rem; height: 1.5rem; }
+      /* Every link and button gets a visible amber focus outline. */
+      a:focus-visible, button:focus-visible,
+      input:focus-visible, textarea:focus-visible, select:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
 
-        /* ── Nav ─────────────────────────────────────────────────── */
-        .primary-nav ul {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
+      /* ── Container: 1200px of content, 32px side padding (16px on phones) ── */
+      .container {
+        width: 100%;
+        max-width: 1264px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
 
-        .nav-link {
-            color: #d1d5db;
-            transition: color .3s;
-            padding-bottom: .25rem;
-            font-size: .9375rem;
-        }
-        .nav-link:hover { color: #fff; }
-        .nav-link.active {
-            font-weight: 700;
-            color: #fff;
-            border-bottom: 2px solid #fff;
-        }
+      /* ── Header ─────────────────────────────────────────────── */
+      .site-header {
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
 
-        /* ── Main ────────────────────────────────────────────────── */
-        .site-main {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-        }
+      .header-inner {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px 24px;
+        padding-top: 18px;
+        padding-bottom: 18px;
+      }
 
-        /* ── Buttons ─────────────────────────────────────────────── */
-        .btn {
-            display: inline-block;
-            padding: .75rem 1.5rem;
-            background: #3b82f6;
-            color: #fff;
-            font-weight: 500;
-            border-radius: .375rem;
-            text-decoration: none;
-            transition: background .3s;
-            border: 1px solid transparent;
-            font-size: 1rem;
-            font-family: inherit; /* this page uses a <button>; buttons don't inherit the font by default */
-            cursor: pointer;
-        }
-        .btn:hover { background: #2563eb; color: #fff; }
-        .btn:disabled { background: #374151; cursor: not-allowed; }
+      .site-logo {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        font-size: 24px;
+        line-height: 1.2;
+        color: var(--text);
+      }
 
-        /* ── Section headings ───────────────────────────────────── */
-        .section-heading {
-            font-size: 1.875rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 2rem;
-        }
+      /* The design has the nav wrap under the wordmark on narrow screens instead of collapsing
+         into a menu. The toggle button and its script are still in the page; the button is just
+         hidden. */
+      .mobile-toggle { display: none !important; }
 
-        /* ── Content links ──────────────────────────────────────── */
-        .site-main a:not(.btn) {
-            text-decoration: underline;
-            color: #60a5fa;
-        }
-        .site-main a:not(.btn):hover {
-            color: #93c5fd;
-        }
+      .primary-nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 28px;
+      }
 
-        /* ── Footer ──────────────────────────────────────────────── */
-        .site-footer {
-            background: #111827;
-            color: #9ca3af;
-            margin-top: 4rem;
-            padding: 1.5rem 0;
-            text-align: center;
-            font-size: .875rem;
-        }
+      .nav-link {
+        color: var(--muted);
+        font-size: 16px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid transparent;
+        transition: color .2s, border-color .2s;
+      }
+      .nav-link:hover { color: var(--text); }
+      .nav-link.active {
+        color: var(--text);
+        font-weight: 600;
+        border-bottom-color: var(--accent);
+      }
 
-        /* ── Hidden utility ──────────────────────────────────────── */
-        .hidden { display: none !important; }
+      /* ── Common patterns ────────────────────────────────────── */
+      .eyebrow {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+        color: var(--accent);
+        line-height: 1.4;
+      }
 
-        /* ── This page only ─────────────────────────────────────── */
-        .ai-section { max-width: 48rem; margin: 0 auto; }
+      /* Primary button */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 28px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-family: inherit;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.2;
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background .2s, border-color .2s;
+      }
+      .btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--on-accent); }
+      .btn:disabled { background: var(--border); border-color: var(--border); color: var(--subtle); cursor: not-allowed; }
 
-        .page-title {
-            font-size: 2.25rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 1.5rem;
-        }
+      /* Outline button */
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 28px;
+        background: transparent;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.2;
+        border: 1px solid var(--button-border);
+        border-radius: 6px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: border-color .2s, color .2s;
+      }
+      .btn-secondary:hover { border-color: var(--accent); color: var(--heading); }
 
-        /* Stacked paragraphs, same rhythm as the About section on the root page */
-        .prose {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            margin-bottom: 3.5rem;
-        }
-        .prose--tight { gap: 1rem; }
-        .prose p { font-size: 1.125rem; line-height: 1.75; color: #d1d5db; }
-        .prose .muted { color: #9ca3af; }
-        .lead-in { color: #fff; font-weight: 600; }
-        .italic { font-style: italic; }
+      /* Store buttons are a little smaller than the page-level buttons. */
+      .btn-store { min-height: 44px; padding: 0 22px; font-size: 16px; }
 
-        .section-heading--tight { margin-bottom: 1rem; }
-        .form-intro { font-size: 1.125rem; color: #d1d5db; margin-bottom: 2rem; }
+      /* ── Content links ──────────────────────────────────────── */
+      .site-main a:not(.btn):not(.btn-secondary):not(.card) {
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .site-main a:not(.btn):not(.btn-secondary):not(.card):hover { color: var(--accent-hover); }
 
-        /* The three service levels, and any other bordered box */
-        .tier-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
-        }
-        .tier {
-            border: 1px solid #374151;
-            border-radius: .5rem;
-            padding: 1.5rem;
-        }
-        .tier-head {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: .5rem;
-            margin-bottom: .75rem;
-        }
-        .tier-name { font-size: 1.5rem; font-weight: 700; color: #fff; }
-        .tier-price { font-size: 1.25rem; font-weight: 700; color: #60a5fa; }
-        .tier-desc { font-size: 1.125rem; color: #d1d5db; margin-bottom: 1rem; }
-        .tier-label {
-            font-size: .875rem;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            margin-bottom: .5rem;
-        }
-        .tier-example { color: #9ca3af; font-style: italic; }
-        .tier-examples {
-            display: flex;
-            flex-direction: column;
-            gap: .5rem;
-            color: #9ca3af;
-            font-style: italic;
-        }
+      /* ── Footer ──────────────────────────────────────────────── */
+      .site-footer {
+        border-top: 1px solid var(--border);
+        color: var(--subtle);
+        font-size: 15px;
+      }
+      .footer-inner {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px 24px;
+        padding-top: 28px;
+        padding-bottom: 28px;
+      }
+      .site-footer a { color: var(--muted); }
+      .site-footer a:hover { color: var(--text); }
 
-        /* Form */
-        .intake-form { display: flex; flex-direction: column; gap: 1.5rem; }
-        .field-label {
-            display: block;
-            color: #fff;
-            font-weight: 500;
-            margin-bottom: .5rem;
-        }
-        .field-label .req { color: #60a5fa; }
-        .field-label .opt { color: #6b7280; font-weight: 400; }
-        .field-group--spaced { padding-top: 1rem; }
-        .field {
-            width: 100%;
-            background: #1f2937;
-            border: 1px solid #374151;
-            color: #f3f4f6;
-            border-radius: .375rem;
-            padding: .625rem .75rem;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-        .field:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 1px #3b82f6;
-        }
-        .field::placeholder { color: #6b7280; }
-        .form-error { color: #f87171; }
+      /* ── Hidden utility ──────────────────────────────────────── */
+      .hidden { display: none !important; }
 
-        /* The AI-use notice above the submit button */
-        .notice {
-            background: rgba(31,41,55,.4);
-            border-color: #4b5563;
-            font-size: 1rem;
-            line-height: 1.625;
-        }
-        .notice-title { color: #fff; font-weight: 600; margin-bottom: .75rem; }
-        .notice p { color: #d1d5db; margin-bottom: .75rem; }
-        .notice p.muted { color: #9ca3af; margin-bottom: 0; }
+      @media (min-width: 640px) {
+        .container { padding-left: 32px; padding-right: 32px; }
+      }
 
-        /* Success state */
-        .success-title { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; }
-        .success p { font-size: 1.125rem; color: #d1d5db; margin-bottom: .75rem; }
-        .success p:last-child { margin-bottom: 0; }
+      /* Below 640px the nav sits under the wordmark and takes two or three rows. A header that
+         tall shouldn't follow you down the page, so it scrolls away on phones. */
+      @media (max-width: 639px) {
+        .site-header { position: static; }
+        .primary-nav { width: 100%; }
+      }
 
-        /* ── Responsive ──────────────────────────────────────────── */
-        @media (min-width: 640px) {
-            .container { padding-left: 1.5rem; padding-right: 1.5rem; }
-            .site-main { padding-top: 3rem; padding-bottom: 3rem; }
-            .page-title { font-size: 3rem; }
-            .section-heading { font-size: 2.25rem; }
-        }
+      /* ══ This page only ════════════════════════════════════════
+         Everything above this line is shared with the root index.html (the site has no shared
+         stylesheet and no build step, so that block is duplicated; keep the two in step).
+         Below is specific to the consulting page and its intake form. */
+      :root { --error: #F87171; }
 
-        @media (min-width: 768px) {
-            .mobile-toggle { display: none !important; }
-            .primary-nav { display: block !important; }
-        }
+      .site-main { padding-top: 48px; padding-bottom: 48px; }
+      .ai-section { max-width: 48rem; margin: 0 auto; }
 
-        @media (max-width: 767px) {
-            .mobile-toggle { display: block; }
-            .primary-nav {
-                display: none;
-                position: absolute;
-                left: 0; right: 0; top: 100%;
-                background: #111827;
-                border-top: 1px solid rgba(255,255,255,.1);
-            }
-            .primary-nav.open { display: block; }
-            .primary-nav ul {
-                flex-direction: column;
-                gap: .75rem;
-                padding: 1rem;
-                align-items: flex-start;
-            }
-        }
+      .page-title {
+        font-size: 36px;
+        line-height: 1.1;
+        margin-bottom: 24px;
+      }
 
-        @media (min-width: 1024px) {
-            .container { padding-left: 2rem; padding-right: 2rem; }
-        }
+      .section-heading {
+        font-size: 30px;
+        line-height: 1.15;
+        margin-bottom: 32px;
+      }
+
+      /* Stacked paragraphs */
+      .prose {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 56px;
+      }
+      .prose--tight { gap: 16px; }
+      .prose p { font-size: 18px; color: var(--text); }
+      .prose .muted { color: var(--muted); }
+      .lead-in { color: var(--heading); font-weight: 600; }
+      .italic { font-style: italic; }
+
+      .section-heading--tight { margin-bottom: 16px; }
+      .form-intro { font-size: 18px; color: var(--text); margin-bottom: 32px; }
+
+      /* The three service levels, and any other bordered box */
+      .tier-list {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-bottom: 40px;
+      }
+      .tier {
+        background: var(--surface);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 24px;
+      }
+      .tier-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .tier-name { font-size: 24px; line-height: 1.2; }
+      .tier-price { font-size: 20px; font-weight: 600; color: var(--accent); }
+      .tier-desc { font-size: 18px; color: var(--text); margin-bottom: 16px; }
+      .tier-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--subtle);
+        text-transform: uppercase;
+        letter-spacing: .16em;
+        margin-bottom: 8px;
+      }
+      /* Quoted examples: Fraunces italic, the real italic face the site loads. */
+      .tier-example, .tier-examples {
+        font-family: var(--font-heading);
+        font-style: italic;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .tier-examples {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      /* Form */
+      .intake-form { display: flex; flex-direction: column; gap: 24px; }
+      .field-label {
+        display: block;
+        color: var(--heading);
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .field-label .req { color: var(--accent); }
+      .field-label .opt { color: var(--subtle); font-weight: 400; }
+      .field-group--spaced { padding-top: 16px; }
+      .field {
+        width: 100%;
+        background: var(--surface);
+        border: 1px solid var(--button-border);
+        color: var(--text);
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-family: inherit;
+        font-size: 17px;
+        line-height: 1.5;
+      }
+      .field:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+        border-color: var(--accent);
+      }
+      .field::placeholder { color: var(--subtle); opacity: 1; }
+      .form-error { color: var(--error); }
+
+      /* The AI-use notice above the submit button */
+      .notice { font-size: 17px; line-height: 1.6; }
+      .notice-title { color: var(--heading); font-weight: 600; margin-bottom: 12px; }
+      .notice p { color: var(--text); margin-bottom: 12px; }
+      .notice p.muted { color: var(--muted); margin-bottom: 0; }
+
+      /* Success state */
+      .success-title { font-size: 26px; line-height: 1.2; margin-bottom: 16px; }
+      .success p { font-size: 18px; color: var(--text); margin-bottom: 12px; }
+      .success p:last-child { margin-bottom: 0; }
+
+      @media (min-width: 640px) {
+        .site-main { padding-top: 64px; padding-bottom: 64px; }
+        .page-title { font-size: 48px; }
+        .section-heading { font-size: 36px; }
+      }
     </style>
 </head>
 <body>
@@ -316,7 +412,7 @@
          (hash routes), because that's where the sections live. -->
     <header class="site-header">
         <div class="container header-inner">
-            <div class="site-logo"></div>
+            <div class="site-logo">Aaron Pitters</div>
 
             <button id="mobile-toggle" class="mobile-toggle"
                     aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">
@@ -479,8 +575,9 @@
     </main>
 
     <footer class="site-footer">
-        <div class="container">
-            &copy; <span id="current-year"></span> Aaron Pitters &amp; STORiCORE. All rights reserved.
+        <div class="container footer-inner">
+            <span>&copy; <span id="current-year"></span> Aaron Pitters &amp; STORiCORE. All rights reserved.</span>
+            <a href="mailto:contact@storicore.com">contact@storicore.com</a>
         </div>
     </footer>
 

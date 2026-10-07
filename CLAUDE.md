@@ -16,8 +16,9 @@ lands on `replit-version`, either pushed directly or through a pull request into
 Replit leftovers (`.replit`, `replit.md`, `server.py` — they only serve the site inside
 Replit and do nothing on Cloudflare Pages). It is a one-page site with six hash-routed
 sections — home, about, books, storicore, blog, contact — shown and hidden by a small
-inline script at the bottom of the file, with a hamburger menu below 768px. There is no
-framework. There is one build command, `node scripts/build-prompt.mjs`, set in the
+inline script at the bottom of the file. On narrow screens the nav wraps under the
+wordmark; the hamburger button is still in the markup (with its script) but is hidden by CSS.
+There is no framework. There is one build command, `node scripts/build-prompt.mjs`, set in the
 Cloudflare Pages dashboard, which generates the rubric module. The intake function lives in
 `functions/api/intake.js` (validation, Turnstile, the raw-submission email to Aaron, then in
 the background the confirmation to the submitter, the triage step, and the brief or
@@ -25,13 +26,14 @@ the background the confirmation to the submitter, the triage step, and the brief
 call and brief-building in `functions/api/_triage.js`. The model name is one constant,
 `OPENAI_MODEL`, at the top of that file.
 
-**Styling:** all inline. The live site uses one `<style>` block in the head with plain
-hand-written CSS and semantic class names (`.site-header`, `.nav-link`, `.btn`,
-`.btn-secondary`, `.site-footer`, …). It does **not** use Tailwind and does **not** load
-Google Fonts — the font stack is `Inter, -apple-system, …` and falls back to the system
-font. (Older copies of this repo, and the first version of the spec, describe a Tailwind
-CDN site; that was replaced.) Dark theme — `#111827` background, `#d1d5db` body text,
-blue-500 accents.
+**Styling:** all inline: one `<style>` block in each of `index.html` and `consulting/index.html`.
+The shared part (fonts, design tokens, header, nav, buttons, footer) is duplicated in both pages
+and has to be kept in step. Colors are CSS custom properties on `:root` (`--bg`, `--surface`,
+`--accent`, ...): use the tokens, don't write hex values into rules. The look is dark navy with a
+warm amber accent. Fonts are **self-hosted** in `fonts/` (Fraunces 600 and 400 italic for headings,
+Source Sans 3 400 and 600 for body; SIL OFL, each folder has its `OFL.txt`) because the site's
+CSP blocks external font hosts. Never link Google Fonts or any outside CSS. No Tailwind. Book
+covers are in `images/covers/`.
 
 ## Start of every session: check for unmerged `claude/*` branches
 
