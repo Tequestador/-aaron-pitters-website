@@ -460,19 +460,17 @@
     }
 
     /* ── STORiCORE ───────────────────────────────────────────── */
-    .storicore-section p { font-size: 18px; color: var(--text); }
-    .storicore-section .feature-list {
-      list-style: disc;
-      list-style-position: inside;
-      padding-left: 16px;
-      margin: 24px 0 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .storicore-section .feature-list li { font-size: 18px; color: var(--text); }
+    .storicore-section p { font-size: 18px; color: var(--text); margin-bottom: 16px; }
+    /* Subheadings: the same size as the card titles on Home (Fraunces 600 comes from the h3 rule). */
+    .storicore-section .subheading { font-size: 28px; line-height: 1.2; margin: 40px 0 14px; }
+    .storicore-section .feature-list { list-style: disc; padding-left: 24px; margin: 0 0 16px; }
+    .storicore-section .feature-list li { font-size: 18px; color: var(--text); padding-left: 4px; margin-bottom: 8px; }
     .storicore-section .feature-list li::marker { color: var(--accent); }
-    .storicore-section .visit-link { margin-top: 24px; }
+    .cta-links { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-top: 32px; }
+    /* The two links at the end look like the card links on Home: amber (and the amber hover) from
+       the general content-link rule, weight 600, no underline. The selector repeats that rule's
+       :not()s so it is specific enough to take the underline off. */
+    .site-main a.cta-link:not(.btn):not(.btn-secondary):not(.card) { text-decoration: none; font-weight: 600; }
 
     /* ── Blog ────────────────────────────────────────────────── */
     .blog-section {
@@ -694,15 +692,29 @@
 
     <section id="storicore" class="content-section storicore-section">
       <h2 class="section-heading">STORiCORE</h2>
-      <p>STORiCORE is a multimedia company dedicated to creating innovative apps and original stories. We combine technology and storytelling to deliver immersive experiences across various platforms:</p>
+      <p>STORiCORE is Aaron's multimedia company. It creates original stories and the apps that support them, using AI tools while every creative decision stays in human hands.</p>
+
+      <h3 class="subheading">One story, many forms</h3>
       <ul class="feature-list">
-        <li>Books & E-books</li>
-        <li>Films & TV</li>
-        <li>Interactive Apps & Games</li>
-        <li>Online Communities</li>
+        <li>Comics and graphic novels</li>
+        <li>Audio, from podcasts to sound for film</li>
+        <li>Film and television</li>
+        <li>Games and interactive media</li>
       </ul>
-      <p>Our mission is to craft narratives that resonate with global audiences, bridging the gap between imagination and reality. Through STORiCORE, Aaron aims to inspire people everywhere to engage with stories that spark creativity, wonder, and reflection.</p>
-      <p class="visit-link">Visit our official website: <a href="https://storicore.com" target="_blank" rel="noopener noreferrer">STORiCORE.com</a></p>
+
+      <h3 class="subheading">Apps</h3>
+      <p>STORiCORE also builds apps, including 1st Draft, a voice-first writing assistant for writers. You'll find them on STORiCORE.com.</p>
+
+      <h3 class="subheading">How the work gets made</h3>
+      <p>Behind the studio is a production system Aaron built himself. Each story is broken down once into its characters, places and scenes, and that foundation feeds every format. AI does the heavy lifting, and Aaron makes the creative calls at every step. AI-assisted, human-directed.</p>
+
+      <h3 class="subheading">Helping others do the same</h3>
+      <p>Building STORiCORE taught Aaron what AI can and can't do in real work. He now offers that experience through AI Consulting for writers, creators and small businesses. Tell him what you're trying to do, and he'll tell you plainly whether AI can help and how.</p>
+
+      <div class="cta-links">
+        <a class="cta-link" href="/consulting/">Learn about consulting →</a>
+        <a class="cta-link" href="https://storicore.com/" target="_blank" rel="noopener noreferrer">Visit STORiCORE.com →</a>
+      </div>
     </section>
 
     <section id="blog" class="content-section blog-section">
