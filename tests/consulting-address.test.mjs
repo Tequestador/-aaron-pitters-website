@@ -81,9 +81,9 @@ test('on the consulting page its own tab is marked as the current page', () => {
 
 test('only the address and the tab changed: the title, heading and share titles still say "AI Consulting"', () => {
   const html = read('consulting/index.html');
-  assert.match(html, /<title>AI Consulting - Aaron Pitters<\/title>/);
+  assert.match(html, /<title>AI Consulting for Creators & Small Businesses \| Aaron Pitters<\/title>/);
   assert.match(html, /<h1 class="page-title">AI Consulting<\/h1>/);
-  assert.match(html, /<meta property="og:title" content="AI Consulting - Aaron Pitters">/);
+  assert.match(html, /<meta property="og:title" content="AI Consulting for Creators & Small Businesses \| Aaron Pitters">/);
 });
 
 test('the canonical and share URLs are the new address', () => {
