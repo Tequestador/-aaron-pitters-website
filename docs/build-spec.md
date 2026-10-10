@@ -1,9 +1,9 @@
-# Build Spec — AI Help intake
+# Build Spec — AI Consulting intake
 
 Written to be handed to Claude Code. It should not need to make design decisions; where
 something is genuinely open it's marked **DECIDE**.
 
-**Companion documents:** `triage-rubric.md` v0.4 (the prompt), `test-leads-v1.md` (the
+**Companion documents:** `triage-rubric.md` v0.6 (the prompt), `test-leads-v1.md` (the
 test set). Do not build until the test set has been run by hand and the rubric revised.
 
 ---
@@ -19,7 +19,7 @@ No database. No dashboard. No login. No payment processing. Aaron's inbox is the
 of record and his mail client is the interface.
 
 ```
-visitor → /ai-help form
+visitor → /consulting form
             ↓
         POST /api/intake  (Cloudflare Pages Function)
             ↓
@@ -58,13 +58,19 @@ is the app trap in miniature.
 
 ## 3. Repo layout
 
-The repo currently holds one `index.html` at the root, favicons, and a webmanifest.
-Nothing else — no `functions/`, no `_headers`, no `.gitignore`, no build step. Everything
-below is new.
+**Branch: `replit-version` is production.** It is the only branch Cloudflare Pages deploys.
+`main` is an old snapshot from before the Replit rewrite of `index.html` — don't build on
+it. Push to `replit-version` directly or open a pull request into it.
+
+Before the intake work, the repo was one `index.html` at the root, favicons, a webmanifest,
+and Replit leftovers (`.replit`, `replit.md`, `server.py`, which do nothing on Pages). No
+`functions/`, no `_headers` (the CSP is a dashboard rule — see §4), no build step. A
+`.gitignore` already existed with Python and OS entries; the new entries are **appended**
+to it, not a replacement. Everything in the tree below is new except that `.gitignore`.
 
 ```
-/.gitignore                      NEW — must exist before the first commit
-/ai-help/index.html              the page and form
+/.gitignore                      EXISTS — append the entries below before the first commit
+/consulting/index.html                the page and form
 /functions/api/intake.js         the POST handler
 /prompts/triage-rubric.md        the rubric — source of truth, human-edited
 /scripts/build-prompt.mjs        generates the importable prompt module
@@ -76,8 +82,8 @@ below is new.
 ```
 
 `.gitignore` must contain at least `.dev.vars` and
-`functions/api/_rubric.generated.js`. Create it first; a key committed once is in the
-history forever.
+`functions/api/_rubric.generated.js`. Append them first (done); a key committed once is in
+the history forever.
 
 Adding a `functions/` directory is all that's needed to turn on Pages Functions — no
 dashboard change, no configuration.
@@ -90,25 +96,40 @@ source of truth and never drifts from what runs.
 
 ---
 
-## 4. The page — `/ai-help`
+## 4. The page — `/consulting`
 
 **A separate page, not a seventh hash section.** The root `index.html` is a one-page site
 with six sections shown and hidden by an inline script. The intake page needs a real URL
 people can be sent to, and the existing file shouldn't grow to absorb a form. Cloudflare
-Pages serves `/ai-help/index.html` at `/ai-help` with no configuration.
+Pages serves `/consulting/index.html` at `/consulting/` with no configuration. (The page was
+first published at an earlier address and moved; `_redirects` sends the earlier addresses
+to `/consulting/` in one 301 hop each, so shared links keep working. The nav tab reads
+"Consulting"; the page heading, title and emails read "AI Consulting".)
 
-**Match the existing look.** The site uses Tailwind from `cdn.tailwindcss.com`, Inter from
-Google Fonts, and a custom `<style>` block — dark theme, `#111827` background, `#d1d5db`
-text, blue-500 accents, `.btn` and `.btn-secondary` classes. Reuse the same header, footer,
-and palette so the page reads as part of the site. Copy the style block rather than
-refactoring it into a shared file; there is no build step and this is not the moment to add
-one.
+**Match the existing look.** The live site uses inline CSS only: one hand-written
+`<style>` block with semantic class names. It does **not** use Tailwind and does **not**
+load Google Fonts (the font stack is `Inter, -apple-system, …`, so it falls back to the
+system font). Dark theme, `#111827` background, `#d1d5db` text, blue-500 accents, `.btn`
+and `.btn-secondary` classes. Reuse the same header (including the hamburger menu), footer,
+and palette so the page reads as part of the site. Copy the relevant rules from the root
+page's style block rather than refactoring them into a shared file; there is no build step
+and this is not the moment to add one. `consulting/index.html` has been restyled this way.
 
-**CSP: verify, don't assume.** There is no CSP in this repo — no meta tag, no `_headers`
-file. If one exists it's set in the Cloudflare dashboard. Turnstile loads from
-`challenges.cloudflare.com` and fails *silently* when blocked, so put the widget on a
-throwaway page and confirm it renders before building on it. Ten minutes now or an
-afternoon later.
+**CSP: it lives in the Cloudflare dashboard, not the repo.** The site's CSP is a Response
+Header Transform Rule named **"Static Site CSP"** on the aaronpitters.com zone (dashboard →
+Rules → Transform Rules → Modify Response Header). The repo sets none: no `_headers` file
+and no meta tag. (A `_headers` CSP was added in `1d5e88c` and removed in `7057995`; the
+dashboard rule is what applied to the live site.) Turnstile loads a script from
+`challenges.cloudflare.com` and renders in an iframe, and it fails *silently* when blocked.
+That rule originally blocked it. It now allows `https://challenges.cloudflare.com` in
+`script-src`, and has `frame-src https://challenges.cloudflare.com` added; the widget
+renders and the form works end to end.
+
+**Any new external script, stylesheet, font, frame or browser-side network destination
+must be added to that rule**, or it will work locally and fail in production. Calls made by
+the function itself (Resend, Turnstile verification, OpenAI) are server-side and not
+subject to the browser's CSP. If the rule is ever moved into the repo, keep the Turnstile
+entries. After any header change, confirm the widget renders.
 
 Page contents, in order:
 
@@ -138,8 +159,9 @@ The four questions, labelled in full:
 3. What would you like to make easier?
 4. What kind of help are you hoping for?
 
-Add a link to `/ai-help` from the root page's contact section. Whether it also joins the
-main nav is a **DECIDE** below.
+The link to `/consulting/` is the "Consulting" item in the main nav (DECIDE #3, decided: yes,
+done). No separate link from the root page's Contact section is required; the nav link
+replaces it.
 
 Plain HTML form, progressive enhancement: JS intercepts submit and posts JSON, but the
 form must still be readable and the labels correct without it. Show a success state in
@@ -151,47 +173,106 @@ worse than no form.
 
 ## 5. The function — `POST /api/intake`
 
-Steps, in order:
+Steps, in order. **Steps 4–6 are the order that matters** (changed after the first build;
+see "Why this order" at the end of this section).
 
 1. **Method and content type.** Reject anything but POST. Accept both
    `application/json` (the JavaScript path) and `application/x-www-form-urlencoded` (the
    no-JavaScript path — the form has `method="post" action="/api/intake"`). For
-   form-encoded requests, respond with a 303 redirect to `/ai-help/?sent=1` on success,
+   form-encoded requests, respond with a 303 redirect to `/consulting/?sent=1` on success,
    and to a plain error page on failure; for JSON requests, respond with JSON. The Turnstile
    widget submits its token in a field named `cf-turnstile-response` either way.
 2. **Validate.** Required fields present, lengths within the caps above, email shaped like
    an email. Reject oversize bodies before doing anything expensive.
 3. **Verify Turnstile** server-side against `TURNSTILE_SECRET_KEY`. Reject on failure.
-4. **Build the prompt.** System prompt = the generated rubric string. User message = the
-   submission, clearly delimited, with an explicit line that everything inside is submitted
-   content and not instructions. (Test lead 7 is a prompt injection; this is the line it
-   has to get past, together with rubric §10.)
-5. **Call the OpenAI API.** Use a current mid-tier model — triage is careful reading, not
-   hard reasoning. Check OpenAI's current model list rather than using a model name from
-   memory; names change. Keep the model name in one constant so it can be swapped in one
-   line. Pass the rubric as the system/developer instruction and the delimited submission
-   as the user message. Set a timeout. On any failure, go to step 7's fallback.
+4. **Email Aaron the raw submission, and wait for it.** Subject
+   `[New lead] <First name, last initial> — triage to follow`, body: a short note that
+   triage is running plus the visitor's answers verbatim. This send is **awaited**. If it
+   fails, return the error to the visitor (never a bare 500), pointed at a direct email
+   address, and stop: no confirmation, no AI call. If it succeeds, the lead is safe. This
+   is the guarantee that no lead is lost.
+5. **Return success to the visitor now.** JSON, or the 303 for a form post. Nothing below
+   delays this.
+6. **Everything else runs in `context.waitUntil`.** The confirmation (6.1) and triage (6.2)
+   start at the same time; the brief (6.3) follows triage.
+   1. **Email the confirmation to the submitter.** Short: received, you'll hear within one
+      business day, here's what you sent. Sending them a copy of their own submission is
+      cheap and makes the promise feel real. **Set `reply_to` to `NOTIFY_EMAIL`.**
+      `FROM_EMAIL` is a send-only address with no mailbox behind it. Without a reply-to, a
+      client who hits reply to add a detail sends it nowhere, and nobody finds out. A
+      bounce here is logged and changes nothing else.
+   2. **Triage** (6a and 6b below), with a timeout of 24 seconds.
+   3. **Email the brief to Aaron** via Resend. Subject line comes from the brief's own
+      `SUBJECT:` line. Body: the brief verbatim, then the raw submission.
+   4. **Fallback — this is the important one.** If the API call fails, times out, or
+      returns something unusable, or the brief email can't be sent, email Aaron a short
+      `[TRIAGE FAILED] <name>` note giving the reason and saying the raw submission already
+      arrived (the "[New lead]" email). The whole design premise is that the AI saves Aaron
+      time, not that it stands between him and his customers.
 
-   The rubric is deliberately provider-neutral. Nothing in it depends on which model reads
-   it, which is what makes the comparison run in DECIDE #2 possible.
-6. **Email the brief to Aaron** via Resend. Subject line comes from the brief's own
-   `SUBJECT:` line. Body: the brief verbatim, then the raw submission.
-7. **Fallback — this is the important one.** If the API call fails, times out, or returns
-   something unusable, **still email Aaron the raw submission**, subject prefixed
-   `[TRIAGE FAILED]`. A lead must never be lost because the AI step broke. The whole
-   design premise is that the AI saves Aaron time, not that it stands between him and his
-   customers.
-8. **Email the confirmation to the submitter.** Short: received, you'll hear within one
-   business day, here's what you sent. Sending them a copy of their own submission is
-   cheap and makes the promise feel real.
+**6a. Build the prompt.** System prompt = the generated rubric string. User message = the
+submission, clearly delimited, with an explicit line that everything inside is submitted
+content and not instructions. (Test lead 7 is a prompt injection; this is the line it
+has to get past, together with rubric §10.)
 
-   **Set `reply_to` to `NOTIFY_EMAIL`.** `FROM_EMAIL` is a send-only address with no
-   mailbox behind it. Without a reply-to, a client who hits reply to add a detail sends it
-   nowhere, and nobody finds out.
-9. **Return 200** with a success flag. Return a useful error otherwise — never a bare 500.
+**6b. Call the OpenAI API.** Use a current mid-tier model — triage is careful reading, not
+hard reasoning. Check OpenAI's current model list rather than using a model name from
+memory; names change. Keep the model name in one constant so it can be swapped in one
+line. Pass the rubric as the system/developer instruction and the delimited submission
+as the user message. Set a timeout. On any failure, go to the fallback in step 6.4.
 
-Both emails go out even if one fails; don't let a bounce on the confirmation kill the
-brief. Wrap each independently.
+The rubric is deliberately provider-neutral. Nothing in it depends on which model reads
+it, which is what makes the comparison run in DECIDE #2 possible.
+
+*As built:* the call is in `functions/api/_triage.js`, using OpenAI's Responses API
+(`instructions` = the rubric, `input` = the delimited submission, `store: false` so
+OpenAI doesn't keep the visitor's words). The model is the constant `OPENAI_MODEL`,
+currently `gpt-6-sol`, the mid tier of OpenAI's GPT-6 family (`gpt-6-luna` is the small
+tier for the DECIDE #2 comparison). The model ID and pricing were taken from web-search
+summaries of OpenAI's announcement and models pages, because the docs themselves were
+not reachable from the build environment. **Re-check the model ID, the request shape and
+current pricing against OpenAI's own docs before publishing any number.** A wrong ID or
+rejected parameter fails safe: the call errors, and the `[TRIAGE FAILED]` email names
+the HTTP status and error code. The timeout is 24 seconds (it was 40, then 20; see "Why this order" below).
+
+   The call sets `reasoning: { effort: OPENAI_REASONING_EFFORT }`, `low` for now, a constant
+   next to `OPENAI_MODEL`. gpt-6-sol accepts none, low, medium (its default), high, xhigh
+   and max; the first live submission, at the default, did not answer in 19.9 seconds. The
+   parameter shape and the `usage` field names below were checked against search results
+   quoting OpenAI's docs, not the docs themselves, which were unreachable from the build
+   environment. The call's time and token counts (`usage.input_tokens`,
+   `usage.output_tokens`, `usage.output_tokens_details.reasoning_tokens`) are put on one line,
+   `Triage: 14.2 s · 9,800 in / 2,100 out (1,200 reasoning) · gpt-6-sol · effort low`, at the
+   bottom of every brief (after a blank line and a `---` divider, so it doesn't run on from
+   the client's last sentence), in the `[TRIAGE FAILED]` email, and in the Cloudflare log.
+
+**Why this order.** The first build waited for the AI before answering the visitor, which
+made "Got it" take about 10 seconds. Worse, Cloudflare only keeps `waitUntil` work running
+for **30 seconds** after the response is sent or the client disconnects (the limit is shared
+by every `waitUntil` call on the request), and the AI timeout was 40 seconds. A visitor who
+closed the tab while the AI was slow could have had the function stopped before the brief or
+the `[TRIAGE FAILED]` email went out, losing the lead. Sending and awaiting the raw
+submission first removes that: it has reached Aaron before the visitor sees success.
+
+**The 30-second budget.** The background chain is budgeted to end by 27.5 seconds
+(`BACKGROUND_BUDGET_MS` in `intake.js`): the confirmation email and triage start together at
+0, triage gets up to 24, then the brief or failure note gets up to 3.5, and never more than
+the time left (a send with under 0.5 seconds left is skipped, and logged). Because the
+confirmation runs alongside triage, a slow email send costs triage nothing.
+`tests/intake.test.mjs` runs the chain on a fake clock with everything hanging and checks
+it ends in time.
+
+**Threading (not done).** It would be nice if the "[New lead]" email and the "[Triage]"
+brief landed in one Gmail thread. That needs a `Message-ID` set on the first email and
+`In-Reply-To`/`References` on the second. Resend's send API takes a custom `headers`
+object, and `In-Reply-To` and `References` are documented examples of it, but its docs do
+not say a caller-supplied `Message-ID` is honored (Amazon SES, a common backend for email APIs,
+does not allow a custom one). Neither could be tested from the build environment, and the
+Cloudflare and Resend docs sites were not reachable from it: both facts here come from
+search results quoting those docs, so re-check them. A rejected header on the raw
+email would fail the one email the whole design depends on, so the two stay separate
+emails, matched by name in the subject, and no workaround was built. To try it later, test
+with a real send first.
 
 ---
 
@@ -220,6 +301,38 @@ One formatting requirement: render `My take:` and its `[LEAVE BLANK — Aaron wr
 placeholder so they're unmissable at a glance — the point is that an unfilled *My take* is
 visible before sending, not after.
 
+*As built,* `functions/api/_triage.js` makes five deterministic changes to the model's
+brief, so they hold whatever the model wrote:
+
+1. The `SUBJECT:` line becomes the email subject and is removed from the body.
+2. Every draft's *My take* is replaced by a fixed slot: a banner reading "MY TAKE IS EMPTY.
+   YOU WRITE THIS. DO NOT SEND UNTIL IT IS.", then `My take:` and the placeholder, then a
+   blank line and `Aaron`, then a closing rule. The rubric (§8) puts the sign-off after
+   *My take*, so one lone `Aaron` line after the placeholder is kept. Anything else the
+   model wrote there is discarded and the email opens with a NOTE saying so.
+3. The visitor's real submission is appended at the bottom under `--- SUBMISSION (verbatim)
+   ---`, so the bottom of the email is what they typed. The model does not write it (rubric
+   v0.6: the first live v0.5 brief took 23.8 s, and about 750 of its 1,622 output tokens
+   were this copy, which the system already had). If a model echoes a submission anyway, its
+   copy is cut off first, so there is only ever the real one.
+4. In a draft, a line that is just `[STANDARD QUESTIONS]` becomes the seven standard
+   questions from rubric §11, numbered 1–7, one per line; the draft's own three follow
+   (numbered 8–10). The model writes the marker instead of the questions, for the same
+   speed reason. `scripts/build-prompt.mjs` extracts the seven from the rubric markdown into
+   the generated module (`STANDARD_QUESTIONS`), so the rubric remains the only place they
+   are written and they cannot drift. **The build fails** unless §11 holds exactly seven
+   numbered questions, each on a single line. A draft with no marker is left alone.
+5. The brief carries a `TOOLS TO RESEARCH (for Aaron only):` field: tools worth Aaron's
+   checking, each marked "(unverified)". Rubric §10 says none of them may appear in a draft
+   unless the client named the tool first. If one does, the email opens with a WARNING
+   naming the tool and the draft. It only warns; the brief is still sent. Tool names are
+   matched as whole words, and case-sensitively in the drafts, so a product called "Make"
+   doesn't fire on the word "make".
+
+A brief that doesn't start with a `SUBJECT:` line, or has no valid `VERDICT:`, is treated
+as a failed triage and Aaron gets the short `[TRIAGE FAILED]` email (the raw submission
+already reached him in the `[New lead]` email).
+
 ---
 
 ## 8. What not to build
@@ -242,8 +355,14 @@ Before it's done:
 - [ ] Submit a real lead from the test set end to end; brief arrives, format intact.
 - [ ] Submit lead 7 (the injection). No rubric content appears in any output, no draft
       replies are written, verdict is DECLINE.
-- [ ] Break the API key deliberately. Confirm the raw submission still arrives with
-      `[TRIAGE FAILED]`.
+- [ ] The `[New lead] … — triage to follow` email arrives *before* the "Got it" message
+      shows, and the "Got it" appears in about a second, not ten.
+- [ ] Close the tab right after submitting. The brief (or a `[TRIAGE FAILED]` note) still
+      arrives, and the confirmation email still reaches the visitor.
+- [ ] Break the API key deliberately. The `[New lead]` email arrives, then a short
+      `[TRIAGE FAILED] <name>` email giving the reason.
+- [ ] Break the Resend key (or the notify address). The visitor sees the error with the
+      direct email address, and no confirmation is sent.
 - [ ] Submit with JavaScript disabled — page still readable, failure message sensible.
 - [ ] Submit with Turnstile blocked — clean rejection, no crash.
 - [ ] Oversize field (10,000 characters) — rejected before the API call.
@@ -274,8 +393,9 @@ an interviewer notices.
 1. DNS and domain verification for Resend. Do this next — it can take time to propagate
    and everything else is blocked behind it.
 2. Confirm Turnstile renders on a throwaway page. Fix the CSP only if it turns out one
-   exists and blocks it.
-3. The `/ai-help` page, static, form posting nowhere.
+   exists and blocks it. *(Done: the dashboard rule "Static Site CSP" did block it and has
+   been updated — see §4.)*
+3. The `/consulting` page, static, form posting nowhere.
 4. `build-prompt.mjs` and the Pages build command.
 5. The function — validation, Turnstile, the raw submission to Aaron, **and the
    confirmation email to the submitter.** The page's success message says a copy was sent,
@@ -299,17 +419,21 @@ contact form and you are open for business.
    set between a mid and a small model, since the cost difference at this volume is
    trivial but the quality difference on lead 3 and lead 5 might not be — and that
    comparison is itself a documentable evaluation.
-3. **Does `/ai-help` appear in the site nav, or is it an unlinked page you send people
-   to?** Unlinked is defensible while you're testing, and keeps the author site clean.
-   Adding a seventh nav item to a site that currently reads purely as an author page is a
-   positioning decision, not a technical one.
+3. **Does `/consulting` appear in the site nav, or is it an unlinked page you send people
+   to?** **Decided: yes, it goes in the nav** — between STORiCORE and Blog, on both
+   the root `index.html` and `consulting/index.html` (marked as the current page there). It
+   was added only *after* the form was confirmed working end to end, so the page stayed
+   unlinked while it was being tested. **Done.** The root page's script now selects
+   `.nav-link[data-target]` instead of `.nav-link`, so it doesn't intercept the new link
+   (which has no `data-target` and is a real page, not a hash section). The link keeps the
+   `nav-link` class for styling.
 
 4. **Which domain sends the email?** The site's published contact address is
    `contact@storicore.com`, but the intake lives on aaronpitters.com. Resend verifies a
    sending domain, so pick one — probably aaronpitters.com, since that's where the form is
    and a reply from a different domain than the site invites a spam filter's attention.
 
-5. **Tailwind CDN.** The site loads `cdn.tailwindcss.com`, which compiles in the browser
-   and is explicitly not intended for production use. The new page should match the site
-   as it is — don't fix this as part of this work. Worth knowing it's there, and worth
-   suspecting it if anything CSP-related does turn up.
+5. **Tailwind CDN.** *Resolved by the Replit rewrite:* the live site no longer loads
+   `cdn.tailwindcss.com` or Google Fonts, and `/consulting` doesn't either. (The old CSP
+   allowed the Tailwind CDN specifically, which is why it's worth remembering that the
+   CSP and the CDN went together.)

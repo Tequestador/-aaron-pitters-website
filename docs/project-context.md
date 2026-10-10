@@ -1,4 +1,4 @@
-# AI Help intake — project context
+# AI Consulting intake — project context
 
 Why this exists and what was decided against. Read this before proposing changes to the
 design; most of the obvious improvements were considered and rejected for reasons that

@@ -1,0 +1,7 @@
+# Earlier addresses of the consulting page. Each goes straight to the final address, with
+# the trailing slash, in ONE hop: Cloudflare Pages adds the slash to a folder page itself,
+# so pointing at "/consulting" would be a second redirect. Don't point a rule at another rule.
+/ai-consulting    /consulting/   301
+/ai-consulting/*  /consulting/   301
+/ai-help          /consulting/   301
+/ai-help/*        /consulting/   301

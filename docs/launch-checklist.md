@@ -1,4 +1,4 @@
-# Launch checklist — AI Help intake
+# Launch checklist — AI Consulting intake
 
 Ordered so that nothing is blocked waiting on something else, and so the site is never in
 a broken state. Roughly an hour of your own time spread across it, plus the Claude Code
@@ -45,16 +45,26 @@ Do this before any code exists. A repo where the spec, rubric, and test set are 
 *first* tells a different story than one where documentation appears at the end, and git
 history makes that visible to anyone who looks.
 
-**B1.** Clone the repo locally if you haven't:
-`git clone https://github.com/Tequestador/-aaron-pitters-website.git`
+**B1.** Clone the repo locally if you haven't, and work on **`replit-version`**:
 
-**B2. Create `.gitignore` at the root, before anything else:**
+```
+git clone https://github.com/Tequestador/-aaron-pitters-website.git
+git checkout replit-version
+```
+
+`replit-version` is the production branch — the only one Cloudflare Pages deploys to
+aaronpitters.com. `main` is an old snapshot from before the Replit rewrite of `index.html`;
+don't base anything on it. Every commit in this checklist goes to `replit-version`, either
+pushed directly or through a pull request into it.
+
+**B2. Append to the existing `.gitignore`, before anything else.** The file already exists
+(Python and OS entries from the Replit setup, including `.DS_Store`) — add to it, don't
+replace it. Add these lines at the end:
 
 ```
 .dev.vars
 functions/api/_rubric.generated.js
 node_modules/
-.DS_Store
 ```
 
 **B3.** Place the files:
@@ -71,32 +81,47 @@ Decide before committing whether to keep the last section of `project-context.md
 says out loud that this is job-search preparation. Fine in a private repo; your call in a
 public one.
 
-**B4.** Commit and push: `Add intake spec, triage rubric, and test set`
+**B4.** Commit and push to `replit-version`: `Add intake spec, triage rubric, and test set`
 
 ---
 
 ## Part C — The page (you, ~20 minutes)
 
-**C1.** Place `ai-help-index.html` at `ai-help/index.html`.
+**C1.** Place the page at `consulting/index.html`.
 
-**C2.** Replace `TURNSTILE_SITE_KEY_HERE` with your actual site key from A2.
+**C2.** Put your Turnstile site key from A2 in the page (`data-sitekey` on the
+`cf-turnstile` div). *Done — the real site key is in `consulting/index.html`.*
 
-**C3.** Do **not** link it from the homepage yet. It goes live unlinked so you can look at
-it before anyone else can find it.
+**C3.** Do **not** link it from the site nav yet. It goes live unlinked so you can look at
+it, and test the form, before anyone else can find it. The nav link is decided (yes) and
+goes in only once the form is confirmed working — see G1. *(The form is confirmed working
+and the link has been added.)*
 
-**C4.** Commit and push. Cloudflare Pages deploys automatically. Visit
-`aaronpitters.com/ai-help`.
+**C4.** Commit and push to `replit-version`. Cloudflare Pages deploys automatically. Visit
+`aaronpitters.com/consulting/`.
 
 **C5. The one thing to verify:** does the Turnstile widget render above the Send button?
 
-- **Yes** → no CSP problem exists. Move on.
-- **No** → a Content Security Policy is blocking `challenges.cloudflare.com`. It isn't in
-  the repo, so look in the Cloudflare dashboard under Rules → Transform Rules → Modify
-  Response Header, and under any security settings that inject headers. This is the
-  ten-minutes-now-or-an-afternoon-later item.
+- **Yes** → the CSP already allows Turnstile. Move on.
+- **No** → the Content Security Policy is blocking `challenges.cloudflare.com`. **The CSP
+  is not in the repo.** It is a Response Header Transform Rule named **"Static Site CSP"**
+  on the aaronpitters.com zone: Cloudflare dashboard → Rules → Transform Rules → Modify
+  Response Header. Turnstile needs both of these in that rule:
+  - `https://challenges.cloudflare.com` in `script-src`
+  - `frame-src https://challenges.cloudflare.com`
 
-At this point the page exists and looks right. Submitting will fail, and the form will
-tell people to email you directly — which is honest, and nobody can find the page anyway.
+  This is exactly what happened on the first deploy: the widget didn't render because the
+  rule allowed neither. Both entries have since been added, and the widget renders and the
+  form works end to end.
+
+**Whenever the site later gains a new external script, stylesheet, font, frame or other
+browser-side network destination, add it to the "Static Site CSP" rule too.** It will work
+locally and fail silently in production otherwise. (The function's own server-side calls to
+Resend, Turnstile and OpenAI aren't affected by the browser's CSP.)
+
+At this point the page exists and looks right. Before the function is deployed, submitting
+fails and the form tells people to email you directly — which is honest, and nobody can
+find the page anyway.
 
 ---
 
@@ -129,9 +154,10 @@ the script ran.
 
 Open Claude Code in the repo. Opening prompt:
 
-> Read CLAUDE.md, docs/build-spec.md, and docs/project-context.md. We're building the
-> `/ai-help` intake. The page is already live at ai-help/index.html and the Turnstile
-> widget renders. Start at build-spec §11 step 5: the function with validation, Turnstile
+> Read CLAUDE.md, docs/build-spec.md, and docs/project-context.md. We're on the
+> `replit-version` branch, which is what deploys live. We're building the `/consulting`
+> intake. The page is already live at consulting/index.html and the Turnstile widget
+> renders. Start at build-spec §11 step 5: the function with validation, Turnstile
 > verification, the raw submission emailed to me, and the confirmation email to the
 > submitter. No OpenAI API call yet. Stop there so I can deploy and test it.
 
@@ -140,7 +166,8 @@ success message tells people a copy was sent to them — so the confirmation has
 from the first working deploy, or the page is making a claim that isn't true. Submit the
 form. A raw submission should arrive in your inbox and a confirmation in the test address.
 **This is the real milestone** — the form works and no lead can be lost, with no AI
-involved. If the week goes sideways, you're still open for business.
+involved. If the week goes sideways, you're still open for business. *(Reached: the form
+works end to end on aaronpitters.com/consulting, both emails arrive, and reply-to works.)*
 
 **E2.** Then: the rubric build script, the OpenAI API call, the brief, and the
 `[TRIAGE FAILED]` fallback path — written at the same time, not after. Set the build
@@ -152,8 +179,8 @@ command (D2) once the script is in the repo.
 
 **F1.** Work the checklist in build-spec §9. The two that matter most:
 
-- Break the API key on purpose. Confirm a raw submission still arrives with
-  `[TRIAGE FAILED]` in the subject.
+- Break the API key on purpose. Confirm the `[New lead]` raw submission still arrives,
+  followed by a short `[TRIAGE FAILED] <name>` email giving the reason.
 - Submit test lead 7 (the injection). Confirm a DECLINE, no draft replies, and no rubric
   text anywhere in the output.
 
@@ -168,9 +195,12 @@ changed and why. That commit is part of the artifact.
 
 ## Part G — Actually live
 
-**G1.** Add a link to `/ai-help` from the contact section of the root `index.html`. Decide
-whether it also joins the main nav — that's a positioning decision about whether
-aaronpitters.com is purely an author site, not a technical one.
+**G1.** The nav link is decided: **yes**, "Consulting" goes in the main nav between STORiCORE and Blog,
+on both the root `index.html` and `consulting/index.html` (marked as the
+current page there), once the form is confirmed working. *(Done. The root page's script now
+selects `.nav-link[data-target]`, so it doesn't intercept the new link.)* The nav link is
+the only link to the page: the build spec no longer asks for a separate one from the
+Contact section.
 
 **G2.** Send the link to two or three people who'll give you a straight reaction to the
 page before strangers see it.
@@ -183,7 +213,8 @@ from a thing you built into a thing you can hand to an interviewer.
 
 ## If something breaks
 
-- **Widget doesn't render** → CSP. See C5.
+- **Widget doesn't render** → the CSP, which lives in the Cloudflare dashboard (the
+  "Static Site CSP" Transform Rule), not the repo. See C5.
 - **Form submits but nothing arrives** → check the Pages Function logs in the Cloudflare
   dashboard first; they'll usually name it.
 - **Email arrives in spam** → Resend domain not fully verified, or DMARC/SPF records
