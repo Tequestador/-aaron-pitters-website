@@ -61,7 +61,7 @@
           "@id": "https://aaronpitters.com/#person"
         },
         "bookFormat": "https://schema.org/EBook",
-        "image": "https://aaronpitters.com/images/covers/house-fly-v2.jpg",
+        "image": "https://aaronpitters.com/images/covers/house-fly-v3.jpg",
         "url": "https://a.co/d/hQEEdMC",
         "sameAs": [
           "https://www.barnesandnoble.com/w/house-fly-aaron-pitters/1147055454",
@@ -470,10 +470,10 @@
 
     /* The fan of four covers. Each image keeps its own shape (height: auto), because the
        covers are not all the same proportions. Every size is a multiple of --u, which is 1px at full size
-       and shrinks only when the screen is too narrow for the fan (it is 542 units wide, and
+       and shrinks only when the screen is too narrow for the fan (it is 558 units wide, and
        the calc leaves room for the page padding). Below 640px it is capped at 60% (0.6px). */
     .fan {
-      --u: min(1px, calc((100vw - 92px) / 542));
+      --u: min(1px, calc((100vw - 92px) / 558));
       flex: 0 1 auto;
       display: flex;
       align-items: flex-end;
@@ -500,7 +500,7 @@
     .fan .c2 { width: calc(160 * var(--u)); transform: rotate(-2deg); margin-right: calc(-36 * var(--u)); z-index: 1; }
     .fan .c3 { width: calc(170 * var(--u)); transform: rotate(3deg);  margin-right: calc(-36 * var(--u)); z-index: 2; }
     .fan .c4 {
-      width: calc(170 * var(--u));
+      width: calc(186 * var(--u));
       transform: rotate(8deg) translateY(calc(-12 * var(--u)));
       z-index: 3;
       box-shadow: 0 22px 48px rgba(0,0,0,.55);
@@ -668,7 +668,7 @@
     @media (max-width: 639px) {
       /* The fan is scaled to about 60%, and a little less on the narrowest screens, so it fits
          without side-scrolling. The tilted corners reach into the page padding. */
-      .fan { --u: min(.6px, calc((100vw - 32px) / 542)); padding-left: 0; padding-right: 0; }
+      .fan { --u: min(.6px, calc((100vw - 32px) / 558)); padding-left: 0; padding-right: 0; }
       /* Smaller cover, sitting above the text. */
       .book-cover { flex: 0 0 auto; width: 160px; }
     }
@@ -726,7 +726,7 @@
           <img class="c1" src="/images/covers/monarch.jpg" alt="Monarch cover" width="600" height="960">
           <img class="c2" src="/images/covers/psykosis.jpg" alt="Psykosis cover" width="600" height="962">
           <img class="c3" src="/images/covers/michaelmas.jpg" alt="Michaelmas cover" width="600" height="925">
-          <img class="c4" src="/images/covers/house-fly-v2.jpg" alt="House Fly cover" width="600" height="1024">
+          <img class="c4" src="/images/covers/house-fly-v3.jpg" alt="House Fly cover" width="600" height="932">
         </div>
       </div>
 
@@ -757,7 +757,7 @@
       </div>
 
       <div class="container newest">
-        <img class="newest-cover" src="/images/covers/house-fly-v2.jpg" alt="House Fly cover" width="600" height="1024">
+        <img class="newest-cover" src="/images/covers/house-fly-v3.jpg" alt="House Fly cover" width="600" height="932">
         <div class="newest-text">
           <p class="eyebrow">Newest release</p>
           <h2>House Fly</h2>
@@ -791,7 +791,7 @@
       </div>
 
       <article class="book" aria-labelledby="book-house-fly">
-        <img class="book-cover" src="/images/covers/house-fly-v2.jpg" alt="House Fly cover" width="600" height="1024">
+        <img class="book-cover" src="/images/covers/house-fly-v3.jpg" alt="House Fly cover" width="600" height="932">
         <div class="book-text">
           <p class="eyebrow">Newest</p>
           <h2 id="book-house-fly">House Fly</h2>
