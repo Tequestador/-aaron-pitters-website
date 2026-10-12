@@ -287,13 +287,16 @@
 
       /* ── Common patterns ────────────────────────────────────── */
       .eyebrow {
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 600;
-        letter-spacing: .16em;
+        letter-spacing: .14em;
         text-transform: uppercase;
         color: var(--accent);
         line-height: 1.4;
       }
+      /* The brand name is written STORiCORE with a lowercase i. Inside uppercase text it keeps that
+         spelling: wrap it as <span class="brand">STORiCORE</span>. */
+      .brand { text-transform: none; }
 
       /* Primary button */
       .btn {

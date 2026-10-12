@@ -346,13 +346,16 @@
 
     /* ── Common patterns ────────────────────────────────────── */
     .eyebrow {
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 600;
-      letter-spacing: .16em;
+      letter-spacing: .14em;
       text-transform: uppercase;
       color: var(--accent);
       line-height: 1.4;
     }
+    /* The brand name is written STORiCORE with a lowercase i. Inside uppercase text it keeps that
+       spelling: wrap it as <span class="brand">STORiCORE</span>. */
+    .brand { text-transform: none; }
 
     /* Primary button */
     .btn {
@@ -714,7 +717,7 @@
 
       <div class="container hero">
         <div class="hero-text">
-          <p class="eyebrow">Author · Founder of STORiCORE</p>
+          <p class="eyebrow">Author · Founder of <span class="brand">STORiCORE</span></p>
           <h1 class="hero-title">Aaron Pitters</h1>
           <p class="hero-tagline">Stories that bridge the mundane and the sublime, exploring the light and darkness within us all.</p>
           <div class="hero-actions">
@@ -741,7 +744,7 @@
             <span class="card-cta">See the books →</span>
           </a>
           <a class="card" href="#storicore" data-target="storicore">
-            <p class="eyebrow">STORiCORE</p>
+            <p class="eyebrow"><span class="brand">STORiCORE</span></p>
             <h3 class="card-title">A multimedia storytelling company</h3>
             <p class="card-desc">Aaron's stories, adapted into comics, audio, film, and games, plus apps like 1st Draft.</p>
             <span class="card-cta">Visit STORiCORE →</span>
