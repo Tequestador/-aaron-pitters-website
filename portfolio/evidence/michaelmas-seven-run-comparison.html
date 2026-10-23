@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STORiCORE Michaelmas Seven-Run Comparison</title>
+<style>
+
+  :root {
+    --bg: #0a0f14;
+    --bg-row: #0d1219;
+    --bg-row-hover: #111922;
+    --bg-header: #0f151d;
+    --border: #1a2332;
+    --border-section: #243043;
+    --text-primary: #d4dce8;
+    --text-secondary: #7a8a9e;
+    --text-tertiary: #4a5a6e;
+    --green: #2dd4a0;
+    --green-dim: #1a7a5e;
+    --green-bg: rgba(45, 212, 160, 0.06);
+    --yellow: #f0c850;
+    --orange: #e8944a;
+    --blue: #4a9ff5;
+    --purple: #9b7af5;
+    --cyan: #4ad4e8;
+    --red: #e85a5a;
+    --tag-sonnet-bg: #1a2a3d;
+    --tag-sonnet-text: #5aa8e8;
+    --tag-opus-bg: #231a3d;
+    --tag-opus-text: #9b7af5;
+    --tag-chat-bg: #0f2a22;
+    --tag-chat-text: #2dd4a0;
+    --tag-project-bg: #2a1a0f;
+    --tag-project-text: #e8944a;
+    --highlight-col-bg: rgba(232, 148, 74, 0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    overflow-x: auto;
+  }
+
+  h1 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  }
+  h1 span { color: var(--green); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    min-width: 1000px;
+  }
+
+  thead th {
+    padding: 10px 8px 8px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-section);
+    background: var(--bg-header);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    vertical-align: bottom;
+  }
+  thead th:first-child { text-align: left; min-width: 140px; }
+
+  .tag {
+    display: inline-block;
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  }
+  .tag-sonnet { background: var(--tag-sonnet-bg); color: var(--tag-sonnet-text); }
+  .tag-opus   { background: var(--tag-opus-bg);   color: var(--tag-opus-text);   }
+  .tag-chat   { background: var(--tag-chat-bg);   color: var(--tag-chat-text);   }
+  .tag-project{ background: var(--tag-project-bg); color: var(--tag-project-text); }
+
+  .run-label {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .run-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 9px;
+    color: var(--text-tertiary);
+    font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  }
+
+  tbody td {
+    padding: 7px 8px;
+    text-align: center;
+    border-bottom: 0.5px solid var(--border);
+    font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+    font-size: 11px;
+    color: var(--text-primary);
+    vertical-align: top;
+  }
+  tbody td:first-child {
+    text-align: left;
+    font-family: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 11px;
+  }
+
+  /* Highlight column for Run 7 */
+  thead th:last-child { background: var(--highlight-col-bg); }
+  tbody td:last-child, tbody td.hl { background: var(--highlight-col-bg); }
+
+  .section-hdr td {
+    padding: 14px 8px 5px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: none;
+    text-align: left;
+    font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+    background: none !important;
+  }
+
+  .hi  { color: var(--green) !important; font-weight: 600; }
+  .chk { color: var(--green) !important; }
+  .wrn { color: var(--yellow) !important; }
+  .dim { color: var(--text-tertiary) !important; }
+  .new { color: var(--orange) !important; font-weight: 600; }
+
+  .note {
+    display: block;
+    font-size: 9px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+    font-family: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+
+  tbody tr:hover td { background: var(--bg-row-hover); }
+  tbody tr:hover td:last-child { background: rgba(232, 148, 74, 0.08); }
+
+  .footer {
+    margin-top: 20px;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+    line-height: 1.6;
+  }
+  .footer span { color: var(--text-secondary); }
+
+  .back { display:inline-block; margin-bottom:18px; font-size:13px; color: var(--green); text-decoration:none; }
+  .back:hover { text-decoration: underline; }
+  .intro { max-width: 820px; margin: 0 0 26px; font-size: 14px; line-height: 1.6; color: var(--text-primary); }
+  .intro p { margin: 0 0 10px; }
+  .intro .muted { color: var(--text-secondary); }
+  .intro dl { display:grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 14px 0 0; font-size: 12.5px; color: var(--text-secondary); }
+  .intro dt { color: var(--text-primary); font-weight: 600; }
+  .intro dd { margin: 0; }
+  @media (max-width: 600px) { .intro dl { grid-template-columns: 1fr; } .intro dd { margin-bottom: 6px; } }
+</style>
+</head>
+<body>
+<div class="container">
+<a class="back" href="../#pipeline">&larr; Back to the portfolio</a>
+<div class="intro">
+<p><strong>Supporting work sample for the STORiCORE Three-System Pipeline.</strong> Seven ways of running the same story-intake task on Chapter 1 of <em>Michaelmas</em>, compared April 23&ndash;29, 2026. Each column is one run; each row is something the run extracted or checked. Run 7 (highlighted) performed best in this comparison.</p>
+<p class="muted">This compares whole workflows, not models: prompts and available project knowledge changed between runs. It shows what worked under my conditions, not a general benchmark.</p>
+<dl>
+<dt>Managed</dt><dd>Anthropic&rsquo;s Managed Agents console, billed per API call.</dd>
+<dt>Chat / Project</dt><dd>Claude.ai chat, or a Claude.ai Project with the architecture documents attached, on a Pro subscription.</dd>
+<dt>CSM</dt><dd>Canonical story model: the structured story files System 1 produces.</dd>
+<dt>callable_agents</dt><dd>Whether the run needed one agent to call another.</dd>
+<dt>Story-specific checks</dt><dd>Rows such as &ldquo;Tar sensitivity&rdquo; and &ldquo;Nov 10 date&rdquo; test whether a run caught a sensitive story element and preserved a canonical date.</dd>
+<dt>System 2 ready</dt><dd>Whether the output was complete enough to begin visual reference work.</dd>
+</dl>
+</div>
+<h1><span>STORiCORE</span> &middot; Michaelmas Ch.1 &middot; Seven-Run Comparison</h1>
+
+<table>
+<thead>
+<tr>
+  <th></th>
+  <th>
+    <span class="tag tag-sonnet">Sonnet 4.6</span>
+    <span class="run-label">Run 1</span>
+    <span class="run-sub">Script Analysis</span>
+  </th>
+  <th>
+    <span class="tag tag-sonnet">Sonnet 4.6</span>
+    <span class="run-label">Run 2</span>
+    <span class="run-sub">Intake Coord.</span>
+  </th>
+  <th>
+    <span class="tag tag-sonnet">Sonnet 4.6</span>
+    <span class="run-label">Run 3</span>
+    <span class="run-sub">Delegated</span>
+  </th>
+  <th>
+    <span class="tag tag-opus">Opus 4.6</span>
+    <span class="run-label">Run 4</span>
+    <span class="run-sub">Consolidated v1</span>
+  </th>
+  <th>
+    <span class="tag tag-opus">Opus 4.6</span>
+    <span class="run-label">Run 5</span>
+    <span class="run-sub">Consolidated v2</span>
+  </th>
+  <th>
+    <span class="tag tag-chat">Chat</span>
+    <span class="run-label">Run 6</span>
+    <span class="run-sub">Chat prompt v3</span>
+  </th>
+  <th>
+    <span class="tag tag-project">Project</span>
+    <span class="run-label">Run 7</span>
+    <span class="run-sub">Project prompt v3</span>
+  </th>
+</tr>
+</thead>
+<tbody>
+
+<tr class="section-hdr"><td colspan="8">Extraction Depth</td></tr>
+
+<tr>
+  <td>Scenes</td>
+  <td>5</td><td>6</td><td>6</td><td>5</td><td>5</td>
+  <td>4 <span class="note">most accurate</span></td>
+  <td class="hl">6</td>
+</tr>
+<tr>
+  <td>Characters</td>
+  <td>11</td><td>10</td><td class="hi">13</td><td class="hi">13</td><td class="hi">13</td>
+  <td class="hi">13</td>
+  <td class="hl hi">13</td>
+</tr>
+<tr>
+  <td>Locations</td>
+  <td>8</td><td>6</td><td>8</td><td>7</td><td>9 <span class="note">+4 world-building</span></td>
+  <td>6 <span class="note">scene + world split</span></td>
+  <td class="hl">8 <span class="note">5 scene + 3 world</span></td>
+</tr>
+<tr>
+  <td>Chronology events</td>
+  <td>20</td><td>14</td><td class="hi">24</td><td>16</td><td>18</td>
+  <td class="hi">36</td>
+  <td class="hl hi">41 <span class="note">new record</span></td>
+</tr>
+<tr>
+  <td>Character relationships</td>
+  <td class="dim">&mdash;</td><td class="dim">&mdash;</td><td>14</td><td>14</td><td>18</td>
+  <td>16</td>
+  <td class="hl hi">16</td>
+</tr>
+<tr>
+  <td>Key objects</td>
+  <td>7</td><td class="dim">&mdash;</td><td>7</td><td>7</td><td>6</td>
+  <td>6</td>
+  <td class="hl">7</td>
+</tr>
+<tr>
+  <td>Timeline anchors</td>
+  <td>11</td><td class="dim">&mdash;</td><td>13</td><td class="hi">15</td><td>10</td>
+  <td>11</td>
+  <td class="hl hi">14</td>
+</tr>
+<tr>
+  <td>Flashback candidates</td>
+  <td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td>
+  <td class="hi">12</td>
+  <td class="hl hi">18 <span class="note">new record</span></td>
+</tr>
+<tr>
+  <td>Recurring props</td>
+  <td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td>
+  <td class="hi">5</td>
+  <td class="hl">3</td>
+</tr>
+<tr>
+  <td>Wardrobe notes</td>
+  <td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td>
+  <td class="hi">2</td>
+  <td class="hl">2</td>
+</tr>
+
+<tr class="section-hdr"><td colspan="8">Quality Controls</td></tr>
+
+<tr>
+  <td>Cross-ref validation</td>
+  <td class="dim">No</td><td class="dim">No</td><td class="chk">Yes (bash)</td><td class="chk">Yes (bash)</td><td class="chk">Yes (bash)</td>
+  <td class="chk">Yes</td>
+  <td class="hl chk">Yes (self-validated)</td>
+</tr>
+<tr>
+  <td>Pre-analysis flags</td>
+  <td class="dim">No</td><td>Partial</td><td>Yes (from Intake)</td><td class="dim">No</td>
+  <td class="chk">Yes <span class="note">13 undescribed, 4 unnamed,<br>3 canonical, 2 sensitivity</span></td>
+  <td class="chk">Yes + temporal map</td>
+  <td class="hl chk">Yes + temporal map <span class="note">13 undescribed, 4 unnamed,<br>3 canonical, 3 sensitivity,<br>dialogue density, visual gaps</span></td>
+</tr>
+<tr>
+  <td>Approval flags on all chars</td>
+  <td class="dim">No</td><td>Partial</td><td class="chk">Yes &mdash; all 13</td><td class="chk">Yes &mdash; all 13</td><td class="chk">Yes &mdash; all 13</td>
+  <td class="chk">All 13</td>
+  <td class="hl chk">All 13</td>
+</tr>
+<tr>
+  <td>Tar sensitivity flagged</td>
+  <td class="wrn">Mid-run</td><td class="chk">Yes</td><td class="chk">Yes (pre-loaded)</td><td class="chk">Yes</td><td class="chk">Yes (pre-analysis)</td>
+  <td class="chk">Yes</td>
+  <td class="hl chk">Yes (pre-analysis)</td>
+</tr>
+<tr>
+  <td>Nov 10 date preserved</td>
+  <td class="wrn">Flagged</td><td class="wrn">Flagged</td><td class="chk">Pre-confirmed</td><td class="chk">Yes</td>
+  <td class="chk">Yes + 2 more canonical facts</td>
+  <td class="chk">Yes</td>
+  <td class="hl chk">Yes + 10 canonical facts <span class="note">most comprehensive</span></td>
+</tr>
+<tr>
+  <td>Orphan location handling</td>
+  <td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td>
+  <td>2 noted, retained</td>
+  <td class="dim">&mdash;</td>
+  <td class="hl chk">2 world-building retained <span class="note">Buckminster, Grantham</span></td>
+</tr>
+<tr>
+  <td>Event type tags</td>
+  <td class="dim">No</td><td class="dim">No</td><td class="dim">No</td><td class="dim">No</td><td class="dim">No</td>
+  <td class="hi">Yes</td>
+  <td class="hl hi">Yes <span class="note">present_action, memory,<br>backstory, implied</span></td>
+</tr>
+<tr>
+  <td>Location categories</td>
+  <td class="dim">No</td><td class="dim">No</td><td class="dim">No</td><td class="dim">No</td><td>Partial</td>
+  <td class="hi">Yes</td>
+  <td class="hl hi">Yes <span class="note">scene_location vs<br>world_building</span></td>
+</tr>
+
+<tr class="section-hdr"><td colspan="8">Architecture &amp; Cost</td></tr>
+
+<tr>
+  <td>Platform</td>
+  <td>Managed</td><td>Managed</td><td>Managed</td><td>Managed</td><td>Managed</td>
+  <td>Chat</td>
+  <td class="hl new">Project Chat</td>
+</tr>
+<tr>
+  <td>Model</td>
+  <td>Sonnet</td><td>Sonnet</td><td>Sonnet &times;2</td><td>Opus 4.6</td><td>Opus 4.6</td>
+  <td>Opus (chat)</td>
+  <td class="hl">Opus 4.6 (project)</td>
+</tr>
+<tr>
+  <td>Agents used</td>
+  <td>1</td><td>1</td><td>2</td><td>1</td><td>1</td>
+  <td class="hi">0</td>
+  <td class="hl hi">0</td>
+</tr>
+<tr>
+  <td>callable_agents needed</td>
+  <td class="dim">No</td><td class="dim">No</td><td>Yes</td><td class="dim">No</td><td class="dim">No</td>
+  <td>N/A</td>
+  <td class="hl dim">N/A</td>
+</tr>
+<tr>
+  <td>API cost</td>
+  <td>~$0.40</td><td>~$0.60</td><td>~$0.80</td><td>~$1.50</td><td>~$1.50</td>
+  <td class="hi">$0.00</td>
+  <td class="hl hi">$0.00 <span class="note">Pro subscription</span></td>
+</tr>
+<tr>
+  <td>Project knowledge</td>
+  <td class="dim">No</td><td class="dim">No</td><td class="dim">No</td><td class="dim">No</td><td class="dim">No</td>
+  <td class="dim">No</td>
+  <td class="hl new">Yes <span class="note">full arch docs available</span></td>
+</tr>
+<tr>
+  <td>Output files</td>
+  <td>6</td><td>Partial</td><td>6 + meta</td><td>9</td><td>10</td>
+  <td>8 <span class="note">includes csm_summary</span></td>
+  <td class="hl">1 consolidated <span class="note">all CSM + meta in<br>single markdown</span></td>
+</tr>
+<tr>
+  <td>System 2 ready</td>
+  <td>Partial</td><td class="dim">No</td><td class="chk">Yes</td><td class="chk">Yes</td><td class="chk">Yes</td>
+  <td class="chk">Yes + S2 req list</td>
+  <td class="hl chk">Yes + bootstrap lists <span class="note">visual + voice</span></td>
+</tr>
+
+</tbody>
+</table>
+
+<div class="footer">
+  <span>Run 1–3:</span> April 23–24, 2026 &middot; Managed Agents Console &middot; Sonnet 4.6<br>
+  <span>Run 4–5:</span> April 25–26, 2026 &middot; Managed Agents Console &middot; Opus 4.6 Consolidated<br>
+  <span>Run 6:</span> April 27, 2026 &middot; Claude.ai Chat &middot; Opus 4.6 &middot; Chat Prompt v3<br>
+  <span>Run 7:</span> April 29, 2026 &middot; Claude.ai Project &middot; Opus 4.6 &middot; Project Prompt v3 + Project Knowledge
+</div>
+
+</div>
+</body>
+</html>
