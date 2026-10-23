@@ -1,53 +1,681 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="description" content="Selected applied AI workflow design and implementation projects by Aaron Pitters: a three-stage creative production pipeline and an AI-assisted consulting inquiry system.">
-  <meta property="og:title" content="Aaron Pitters | Applied AI Workflow Portfolio">
-  <meta property="og:description" content="Two documented case studies in creative production systems and practical business automation, with evaluation, safeguards, and human oversight.">
-  <title>Aaron Pitters | AI Workflow Portfolio</title>
-  <style>
-    :root{--ink:#142b31;--ink2:#42555a;--quiet:#62787c;--paper:#f7f8f5;--white:#fff;--line:#d6e1dc;--pine:#1f665b;--pine-dark:#19574e;--mint:#e7f2ed;--apricot:#c37d59;--peach:#fbefe6;--shadow:0 18px 70px rgba(20,43,49,.085);--radius:22px;--max:1130px}
-    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:94px}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}a{color:inherit}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--apricot);outline-offset:4px}::selection{background:#c7e8d9}
-    .wrap{max-width:var(--max);margin-inline:auto;padding-inline:32px}.eyebrow{color:var(--pine);text-transform:uppercase;letter-spacing:.17em;font-weight:800;font-size:11px}.muted{color:var(--quiet)}
-    .site-header{background:rgba(247,248,245,.94);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;backdrop-filter:blur(16px)}.nav{display:flex;align-items:center;justify-content:space-between;min-height:76px;gap:24px}.brand{display:flex;align-items:center;gap:13px;text-decoration:none}.brandmark{display:inline-grid;place-items:center;width:40px;height:40px;color:white;background:var(--pine);border-radius:12px;font-weight:800;letter-spacing:-.04em}.brand-text{line-height:1.18}.brand-text b{display:block;font-size:14px;letter-spacing:.01em}.brand-text span{display:block;font-size:11px;color:var(--quiet);margin-top:3px}.nav-links{display:flex;align-items:center;gap:28px}.nav-links a{text-decoration:none;font-size:13px;font-weight:650;color:var(--ink2)}.nav-links a:hover{color:var(--pine)}.nav-links .nav-contact{border:1px solid #b8cfc6;padding:9px 15px;border-radius:50px;color:var(--pine)}
-    .hero{padding:90px 0 80px;position:relative;overflow:hidden}.hero::after{content:"";position:absolute;top:27px;right:-190px;width:590px;height:590px;border-radius:50%;border:1px solid rgba(31,102,91,.13);box-shadow:0 0 0 50px rgba(31,102,91,.025),0 0 0 114px rgba(31,102,91,.018);pointer-events:none}.hero-layout{display:grid;grid-template-columns:1.18fr .72fr;gap:70px;align-items:center;position:relative;z-index:1}.hero h1{font-size:clamp(42px,5.5vw,78px);line-height:1.07;letter-spacing:-.055em;font-weight:750;margin:17px 0 27px;max-width:750px}.hero h1 em{color:var(--pine);font-style:normal}.hero-copy{font-size:19px;color:var(--ink2);line-height:1.68;max-width:680px;margin:0}.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:33px}.btn{border-radius:100px;text-decoration:none;padding:12px 21px;font-size:13px;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s ease,background .15s ease;border:1px solid transparent}.btn:hover{transform:translateY(-2px)}.btn-primary{color:white;background:var(--pine)}.btn-primary:hover{background:var(--pine-dark)}.btn-outline{border-color:#aec8bf;color:var(--pine);background:transparent}.btn-outline:hover{background:#e9f4ee}
-    .intro-card{background:white;border:1px solid var(--line);border-radius:25px;padding:34px 31px;box-shadow:var(--shadow);position:relative}.intro-card:before{content:"";position:absolute;top:0;left:36px;width:64px;height:4px;background:var(--apricot);border-radius:0 0 3px 3px}.intro-card blockquote{margin:0;font-size:23px;line-height:1.34;font-weight:650;letter-spacing:-.035em}.intro-card .signature{font-size:13px;color:var(--quiet);margin-top:18px}.intro-card hr{border:0;border-top:1px solid var(--line);margin:25px 0}.intro-card .micro{font-size:13px;line-height:1.65;color:var(--ink2);margin:0}.intro-card .micro b{color:var(--pine)}
-    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:8px}.metric{padding:25px 22px 25px 0}.metric+.metric{padding-left:30px;border-left:1px solid var(--line)}.metric strong{font-size:29px;letter-spacing:-.04em;line-height:1.1;display:block}.metric span{display:block;color:var(--ink2);font-size:12px;margin-top:7px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:24px;margin:0 0 28px}.section-head h2{font-size:clamp(32px,4vw,51px);line-height:1.1;letter-spacing:-.047em;margin:8px 0 0}.section-head p{max-width:410px;font-size:15px;color:var(--ink2);margin:0 0 2px}.work{padding:82px 0 28px}
-    .jump-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:68px}.jump{border:1px solid var(--line);text-decoration:none;background:white;border-radius:22px;padding:27px 28px;transition:box-shadow .2s,transform .2s;min-height:184px;display:flex;flex-direction:column;align-items:flex-start}.jump:hover{box-shadow:var(--shadow);transform:translateY(-3px)}.jump small{color:var(--pine);letter-spacing:.1em;text-transform:uppercase;font-size:11px;font-weight:800}.jump h3{font-size:24px;letter-spacing:-.035em;line-height:1.2;margin:12px 0 8px}.jump p{font-size:14px;color:var(--ink2);margin:0 0 16px}.jump .arrow{color:var(--pine);font-size:14px;font-weight:750;margin-top:auto}.jump.second small,.jump.second .arrow{color:#a25f40}
-    .case{background:white;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin:0 0 34px;box-shadow:0 12px 45px rgba(20,43,49,.04)}.case-inner{padding:48px 56px 49px}.case-top{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}.case-number{display:inline-flex;align-items:center;gap:10px;color:var(--pine);letter-spacing:.11em;text-transform:uppercase;font-size:11px;font-weight:800}.case-number b{display:inline-grid;place-items:center;width:29px;height:29px;border-radius:9px;background:var(--mint);font-size:12px;letter-spacing:0}.case-number.orange{color:#a25f40}.case-number.orange b{background:var(--peach)}.status{border:1px solid var(--line);border-radius:99px;padding:6px 11px;font-size:11px;color:var(--quiet);background:var(--paper);font-weight:650}.case h3{font-size:clamp(30px,3.75vw,48px);line-height:1.13;letter-spacing:-.048em;max-width:800px;margin:27px 0 17px}.case .dek{color:var(--ink2);max-width:795px;font-size:18px;line-height:1.64;margin:0 0 31px}.case .divider{height:1px;background:var(--line);margin:35px 0}
-    .split{display:grid;grid-template-columns:.78fr 1.22fr;gap:55px}.split h4,.textblock h4{font-size:17px;margin:0 0 10px;letter-spacing:-.02em}.split p,.textblock p{color:var(--ink2);font-size:14.7px;margin:0 0 15px}.split .side-note{font-size:14px;background:#f2f6f2;padding:18px 19px;border-radius:14px;border-left:3px solid var(--pine);color:var(--ink2);margin-top:20px}.flow-wrap{background:#f7faf7;border:1px solid #dce8e2;border-radius:20px;padding:26px 24px;margin:34px 0 12px}.flow-label{font-size:11px;font-weight:800;color:var(--pine);text-transform:uppercase;letter-spacing:.12em;margin-bottom:18px}.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.flow-step{background:white;border:1px solid #d5e3db;border-radius:14px;padding:17px 15px 19px;min-height:145px;position:relative}.flow-step:not(:last-child)::after{content:"→";position:absolute;right:-19px;top:50%;transform:translateY(-50%);font-weight:800;background:#f7faf7;color:var(--pine);font-size:19px;z-index:2;width:24px;text-align:center}.flow-step .step-no{font-size:11px;color:var(--pine);font-weight:800}.flow-step strong{display:block;font-size:16px;letter-spacing:-.025em;line-height:1.3;margin:6px 0}.flow-step span{display:block;font-size:12.5px;line-height:1.5;color:var(--ink2)}.flow-caption{margin:13px 1px 0;font-size:12px;color:var(--quiet)}
-    .insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:27px 0}.insight{border:1px solid var(--line);border-radius:18px;padding:22px 24px;background:white}.insight.tagged{background:var(--peach);border-color:#e9d8ca}.insight .insight-label{font-size:10px;letter-spacing:.1em;color:var(--pine);text-transform:uppercase;font-weight:800}.insight.tagged .insight-label{color:#a25f40}.insight strong{display:block;font-size:19px;letter-spacing:-.025em;margin:8px 0}.insight p{font-size:13px;color:var(--ink2);margin:0}.results{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}.result{padding:18px 16px;background:#eef5f0;border-radius:15px}.result strong{display:block;font-size:29px;letter-spacing:-.04em;line-height:1.13;color:var(--pine)}.result p{font-size:11.5px;line-height:1.5;margin:6px 0 0;color:var(--ink2)}.tiny-note{font-size:12px;color:var(--quiet);line-height:1.6;margin:12px 0 0}
-    .evidence{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:30px;padding-top:22px;border-top:1px solid var(--line);flex-wrap:wrap}.evidence .info{max-width:610px}.evidence .info b{display:block;font-size:13px}.evidence .info span{display:block;color:var(--quiet);font-size:12px;margin-top:3px}.evidence a{color:var(--pine);font-size:12px;font-weight:800;text-decoration:none;border-bottom:1px solid currentColor}.evidence a:hover{color:var(--apricot)}
-    .sequence{margin-top:30px;display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.sequence div{background:#f7f8f5;border:1px solid var(--line);padding:17px 12px;border-radius:12px;text-align:center}.sequence div:nth-child(4){background:#e9f3ee;border-color:#cce0d6}.sequence strong{display:block;font-size:12px;letter-spacing:-.02em;line-height:1.3}.sequence span{display:block;font-size:10.5px;color:var(--quiet);margin-top:6px;line-height:1.4}.step-caption{margin:11px 0 23px;color:var(--quiet);font-size:12px}
-    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:35px}.textblock ul{padding-left:20px;margin:10px 0 0;color:var(--ink2);font-size:14px}.textblock li{margin-bottom:8px}.scope{background:#f5f7f4;border-left:3px solid #8fb3a3;padding:15px 17px;color:var(--ink2);border-radius:0 10px 10px 0;margin-top:20px;font-size:12.5px;line-height:1.6}.scope b{color:var(--ink)}
-    .approach{padding:70px 0 66px}.approach-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:33px}.approach-step{background:white;border-radius:15px;border:1px solid var(--line);padding:21px 17px 22px;min-height:190px}.approach-step .num{font-size:11px;font-weight:850;color:var(--apricot)}.approach-step h3{font-size:16px;line-height:1.25;letter-spacing:-.02em;margin:13px 0 7px}.approach-step p{font-size:12.5px;line-height:1.55;color:var(--ink2);margin:0}
-    .bio-wrap{background:#173e3c;color:#edf8f2;padding:63px 0}.bio-grid{display:grid;grid-template-columns:1fr 1.02fr;gap:80px;align-items:center}.bio-wrap .eyebrow{color:#9dd1c0}.bio-wrap h2{font-size:clamp(32px,4vw,49px);line-height:1.16;letter-spacing:-.04em;margin:12px 0}.bio-wrap p{color:#d2e2dc;margin:0;font-size:15.5px;line-height:1.7}.bio-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.bio-links a{color:#d5f0e5;text-decoration:none;padding:9px 13px;border:1px solid #6e9890;border-radius:80px;font-size:12px}.bio-links a:hover{background:#2c5b54}.bio-motto{border-left:3px solid #91caba;padding:0 0 0 24px;font-size:22px;font-weight:650;letter-spacing:-.025em;line-height:1.42}
-    .contact{padding:80px 0 93px;text-align:center}.contact h2{font-size:clamp(34px,4vw,54px);letter-spacing:-.045em;line-height:1.17;margin:11px auto 15px;max-width:700px}.contact p{color:var(--ink2);font-size:16px;max-width:665px;margin:0 auto 25px}.contact-buttons{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}.site-footer{border-top:1px solid var(--line);padding:25px 0}.footer-content{display:flex;justify-content:space-between;gap:20px;color:var(--quiet);font-size:12px}.footer-content a{text-decoration:none;border-bottom:1px solid #9cb5ae}
-    .print-only{display:none}
-    @media(max-width:900px){.hero-layout{grid-template-columns:1fr;gap:30px}.hero{padding:65px 0 55px}.hero h1{max-width:800px}.intro-card{max-width:640px}.split{grid-template-columns:1fr;gap:20px}.bio-grid{gap:36px}.metrics .metric{padding-right:10px}.approach-grid{grid-template-columns:repeat(3,1fr)}}
-    @media(max-width:680px){.wrap{padding-inline:19px}.nav{min-height:66px}.nav-links{gap:14px}.nav-links a:not(.nav-contact){display:none}.brand-text span{display:none}.hero{padding:49px 0 41px}.hero h1{font-size:clamp(38px,10vw,55px)}.hero-copy{font-size:17px}.intro-card{padding:28px}.intro-card blockquote{font-size:21px}.metrics{grid-template-columns:repeat(2,1fr)}.metric{padding:20px 10px 20px 0!important;border-left:0!important}.metric:nth-child(even){padding-left:15px!important;border-left:1px solid var(--line)!important}.metric:nth-child(n+3){border-top:1px solid var(--line)}.jump-grid,.two-col,.insight-grid{grid-template-columns:1fr}.work{padding-top:55px}.section-head{display:block}.section-head p{margin-top:16px}.case-inner{padding:28px 20px 30px}.case h3{font-size:34px}.case .dek{font-size:16px}.case .divider{margin:26px 0}.flow{grid-template-columns:1fr}.flow-step{min-height:auto}.flow-step:not(:last-child)::after{content:"↓";top:auto;bottom:-21px;right:calc(50% - 12px);transform:none}.sequence{grid-template-columns:1fr 1fr}.sequence div:last-child{grid-column:1/-1}.results{grid-template-columns:1fr 1fr}.results .result:last-child{grid-column:1/-1}.approach-grid{grid-template-columns:1fr 1fr}.approach-step{min-height:165px}.bio-grid{grid-template-columns:1fr}.bio-motto{font-size:19px}.contact{padding:63px 0}.footer-content{display:block}.footer-content span{display:block;margin-bottom:8px}}
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.jump{transition:none}}
-    @page{size:Letter;margin:15mm 14mm}
-    @media print{html{scroll-behavior:auto}body{background:white;font-size:11px;line-height:1.46;color:#152a2e} .wrap{max-width:none;padding:0}.site-header,.hero-cta,.nav-links,.contact-buttons,.site-footer,.bio-links,.jump-grid,.evidence a,.btn{display:none!important}.hero{padding:0 0 21px}.hero::after{display:none}.hero-layout{display:block}.hero h1{font-size:37px;max-width:none;margin:10px 0}.hero-copy{font-size:13px}.intro-card{margin:22px 0 0;padding:15px;border-radius:10px;box-shadow:none}.intro-card blockquote{font-size:17px}.intro-card hr,.intro-card .micro,.intro-card .signature{display:none}.metrics{margin:8px 0}.metric{padding:10px!important}.metric strong{font-size:19px}.work{padding:15px 0}.section-head{margin-bottom:12px}.section-head h2{font-size:26px}.section-head p{font-size:11px}.case{border-radius:0;box-shadow:none;border:0;border-top:2px solid var(--pine);margin:0 0 18px;break-before:page}.case-inner{padding:18px 0}.case h3{font-size:28px;margin:12px 0 11px}.case .dek{font-size:13px;margin:0 0 10px}.case .divider{margin:18px 0}.split{gap:20px}.split p,.textblock p{font-size:11.3px}.split h4,.textblock h4{font-size:13px}.flow-wrap{padding:12px;margin:17px 0}.flow-step{min-height:85px;padding:10px}.flow-step strong{font-size:12px}.flow-step span{font-size:10px}.flow-caption,.tiny-note,.scope,.insight p,.result p,.textblock li{font-size:10px}.insight-grid{margin:12px 0}.insight{padding:13px}.insight strong{font-size:15px;margin:5px 0}.results{margin:10px 0}.result{padding:11px}.result strong{font-size:23px}.sequence{margin-top:16px}.sequence div{padding:10px}.sequence strong{font-size:10px}.sequence span{font-size:9px}.evidence{margin-top:12px;padding-top:10px}.approach{padding:20px 0;break-before:page}.approach-grid{margin-top:15px}.approach-step{padding:13px;min-height:115px}.approach-step h3{font-size:12px;margin:7px 0}.approach-step p{font-size:10px}.bio-wrap{padding:25px 0;background:white;color:var(--ink);break-inside:avoid}.bio-wrap h2{font-size:24px}.bio-wrap p{color:var(--ink2);font-size:11px}.bio-motto{color:var(--pine);font-size:16px}.contact{padding:14px 0 0}.contact h2{font-size:23px}.contact p{font-size:11px}.print-only{display:block;margin-top:8px;font-size:10px;color:var(--ink2)}.case,.flow-wrap,.flow-step,.insight,.result,.scope,.approach-step{break-inside:avoid}.bio-grid{gap:22px}}
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="robots" content="noindex, follow">
+    <title>AI Workflow Portfolio | Aaron Pitters</title>
+    <meta name="description" content="Selected applied AI workflow design and implementation projects by Aaron Pitters: a three-stage creative production pipeline and an AI-assisted consulting inquiry system.">
+    <link rel="canonical" href="https://aaronpitters.com/portfolio/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Aaron Pitters">
+    <meta property="og:url" content="https://aaronpitters.com/portfolio/">
+    <meta property="og:title" content="AI Workflow Portfolio | Aaron Pitters">
+    <meta property="og:description" content="Two documented case studies in creative production systems and practical business automation, with evaluation, safeguards, and human oversight.">
+    <meta property="og:image" content="https://aaronpitters.com/images/share/portfolio.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="AI Workflow Portfolio by Aaron Pitters">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AI Workflow Portfolio | Aaron Pitters">
+    <meta name="twitter:description" content="Two documented case studies in creative production systems and practical business automation, with evaluation, safeguards, and human oversight.">
+    <meta name="twitter:image" content="https://aaronpitters.com/images/share/portfolio.jpg">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <!-- The two body weights and the heading weight are used on first paint, so fetch them early. -->
+    <link rel="preload" href="/fonts/source-sans-3/source-sans-3-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/source-sans-3/source-sans-3-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/fraunces/fraunces-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <style>
+      /* ── Fonts ──────────────────────────────────────────────────
+         Self-hosted (fonts/). The site's Content Security Policy blocks external font hosts.
+         Fraunces for headings, Source Sans 3 for body text; both are under the SIL Open Font
+         License (see the OFL.txt in each folder under fonts/). */
+      @font-face {
+        font-family: 'Fraunces';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/fraunces/fraunces-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Fraunces';
+        font-style: italic;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/fraunces/fraunces-latin-400-italic.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Source Sans 3';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/source-sans-3/source-sans-3-latin-400-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Source Sans 3';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/source-sans-3/source-sans-3-latin-600-normal.woff2') format('woff2');
+      }
+
+      /* ── Design tokens ──────────────────────────────────────── */
+      :root {
+        --bg: #0E1320;            /* page background */
+        --surface: #121929;       /* "Where to start" band, panels */
+        --border: #222B40;        /* header, footer and section dividers */
+        --card-border: #263049;   /* cards */
+        --button-border: #3A4560; /* outline buttons, form fields */
+        --text: #E7E3DA;          /* body text */
+        --heading: #F4F0E8;       /* headings */
+        --muted: #B6BCC9;         /* nav links, secondary text */
+        --subtle: #8E95A6;        /* small print, footer */
+        --lede: #C9CDD6;          /* tagline, blurbs */
+        --accent: #E8A33D;        /* eyebrows, active nav, primary buttons, links */
+        --accent-hover: #F3C77E;  /* link hover */
+        --on-accent: #15100A;     /* text on amber buttons */
+
+        --font-heading: Fraunces, Georgia, serif;
+        --font-body: 'Source Sans 3', system-ui, sans-serif;
+        color-scheme: dark;
+      }
+
+      /* ── Reset & Base ───────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: var(--font-body);
+        font-size: 18px;
+        line-height: 1.6;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Keep the footer at the bottom of the window on short pages. */
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* The main area grows to fill the space above the footer. */
+      .site-main { flex: 1 0 auto; }
+
+      h1, h2, h3 {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        color: var(--heading);
+      }
+
+      a { color: inherit; text-decoration: none; }
+      ul { list-style: none; }
+      img { max-width: 100%; }
+
+      /* Every link and button gets a visible amber focus outline. */
+      a:focus-visible, button:focus-visible,
+      input:focus-visible, textarea:focus-visible, select:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      /* ── Container: 1200px of content, 32px side padding (16px on phones) ── */
+      .container {
+        width: 100%;
+        max-width: 1264px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      /* ── Header ─────────────────────────────────────────────── */
+      .site-header {
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+
+      .header-inner {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px 24px;
+        padding-top: 18px;
+        padding-bottom: 18px;
+      }
+
+      .site-logo {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        font-size: 24px;
+        line-height: 1.2;
+        color: var(--text);
+      }
+
+      /* Below 800px the seven links no longer fit next to the wordmark on one row (they fit down to
+         about 770px), so they move into a menu: a slim sticky header with a button, and a full-width
+         panel that drops down under it. 800 is that cutoff plus a little room; keep the JS
+         matchMedia query below in step with it. */
+      .mobile-toggle {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        margin-right: -9px;          /* the 26px icon sits on the page gutter; the 44px target hangs out */
+        background: none;
+        border: 0;
+        border-radius: 8px;
+        color: var(--text);
+        cursor: pointer;
+      }
+      .mobile-toggle svg { width: 26px; height: 26px; }
+      .mobile-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .mobile-toggle .icon-close { display: none; }
+      .mobile-toggle[aria-expanded="true"] .icon-open { display: none; }
+      .mobile-toggle[aria-expanded="true"] .icon-close { display: inline; }
+
+      .primary-nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 28px;
+      }
+
+      .nav-link {
+        color: var(--muted);
+        font-size: 16px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid transparent;
+        transition: color .2s, border-color .2s;
+      }
+      .nav-link:hover { color: var(--text); }
+      .nav-link.active {
+        color: var(--text);
+        font-weight: 600;
+        border-bottom-color: var(--accent);
+      }
+
+      @media (max-width: 799px) {
+        .header-inner { flex-wrap: nowrap; padding-top: 10px; padding-bottom: 10px; }
+        .mobile-toggle { display: inline-flex; }
+
+        .primary-nav {
+          display: none;
+          position: absolute;        /* .site-header is sticky, so top: 100% is the header's bottom edge */
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: var(--bg);
+          border-bottom: 1px solid var(--border);
+          max-height: calc(100vh - 66px);   /* a phone held sideways scrolls the panel instead of clipping it */
+          max-height: calc(100dvh - 66px);
+          overflow-y: auto;
+        }
+        .primary-nav.open { display: block; }
+        .primary-nav ul { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 0; }
+
+        .nav-link {
+          position: relative;
+          display: flex;
+          align-items: center;
+          min-height: 48px;
+          padding: 0 16px;           /* same gutter as the wordmark */
+          font-size: 18px;
+          border-bottom: 0;
+        }
+        .nav-link.active::before {   /* the short amber bar on the left of the current page */
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 50%;
+          width: 3px;
+          height: 24px;
+          margin-top: -12px;
+          background: var(--accent);
+          border-radius: 0 2px 2px 0;
+        }
+      }
+      @media (min-width: 640px) and (max-width: 799px) {
+        .nav-link { padding: 0 32px; }
+      }
+
+      /* ── Common patterns ────────────────────────────────────── */
+      .eyebrow {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        line-height: 1.4;
+      }
+      /* The brand name is written STORiCORE with a lowercase i. Inside uppercase text it keeps that
+         spelling: wrap it as <span class="brand">STORiCORE</span>. */
+      .brand { text-transform: none; }
+
+      /* Primary button */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 28px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-family: inherit;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.2;
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background .2s, border-color .2s;
+      }
+      .btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--on-accent); }
+      .btn:disabled { background: var(--border); border-color: var(--border); color: var(--subtle); cursor: not-allowed; }
+
+      /* Outline button */
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 28px;
+        background: transparent;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.2;
+        border: 1px solid var(--button-border);
+        border-radius: 6px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: border-color .2s, color .2s;
+      }
+      .btn-secondary:hover { border-color: var(--accent); color: var(--heading); }
+
+      /* Store buttons are a little smaller than the page-level buttons. */
+      .btn-store { min-height: 44px; padding: 0 22px; font-size: 16px; }
+
+      /* ── Content links ──────────────────────────────────────── */
+      .site-main a:not(.btn):not(.btn-secondary):not(.card) {
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .site-main a:not(.btn):not(.btn-secondary):not(.card):hover { color: var(--accent-hover); }
+
+      /* ── Footer ──────────────────────────────────────────────── */
+      .site-footer {
+        border-top: 1px solid var(--border);
+        color: var(--subtle);
+        font-size: 15px;
+      }
+      .footer-inner {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px 24px;
+        padding-top: 28px;
+        padding-bottom: 28px;
+      }
+      .site-footer a { color: var(--muted); }
+      .site-footer a:hover { color: var(--text); }
+
+      /* ── Hidden utility ──────────────────────────────────────── */
+      .hidden { display: none !important; }
+
+      @media (min-width: 640px) {
+        .container { padding-left: 32px; padding-right: 32px; }
+      }
+
+      /* ══ This page only ════════════════════════════════════════
+         Everything above this line is shared with the root index.html and consulting/index.html
+         (the site has no shared stylesheet and no build step, so that block is duplicated; keep
+         the copies in step). Below is specific to the portfolio page. */
+      :root {
+        /* A faint amber wash for highlighted boxes, built from the tokens above. */
+        --tint: color-mix(in srgb, var(--accent) 8%, var(--surface));
+        --tint-border: color-mix(in srgb, var(--accent) 40%, var(--surface));
+      }
+
+      /* The sticky header is about 65px tall; anchored headings stop below it with room to spare. */
+      html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+      ::selection { background: var(--accent); color: var(--on-accent); }
+
+      /* Same width and gutters as .container, so the content lines up with the header and footer. */
+      .wrap { width: 100%; max-width: 1264px; margin-left: auto; margin-right: auto; padding-left: 16px; padding-right: 16px; }
+      @media (min-width: 640px) { .wrap { padding-left: 32px; padding-right: 32px; } }
+
+      h4 { font-family: var(--font-body); font-weight: 600; color: var(--heading); }
+      b, strong { font-weight: 600; }
+      p { margin: 0; }
+
+      /* Links inside the page's own components keep their component styling, not the amber text-link style. */
+      .site-main .bio-links a:not(.btn):not(.btn-secondary):not(.card) {
+        color: var(--text);
+        text-decoration: none;
+        padding: 11px 16px;
+        border: 1px solid var(--button-border);
+        border-radius: 80px;
+        font-size: 15px;
+        line-height: 1.2;
+        transition: border-color .2s, color .2s;
+      }
+      .site-main .bio-links a:not(.btn):not(.btn-secondary):not(.card):hover { color: var(--heading); border-color: var(--accent); }
+
+      /* ── Hero ── */
+      .hero { padding: 72px 0 64px; position: relative; overflow: hidden; }
+      .hero::after {
+        content: ""; position: absolute; top: 27px; right: -190px; width: 590px; height: 590px; border-radius: 50%;
+        border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+        box-shadow: 0 0 0 50px color-mix(in srgb, var(--accent) 3%, transparent), 0 0 0 114px color-mix(in srgb, var(--accent) 2%, transparent);
+        pointer-events: none;
+      }
+      .hero-layout { display: grid; grid-template-columns: 1.18fr .72fr; gap: 70px; align-items: center; position: relative; z-index: 1; }
+      .hero h1 { font-size: clamp(38px, 5.2vw, 68px); line-height: 1.08; letter-spacing: -.015em; margin: 17px 0 27px; max-width: 750px; }
+      .hero h1 em { color: var(--accent); font-style: normal; }
+      .hero-copy { font-size: 20px; color: var(--lede); line-height: 1.6; max-width: 680px; }
+      .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 33px; }
+
+      .intro-card { background: var(--surface); border: 1px solid var(--card-border); border-radius: 10px; padding: 34px 31px; position: relative; }
+      .intro-card::before { content: ""; position: absolute; top: 0; left: 36px; width: 64px; height: 4px; background: var(--accent); border-radius: 0 0 3px 3px; }
+      .intro-card blockquote { font-family: var(--font-heading); font-weight: 600; font-size: 24px; line-height: 1.3; color: var(--heading); }
+      .intro-card .signature { font-size: 15px; color: var(--subtle); margin-top: 18px; }
+      .intro-card hr { border: 0; border-top: 1px solid var(--border); margin: 25px 0; }
+      .intro-card .micro { font-size: 16px; line-height: 1.6; color: var(--muted); }
+      .intro-card .micro b { color: var(--accent); }
+
+      /* ── Highlights ── */
+      .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-top: 8px; }
+      .metric { padding: 25px 22px 25px 0; }
+      .metric + .metric { padding-left: 30px; border-left: 1px solid var(--border); }
+      .metric strong { display: block; font-family: var(--font-heading); font-size: 34px; line-height: 1.1; color: var(--heading); }
+      .metric span { display: block; color: var(--muted); font-size: 15px; line-height: 1.45; margin-top: 7px; }
+
+      .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin: 0 0 28px; }
+      .section-head h2 { font-size: clamp(30px, 3.8vw, 46px); line-height: 1.12; letter-spacing: -.015em; margin: 8px 0 0; }
+      .section-head p { max-width: 410px; font-size: 17px; color: var(--muted); margin: 0 0 2px; }
+      .work { padding: 82px 0 28px; }
+
+      /* ── In-page jump cards ── */
+      .jump-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 68px; }
+      .jump {
+        display: flex; flex-direction: column; align-items: flex-start; min-height: 184px;
+        background: var(--surface); border: 1px solid var(--card-border); border-radius: 10px; padding: 27px 28px;
+        transition: border-color .2s, transform .2s;
+      }
+      .jump:hover { border-color: var(--accent); transform: translateY(-3px); }
+      .jump small { color: var(--accent); letter-spacing: .12em; text-transform: uppercase; font-size: 13px; font-weight: 600; }
+      .jump h3 { font-size: 25px; line-height: 1.2; margin: 12px 0 8px; }
+      .jump p { font-size: 16px; color: var(--muted); margin: 0 0 16px; }
+      .jump .arrow { color: var(--accent); font-size: 16px; font-weight: 600; margin-top: auto; }
+
+      /* ── Case studies ── */
+      .case { background: var(--surface); border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; margin: 0 0 34px; }
+      .case-inner { padding: 48px 56px 49px; }
+      .case-top { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+      .case-number { display: inline-flex; align-items: center; gap: 10px; color: var(--accent); letter-spacing: .12em; text-transform: uppercase; font-size: 13px; font-weight: 600; }
+      .case-number b { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--tint); border: 1px solid var(--tint-border); font-size: 13px; letter-spacing: 0; }
+      .status { border: 1px solid var(--card-border); border-radius: 99px; padding: 6px 12px; font-size: 14px; color: var(--subtle); background: var(--bg); }
+      .case h3 { font-size: clamp(28px, 3.5vw, 42px); line-height: 1.15; letter-spacing: -.015em; max-width: 800px; margin: 27px 0 17px; }
+      .case .dek { color: var(--lede); max-width: 795px; font-size: 19px; line-height: 1.6; margin: 0 0 31px; }
+      .case .divider { height: 1px; background: var(--border); margin: 35px 0; }
+
+      .split { display: grid; grid-template-columns: .78fr 1.22fr; gap: 55px; }
+      .split h4, .textblock h4 { font-size: 18px; margin: 0 0 10px; }
+      .split p, .textblock p { color: var(--muted); font-size: 16px; margin: 0 0 15px; }
+      .split .side-note { font-size: 15.5px; background: var(--bg); padding: 18px 19px; border-radius: 0 8px 8px 0; border-left: 3px solid var(--accent); color: var(--muted); margin-top: 20px; }
+      .side-note b, .scope b { color: var(--text); }
+
+      /* The three-stage diagram. Step outlines use --subtle so the shapes read at 3:1 or better on the dark background. */
+      .flow-wrap { background: var(--bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 26px 24px; margin: 34px 0 12px; }
+      .flow-label { font-size: 13px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 18px; }
+      .flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+      .flow-step { background: var(--surface); border: 1px solid var(--subtle); border-radius: 8px; padding: 17px 15px 19px; min-height: 145px; position: relative; }
+      .flow-step:not(:last-child)::after {
+        content: "→"; position: absolute; right: -19px; top: 50%; transform: translateY(-50%);
+        font-weight: 600; background: var(--bg); color: var(--accent); font-size: 19px; z-index: 2; width: 24px; text-align: center;
+      }
+      .flow-step .step-no { font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: .06em; }
+      .flow-step strong { display: block; font-family: var(--font-heading); font-size: 19px; line-height: 1.3; margin: 6px 0; color: var(--heading); }
+      .flow-step span { display: block; font-size: 15px; line-height: 1.5; color: var(--muted); }
+      .flow-caption { margin: 13px 1px 0; font-size: 14px; color: var(--subtle); }
+
+      .insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 27px 0; }
+      .insight { border: 1px solid var(--card-border); border-radius: 8px; padding: 22px 24px; background: var(--bg); }
+      .insight.tagged { background: var(--tint); border-color: var(--tint-border); }
+      .insight .insight-label { font-size: 12px; letter-spacing: .12em; color: var(--accent); text-transform: uppercase; font-weight: 600; }
+      .insight strong { display: block; font-family: var(--font-heading); font-size: 21px; line-height: 1.25; margin: 8px 0; color: var(--heading); }
+      .insight p { font-size: 15px; color: var(--muted); }
+      .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+      .result { padding: 18px 16px; background: var(--bg); border: 1px solid var(--card-border); border-radius: 8px; }
+      .result strong { display: block; font-family: var(--font-heading); font-size: 30px; line-height: 1.13; color: var(--accent); overflow-wrap: anywhere; }
+      .result p { font-size: 14px; line-height: 1.5; margin: 6px 0 0; color: var(--muted); }
+      .tiny-note { font-size: 14px; color: var(--subtle); line-height: 1.6; margin: 12px 0 0; }
+      .tiny-note b { color: var(--muted); }
+
+      .evidence { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+      .evidence .info { max-width: 610px; }
+      .evidence .info b { display: block; font-size: 16px; color: var(--heading); }
+      .evidence .info span { display: block; color: var(--subtle); font-size: 14px; margin-top: 3px; }
+      .evidence a { font-size: 15px; font-weight: 600; }
+
+      .sequence { margin-top: 30px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+      .sequence div { background: var(--bg); border: 1px solid var(--subtle); padding: 17px 12px; border-radius: 8px; text-align: center; }
+      .sequence div:nth-child(4) { background: var(--tint); border-color: var(--accent); }
+      .sequence strong { display: block; font-size: 15px; line-height: 1.3; color: var(--heading); }
+      .sequence span { display: block; font-size: 13.5px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+      .step-caption { margin: 11px 0 23px; color: var(--subtle); font-size: 14px; }
+
+      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 35px; }
+      .textblock ul { list-style: disc; padding-left: 20px; margin: 10px 0 0; color: var(--muted); font-size: 16px; }
+      .textblock li { margin-bottom: 8px; }
+      .scope { background: var(--bg); border-left: 3px solid var(--accent); padding: 15px 17px; color: var(--muted); border-radius: 0 8px 8px 0; margin-top: 20px; font-size: 14.5px; line-height: 1.6; }
+
+      /* ── Approach ── */
+      .approach { padding: 70px 0 66px; }
+      .approach-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 33px; }
+      .approach-step { background: var(--surface); border: 1px solid var(--card-border); border-radius: 8px; padding: 21px 17px 22px; min-height: 190px; }
+      .approach-step .num { font-size: 13px; font-weight: 600; color: var(--accent); }
+      .approach-step h3 { font-size: 19px; line-height: 1.25; margin: 13px 0 7px; }
+      .approach-step p { font-size: 15px; line-height: 1.55; color: var(--muted); }
+
+      /* ── About band ── */
+      .bio-wrap { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 63px 0; }
+      .bio-grid { display: grid; grid-template-columns: 1fr 1.02fr; gap: 80px; align-items: center; }
+      .bio-wrap h2 { font-size: clamp(30px, 3.8vw, 44px); line-height: 1.18; letter-spacing: -.015em; margin: 12px 0; }
+      .bio-wrap p { color: var(--lede); font-size: 17px; line-height: 1.65; }
+      .bio-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+      .bio-motto { border-left: 3px solid var(--accent); padding: 0 0 0 24px; font-family: var(--font-heading); font-weight: 600; font-size: 24px; line-height: 1.4; color: var(--heading); }
+
+      /* ── Contact ── */
+      .contact { padding: 80px 0 93px; text-align: center; }
+      .contact h2 { font-size: clamp(32px, 4vw, 50px); line-height: 1.15; letter-spacing: -.015em; margin: 11px auto 15px; max-width: 700px; }
+      .contact p { color: var(--muted); font-size: 18px; max-width: 665px; margin: 0 auto 25px; }
+      .contact-buttons { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+      .print-only { display: none; }
+
+      @media (max-width: 900px) {
+        .hero-layout { grid-template-columns: 1fr; gap: 30px; }
+        .hero { padding: 56px 0 48px; }
+        .intro-card { max-width: 640px; }
+        .split { grid-template-columns: 1fr; gap: 20px; }
+        .bio-grid { gap: 36px; }
+        .metrics .metric { padding-right: 10px; }
+        .approach-grid { grid-template-columns: repeat(3, 1fr); }
+      }
+      @media (max-width: 680px) {
+        .hero { padding: 40px 0 36px; }
+        .hero-copy { font-size: 18px; }
+        .intro-card { padding: 28px; }
+        .intro-card blockquote { font-size: 22px; }
+        .metrics { grid-template-columns: repeat(2, 1fr); }
+        .metric { padding: 20px 10px 20px 0 !important; border-left: 0 !important; }
+        .metric:nth-child(even) { padding-left: 15px !important; border-left: 1px solid var(--border) !important; }
+        .metric:nth-child(n+3) { border-top: 1px solid var(--border); }
+        .jump-grid, .two-col, .insight-grid { grid-template-columns: 1fr; }
+        .work { padding-top: 55px; }
+        .section-head { display: block; }
+        .section-head p { margin-top: 16px; }
+        .case-inner { padding: 28px 20px 30px; }
+        .case .dek { font-size: 17px; }
+        .case .divider { margin: 26px 0; }
+        .flow { grid-template-columns: 1fr; }
+        .flow-step { min-height: auto; }
+        .flow-step:not(:last-child)::after { content: "↓"; top: auto; bottom: -21px; right: calc(50% - 12px); transform: none; }
+        .sequence { grid-template-columns: 1fr 1fr; }
+        .sequence div:last-child { grid-column: 1 / -1; }
+        .results { grid-template-columns: 1fr 1fr; }
+        .results .result:last-child { grid-column: 1 / -1; }
+        .approach-grid { grid-template-columns: 1fr 1fr; }
+        .approach-step { min-height: 165px; }
+        .bio-grid { grid-template-columns: 1fr; }
+        .bio-motto { font-size: 21px; }
+        .contact { padding: 63px 0; }
+      }
+      @media (max-width: 479px) {
+        .results { grid-template-columns: 1fr; }
+        .metric strong { font-size: 28px; }
+        .approach-grid { grid-template-columns: 1fr; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        .jump, .btn, .btn-secondary { transition: none; }
+        .jump:hover { transform: none; }
+      }
+
+      /* ── Print: white page, dark text, Letter. The tokens are redefined for paper rather than
+         restyling every rule. The header, footer and buttons are left off the page. ── */
+      @page { size: Letter; margin: 15mm 14mm; }
+      @media print {
+        :root {
+          --bg: #fff; --surface: #fff; --border: #ccc; --card-border: #ccc; --button-border: #999;
+          --text: #1a1a1a; --heading: #000; --muted: #333; --subtle: #555; --lede: #222;
+          --accent: #8a5200; --accent-hover: #8a5200; --on-accent: #fff;
+          --tint: #fff; --tint-border: #8a5200;
+          color-scheme: light;
+        }
+        html { scroll-behavior: auto; }
+        body { display: block; min-height: 0; font-size: 11px; line-height: 1.46; }
+        .site-header, .site-footer, .hero-cta, .contact-buttons, .bio-links, .jump-grid, .evidence a, .btn, .btn-secondary { display: none !important; }
+        .wrap { max-width: none; padding-left: 0; padding-right: 0; }
+        .hero { padding: 0 0 21px; }
+        .hero::after { display: none; }
+        .hero-layout { display: block; }
+        .hero h1 { font-size: 37px; max-width: none; margin: 10px 0; }
+        .hero-copy { font-size: 13px; }
+        .intro-card { margin: 22px 0 0; padding: 15px; }
+        .intro-card blockquote { font-size: 17px; }
+        .intro-card hr, .intro-card .micro, .intro-card .signature { display: none; }
+        .metric { padding: 10px !important; }
+        .metric strong { font-size: 20px; }
+        .metric span { font-size: 11px; }
+        .work { padding: 15px 0; }
+        .section-head { margin-bottom: 12px; }
+        .section-head h2 { font-size: 26px; }
+        .section-head p, .split p, .textblock p, .insight p, .result p, .approach-step p, .bio-wrap p, .contact p { font-size: 11px; }
+        .case { border: 0; border-top: 2px solid var(--accent); border-radius: 0; margin: 0 0 18px; break-before: page; }
+        .case-inner { padding: 18px 0; }
+        .case h3 { font-size: 28px; margin: 12px 0 11px; }
+        .case .dek { font-size: 13px; margin: 0 0 10px; }
+        .case .divider { margin: 18px 0; }
+        .split { gap: 20px; }
+        .split h4, .textblock h4 { font-size: 13px; }
+        .flow-wrap { padding: 12px; margin: 17px 0; }
+        .flow-step { min-height: 85px; padding: 10px; }
+        .flow-step strong { font-size: 13px; }
+        .flow-step span, .flow-caption, .tiny-note, .scope, .textblock ul, .sequence span, .step-caption, .side-note { font-size: 10.5px; }
+        .insight-grid { margin: 12px 0; }
+        .insight { padding: 13px; }
+        .insight strong { font-size: 15px; margin: 5px 0; }
+        .results { margin: 10px 0; }
+        .result { padding: 11px; }
+        .result strong { font-size: 23px; }
+        .sequence { margin-top: 16px; }
+        .sequence div { padding: 10px; }
+        .sequence strong { font-size: 11px; }
+        .evidence { margin-top: 12px; padding-top: 10px; }
+        .approach { padding: 20px 0; break-before: page; }
+        .approach-grid { margin-top: 15px; }
+        .approach-step { padding: 13px; min-height: 115px; }
+        .approach-step h3 { font-size: 13px; margin: 7px 0; }
+        .bio-wrap { padding: 25px 0; border: 0; break-inside: avoid; }
+        .bio-wrap h2 { font-size: 24px; }
+        .bio-motto { font-size: 16px; }
+        .contact { padding: 14px 0 0; }
+        .contact h2 { font-size: 23px; }
+        .print-only { display: block; margin-top: 8px; font-size: 10px; color: var(--muted); }
+        .case, .flow-wrap, .flow-step, .insight, .result, .scope, .approach-step { break-inside: avoid; }
+        .bio-grid { gap: 22px; }
+      }
+    </style>
+    <noscript>
+    <style>
+      /* Without JavaScript the menu button can't open anything, so show the links as a plain list. */
+      @media (max-width: 799px) {
+        .mobile-toggle { display: none !important; }
+        .header-inner { flex-wrap: wrap !important; }
+        .primary-nav { display: block !important; position: static !important; width: 100%; max-height: none !important; border-bottom: 0 !important; }
+      }
+    </style>
+    </noscript>
 </head>
 <body>
-<header class="site-header"><div class="wrap nav">
-  <a class="brand" href="#top" aria-label="Aaron Pitters, top of portfolio"><span class="brandmark" aria-hidden="true">AP</span><span class="brand-text"><b>Aaron Pitters</b><span>Applied AI Workflow Portfolio</span></span></a>
-  <nav class="nav-links" aria-label="Primary navigation"><a href="#work">Work</a><a href="#approach">Approach</a><a href="#about">About</a><a class="nav-contact" href="#contact">Get in touch ↗</a></nav>
-</div></header>
-<main id="top">
+
+    <!-- Header: same markup as the root page and consulting. This page is unlisted, so it has no
+         tab of its own and nothing is marked as the current page. -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <div class="site-logo">Aaron Pitters</div>
+
+            <button id="mobile-toggle" class="mobile-toggle"
+                    aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true" focusable="false">
+                  <path class="icon-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6h16M4 12h16M4 18h16" />
+                  <path class="icon-close" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+
+            <nav id="primary-nav" class="primary-nav">
+                <ul>
+                    <li><a href="/#home" class="nav-link">Home</a></li>
+                    <li><a href="/#about" class="nav-link">About</a></li>
+                    <li><a href="/#books" class="nav-link">Books</a></li>
+                    <li><a href="/#storicore" class="nav-link">STORiCORE</a></li>
+                    <li><a href="/consulting/" class="nav-link">Consulting</a></li>
+                    <li><a href="/#blog" class="nav-link">Blog</a></li>
+                    <li><a href="/#contact" class="nav-link">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="top" class="site-main">
 <section class="hero"><div class="wrap hero-layout">
-  <div><div class="eyebrow">Applied AI / Workflow Design / Human Oversight</div><h1>AI should fit the work.<br><em>Not the other way around.</em></h1><p class="hero-copy">I design practical AI-assisted systems around real creative and business processes. The aim is not a complicated black box. It is a workflow people can understand, operate, and improve.</p><div class="hero-cta"><a href="#work" class="btn btn-primary">Explore the case studies <span aria-hidden="true">↓</span></a><a href="#contact" class="btn btn-outline">Discuss a role or project <span aria-hidden="true">↓</span></a></div></div>
+  <div><div class="eyebrow">Applied AI / Workflow Design / Human Oversight</div><h1>AI should fit the work.<br><em>Not the other way around.</em></h1><p class="hero-copy">I design practical AI-assisted systems around real creative and business processes. The aim is not a complicated black box. It is a workflow people can understand, operate, and improve.</p><div class="hero-cta"><a href="#work" class="btn">Explore the case studies <span aria-hidden="true">↓</span></a><a href="#contact" class="btn-secondary">Discuss a role or project <span aria-hidden="true">↓</span></a></div></div>
   <aside class="intro-card" aria-label="Working philosophy"><div class="eyebrow">My approach</div><blockquote>Understand the work first. Choose technology second. Keep judgment with the people doing the work.</blockquote><div class="signature">Aaron Pitters · Atlanta, Georgia</div><hr><p class="micro"><b>Work samples, not hypotheticals.</b> These two case studies document systems I built for my own creative business and consulting practice. Each is documented with its limits.</p></aside>
 </div></section>
 <div class="wrap"><div class="metrics" aria-label="Portfolio highlights"><div class="metric"><strong>2023</strong><span>Hands-on generative AI work begins</span></div><div class="metric"><strong>2</strong><span>Documented systems</span></div><div class="metric"><strong>7</strong><span>Creative intake configurations compared</span></div><div class="metric"><strong>133</strong><span>Passing offline inquiry-system tests</span></div></div></div>
 <section id="work" class="work"><div class="wrap">
   <div class="section-head"><div><div class="eyebrow">Selected work</div><h2>Two problems.<br>Two different systems.</h2></div><p>One was shaped by decades of storytelling and filmmaking. The other drew on years of helping customers make informed decisions. Both began with the process, not the AI tool.</p></div>
-  <div class="jump-grid"><a class="jump" href="#pipeline"><small>01 / Creative production</small><h3>The STORiCORE Three-System Pipeline</h3><p>A staged architecture for turning source stories into consistent production materials and media.</p><span class="arrow">View case study ↓</span></a><a class="jump second" href="#inquiry"><small>02 / Business operations</small><h3>The AI-Assisted Consulting Inquiry System</h3><p>A simple, tested workflow for collecting, evaluating, and responding to service inquiries.</p><span class="arrow">View case study ↓</span></a></div>
+  <div class="jump-grid"><a class="jump card" href="#pipeline"><small>01 / Creative production</small><h3>The STORiCORE Three-System Pipeline</h3><p>A staged architecture for turning source stories into consistent production materials and media.</p><span class="arrow">View case study ↓</span></a><a class="jump second card" href="#inquiry"><small>02 / Business operations</small><h3>The AI-Assisted Consulting Inquiry System</h3><p>A simple, tested workflow for collecting, evaluating, and responding to service inquiries.</p><span class="arrow">View case study ↓</span></a></div>
   <article class="case" id="pipeline" aria-labelledby="pipeline-title"><div class="case-inner">
     <div class="case-top"><div class="case-number"><b>01</b> Creative workflow design</div><div class="status">Operational internal workflow · evolving</div></div>
     <h3 id="pipeline-title">A production system organized around the story.</h3><p class="dek">An experiment in creative AI became a three-stage architecture: establish the story, secure the references, then produce for the medium. It replaced an earlier idea centered on a single Chief of Staff agent delegating freely to many agent teams.</p>
@@ -59,7 +687,7 @@
     <p class="tiny-note"><b>Interpretation matters:</b> This was a comparison of end-to-end configurations, not a controlled model benchmark. Prompt versions and available project knowledge differed between runs. The result informed a workflow decision under my conditions, not a universal claim about one provider.</p>
     <div class="divider"></div>
     <div class="two-col"><div class="textblock"><h4>What I built and changed</h4><ul><li>Structured story handoffs, separate reference development, and medium-specific production steps.</li><li>Documented evaluation, routing and cost decisions for different kinds of model work.</li><li>A supporting Supabase/PostgreSQL data design for story records, approvals, production state and cost tracking.</li><li>A shift toward subscription-based production and Codex as a central workspace, rather than relying on many separately metered agents.</li></ul></div><div class="textblock"><h4>What it demonstrates</h4><ul><li>Translating real production knowledge into a workable system design.</li><li>Revising architecture when evaluation contradicts a preferred approach.</li><li>Balancing capability, creative control, reliability and operating cost.</li><li>Designing workflows that keep the creator in charge of decisions.</li></ul><div class="scope"><b>Current scope:</b> An internal pipeline in use and refinement for comics and visual storytelling. Broader media outputs and some deeper MCP-based integrations remain future-facing; they are not claimed as completed productions.</div></div></div>
-    <div class="evidence"><div class="info"><b>Supporting work sample: the seven-run comparison</b><span>Detailed configuration table, extraction measures, quality controls, and platform/cost notes (April 23–29, 2026).</span></div><a href="evidence/michaelmas-seven-run-comparison.html" target="_blank" rel="noopener">Open comparison ↗</a></div>
+    <div class="evidence"><div class="info"><b>Supporting work sample: the seven-run comparison</b><span>Detailed configuration table, extraction measures, quality controls, and platform/cost notes (April 23–29, 2026).</span></div><a href="/portfolio/evidence/michaelmas-seven-run-comparison" target="_blank" rel="noopener">Open comparison ↗</a></div>
   </div></article>
   <article class="case" id="inquiry" aria-labelledby="inquiry-title"><div class="case-inner">
     <div class="case-top"><div class="case-number orange"><b>02</b> Applied AI operations</div><div class="status">Public-facing system · tested with fictional leads</div></div>
@@ -70,11 +698,53 @@
     <div class="eyebrow">Tested and improved</div><div class="results"><div class="result"><strong>133 / 133</strong><p>Offline automated tests, all passing.</p></div><div class="result"><strong>10 cases</strong><p>Fictional inquiries with an answer key, including prompt injection and a fictional software product.</p></div><div class="result"><strong>23.8 → 11.5s</strong><p>Documented test-run improvement after moving repeated text from LLM output into code.</p></div></div>
     <div class="two-col"><div class="textblock"><h4>A business-rule problem emerged</h4><p>In an early ten-case evaluation, the model recommended paid service for six inquiries when the answer key expected about three. That violated the spirit of a free first assessment. I revised the rubric to check project size and decision-making authority, then corrected an overcorrection found in later tests.</p><p>The goal was not maximizing conversions. It was making recommendations consistent with the service's actual purpose.</p></div><div class="textblock"><h4>Safeguards by design</h4><ul><li>Save the original inquiry before beginning AI processing.</li><li>Use code to validate the model's output and identify failure conditions.</li><li>Force the section labeled <i>My take</i> to be blank for my judgment.</li><li>Send client advice only after manual review and editing.</li></ul></div></div>
     <div class="scope"><b>Evidence boundary:</b> The system was built and tested for my own consulting practice. Tests include documented live submissions with fictional scenarios plus 133 passing offline tests. There is not yet evidence of real customer adoption, revenue, or time saved in live client service. Some regression and privacy/rate-limiting follow-ups remain.</div>
-    <div class="evidence"><div class="info"><b>Technology and development approach</b><span>Cloudflare Pages Functions · OpenAI Responses API · Resend · Cloudflare Turnstile · version-controlled rubric · Claude Code-assisted implementation.</span></div><a href="https://aaronpitters.com/consulting/" target="_blank" rel="noopener">View live inquiry page ↗</a></div>
+    <div class="evidence"><div class="info"><b>Technology and development approach</b><span>Cloudflare Pages Functions · OpenAI Responses API · Resend · Cloudflare Turnstile · version-controlled rubric · Claude Code-assisted implementation.</span></div><a href="/consulting/" target="_blank" rel="noopener">View live inquiry page ↗</a></div>
   </div></article>
 </div></section>
 <section class="approach" id="approach"><div class="wrap"><div class="section-head"><div><div class="eyebrow">How I approach the work</div><h2>Practical. Collaborative.<br>Understandable.</h2></div><p>I prefer building alongside the people who will use a system, so they understand it and can continue improving it. The level of collaboration can vary with the project.</p></div><div class="approach-grid"><div class="approach-step"><div class="num">01</div><h3>Understand</h3><p>Learn what the person is trying to do and how the work happens now.</p></div><div class="approach-step"><div class="num">02</div><h3>Design</h3><p>Choose the smallest reliable workflow that fits the actual goal.</p></div><div class="approach-step"><div class="num">03</div><h3>Build</h3><p>Connect tools, use existing services, and prototype where necessary.</p></div><div class="approach-step"><div class="num">04</div><h3>Test</h3><p>Challenge assumptions, measure results, and address failure paths.</p></div><div class="approach-step"><div class="num">05</div><h3>Enable</h3><p>Explain, document, and hand off a system its owner can keep using.</p></div></div></div></section>
 <section class="bio-wrap" id="about"><div class="wrap bio-grid"><div><div class="eyebrow">About Aaron</div><h2>Creative experience.<br>Business judgment.<br>Applied AI.</h2><p>I've spent about 30 years writing and developing stories, including books, screenplays and independent films. Earlier professional roles in claims management and customer service taught me how to listen, assess a situation, explain options and work toward a useful outcome. Since March 2023, I've been researching and applying generative AI, then building the tools and systems needed for my own work.</p><div class="bio-links"><a href="https://storicore.com/" target="_blank" rel="noopener">STORiCORE ↗</a><a href="https://1stdraftapp.com/" target="_blank" rel="noopener">1st Draft ↗</a><a href="https://www.linkedin.com/in/aaron-pitters-6015b5143/" target="_blank" rel="noopener">LinkedIn ↗</a></div></div><div class="bio-motto">“The useful skill isn't knowing every tool. It's understanding the work well enough to choose, test and connect the right ones.”</div></div></section>
-<section class="contact" id="contact"><div class="wrap"><div class="eyebrow">Let's connect</div><h2>Have a workflow problem worth solving?</h2><p>I'm interested in applied AI workflow design, implementation, enablement, and production systems, across creative work and broader business operations.</p><div class="contact-buttons"><a href="mailto:aaronpitters@gmail.com?subject=AI%20workflow%20portfolio%20inquiry" class="btn btn-primary">Email Aaron ↗</a><a href="https://www.linkedin.com/in/aaron-pitters-6015b5143/" target="_blank" rel="noopener" class="btn btn-outline">View LinkedIn ↗</a><button class="btn btn-outline" onclick="window.print()" type="button" aria-label="Print or save this portfolio as a PDF">Print / Save PDF ↗</button></div><div class="print-only">aaronpitters@gmail.com · linkedin.com/in/aaron-pitters-6015b5143 · storicore.com</div></div></section>
-</main><footer class="site-footer"><div class="wrap footer-content"><span>© 2026 Aaron Pitters. Selected work in applied AI and workflow design.</span><span>View the <a href="#pipeline">creative case</a> or the <a href="#inquiry">business case</a>.</span></div></footer>
-</body></html>
+<section class="contact" id="contact"><div class="wrap"><div class="eyebrow">Let's connect</div><h2>Have a workflow problem worth solving?</h2><p>I'm interested in applied AI workflow design, implementation, enablement, and production systems, across creative work and broader business operations.</p><div class="contact-buttons"><a href="mailto:aaronpitters@gmail.com?subject=AI%20workflow%20portfolio%20inquiry" class="btn">Email Aaron ↗</a><a href="https://www.linkedin.com/in/aaron-pitters-6015b5143/" target="_blank" rel="noopener" class="btn-secondary">View LinkedIn ↗</a><button id="print-btn" class="btn-secondary" type="button" aria-label="Print or save this portfolio as a PDF">Print / Save PDF ↗</button></div><div class="print-only">aaronpitters@gmail.com · linkedin.com/in/aaron-pitters-6015b5143 · storicore.com</div></div></section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <span>&copy; <span id="current-year"></span> Aaron Pitters &amp; STORiCORE. All rights reserved.</span>
+            <a href="mailto:contact@storicore.com">contact@storicore.com</a>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Mobile menu (same behavior as the root page): the button toggles the panel; a link tap, Escape, or a tap outside closes it.
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const primaryNav   = document.getElementById('primary-nav');
+        if (mobileToggle && primaryNav) {
+          const isOpen = () => primaryNav.classList.contains('open');
+          const setMenu = (open) => {
+            primaryNav.classList.toggle('open', open);
+            mobileToggle.setAttribute('aria-expanded', String(open));
+            mobileToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+          };
+          mobileToggle.addEventListener('click', () => setMenu(!isOpen()));
+          document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => setMenu(false));
+          });
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isOpen()) { setMenu(false); mobileToggle.focus(); }
+          });
+          document.addEventListener('click', (e) => {
+            if (isOpen() && !primaryNav.contains(e.target) && !mobileToggle.contains(e.target)) setMenu(false);
+          });
+          // Widening past the cutoff, or coming back to the page from history, never leaves the menu open.
+          window.matchMedia('(min-width: 800px)').addEventListener('change', () => setMenu(false));
+          window.addEventListener('pageshow', () => setMenu(false));
+        }
+
+        // The print button (an inline onclick would be blocked by the site's Content Security Policy).
+        const printBtn = document.getElementById('print-btn');
+        if (printBtn) printBtn.addEventListener('click', () => window.print());
+    </script>
+
+</body>
+</html>
