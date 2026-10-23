@@ -101,3 +101,61 @@ test('the hamburger breakpoint in the CSS and in the script agree at 800px', () 
   assert.match(page, /@media \(max-width: 799px\)/);
   assert.match(page, /matchMedia\('\(min-width: 800px\)'\)/);
 });
+
+// ── Print layout ────────────────────────────────────────────────────────────────────────
+
+const printBlock = page.slice(page.indexOf('@media print {'), page.indexOf('</style>'));
+
+test('the print-only masthead is on the page, hidden on screen and shown in print', () => {
+  assert.match(page, /<p class="print-masthead"><span class="print-name">Aaron Pitters<\/span> · aaronpitters\.com\/portfolio · aaronpitters@gmail\.com<\/p>/);
+  assert.match(page, /\.print-only, \.print-masthead, \.print-url \{ display: none; \}/);
+  assert.match(printBlock, /\.print-masthead \{ display: block;/);
+});
+
+test('print keeps Letter, a white page, and hides the header, nav, footer and print button', () => {
+  assert.match(page, /@page \{ size: Letter;/);
+  assert.match(printBlock, /--bg: #fff;/);
+  assert.match(printBlock, /\.site-header, \.site-footer[^}]*\.btn, \.btn-secondary \{ display: none !important; \}/);
+});
+
+test('print has no forced page breaks, so the document runs to about four pages', () => {
+  assert.doesNotMatch(printBlock, /break-(before|after):\s*(page|always)/);
+  assert.doesNotMatch(printBlock, /page-break-/);
+});
+
+test('print keeps cards, tiles and callouts whole, and keeps the evidence note with its section', () => {
+  const avoid = printBlock.match(/([^{}]+)\{ break-inside: avoid; \}/)[1];
+  for (const cls of ['.insight', '.result', '.metric', '.sequence div', '.approach-step', '.flow-step', '.scope', '.side-note', '.evidence']) {
+    assert.ok(avoid.includes(cls), `${cls} is not kept whole`);
+  }
+  assert.match(printBlock, /\.scope \{ break-after: avoid; \}/);
+});
+
+test('print insets the page so right-hand borders are not clipped at the printable edge', () => {
+  assert.match(printBlock, /\.wrap \{ max-width: none; padding-left: 1\.5mm; padding-right: 1\.5mm; \}/);
+});
+
+test('the comparison link prints with its address beside it, and that address matches the evidence page canonical', () => {
+  const url = 'https://aaronpitters.com' + EVIDENCE_URL;
+  assert.ok(page.includes(`>Open comparison ↗<span class="print-url">${url}</span></a>`));
+  assert.ok(evidence.includes(`<link rel="canonical" href="${url}">`));
+  assert.match(printBlock, /#inquiry \.evidence a/);   // only the other evidence row's link stays off the page
+  assert.match(printBlock, /\.print-url \{ display: inline;/);
+});
+
+test('the print button is named by its visible text, without an arrow', () => {
+  const button = page.match(/<button id="print-btn"[^>]*>([^<]*)<\/button>/);
+  assert.equal(button[1], 'Print / Save PDF');
+  assert.match(button[0], /aria-label="Print \/ Save PDF/);
+});
+
+test('the hero buttons keep a space before their arrow, and the H1 balances each phrase', () => {
+  assert.match(page, /\.hero-cta a \{ gap: \.3em; \}/);
+  assert.match(page, /\.hero h1 \{[^}]*text-wrap: balance;/);
+  assert.match(page, /\.hero h1 em \{ display: block;/);
+});
+
+test('the flow arrows sit in the gap with no patch behind them', () => {
+  const rule = page.match(/\.flow-step:not\(:last-child\)::after \{[^}]*\}/)[0];
+  assert.doesNotMatch(rule, /background/);
+});

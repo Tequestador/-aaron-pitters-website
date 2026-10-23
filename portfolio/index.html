@@ -347,9 +347,10 @@
          (the site has no shared stylesheet and no build step, so that block is duplicated; keep
          the copies in step). Below is specific to the portfolio page. */
       :root {
-        /* A faint amber wash for highlighted boxes, built from the tokens above. */
-        --tint: color-mix(in srgb, var(--accent) 8%, var(--surface));
-        --tint-border: color-mix(in srgb, var(--accent) 40%, var(--surface));
+        /* Highlighted boxes: a warm glow in one corner that fades into the navy card, built from
+           the tokens above. (A flat amber wash over navy reads as grey-brown.) */
+        --tint: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)) 0%, var(--surface) 65%);
+        --tint-border: color-mix(in srgb, var(--accent) 55%, var(--surface));
       }
 
       /* The sticky header is about 65px tall; anchored headings stop below it with room to spare. */
@@ -386,10 +387,13 @@
         pointer-events: none;
       }
       .hero-layout { display: grid; grid-template-columns: 1.18fr .72fr; gap: 70px; align-items: center; position: relative; z-index: 1; }
-      .hero h1 { font-size: clamp(38px, 5.2vw, 68px); line-height: 1.08; letter-spacing: -.015em; margin: 17px 0 27px; max-width: 750px; }
-      .hero h1 em { color: var(--accent); font-style: normal; }
+      .hero h1 { font-size: clamp(38px, 5.2vw, 62px); line-height: 1.08; letter-spacing: -.015em; margin: 17px 0 27px; max-width: 750px; text-wrap: balance; }
+      /* Each phrase is its own block so text-wrap: balance works on it separately; with the <br> in
+         between, the browser balances both lines to one width and still leaves "around." alone. */
+      .hero h1 em { display: block; color: var(--accent); font-style: normal; }
       .hero-copy { font-size: 20px; color: var(--lede); line-height: 1.6; max-width: 680px; }
       .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 33px; }
+      .hero-cta a { gap: .3em; }   /* an inline-flex button drops the space before the arrow; this puts it back */
 
       .intro-card { background: var(--surface); border: 1px solid var(--card-border); border-radius: 10px; padding: 34px 31px; position: relative; }
       .intro-card::before { content: ""; position: absolute; top: 0; left: 36px; width: 64px; height: 4px; background: var(--accent); border-radius: 0 0 3px 3px; }
@@ -444,11 +448,11 @@
       /* The three-stage diagram. Step outlines use --subtle so the shapes read at 3:1 or better on the dark background. */
       .flow-wrap { background: var(--bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 26px 24px; margin: 34px 0 12px; }
       .flow-label { font-size: 13px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 18px; }
-      .flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+      .flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px; }
       .flow-step { background: var(--surface); border: 1px solid var(--subtle); border-radius: 8px; padding: 17px 15px 19px; min-height: 145px; position: relative; }
-      .flow-step:not(:last-child)::after {
-        content: "→"; position: absolute; right: -19px; top: 50%; transform: translateY(-50%);
-        font-weight: 600; background: var(--bg); color: var(--accent); font-size: 19px; z-index: 2; width: 24px; text-align: center;
+      .flow-step:not(:last-child)::after {   /* centred in the 30px gap between steps; no patch behind it */
+        content: "→"; position: absolute; right: -30px; top: 50%; transform: translateY(-50%);
+        font-weight: 600; color: var(--accent); font-size: 19px; width: 30px; text-align: center;
       }
       .flow-step .step-no { font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: .06em; }
       .flow-step strong { display: block; font-family: var(--font-heading); font-size: 19px; line-height: 1.3; margin: 6px 0; color: var(--heading); }
@@ -507,7 +511,7 @@
       .contact h2 { font-size: clamp(32px, 4vw, 50px); line-height: 1.15; letter-spacing: -.015em; margin: 11px auto 15px; max-width: 700px; }
       .contact p { color: var(--muted); font-size: 18px; max-width: 665px; margin: 0 auto 25px; }
       .contact-buttons { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
-      .print-only { display: none; }
+      .print-only, .print-masthead, .print-url { display: none; }   /* paper only; see the print block */
 
       @media (max-width: 900px) {
         .hero-layout { grid-template-columns: 1fr; gap: 30px; }
@@ -536,7 +540,7 @@
         .case .divider { margin: 26px 0; }
         .flow { grid-template-columns: 1fr; }
         .flow-step { min-height: auto; }
-        .flow-step:not(:last-child)::after { content: "↓"; top: auto; bottom: -21px; right: calc(50% - 12px); transform: none; }
+        .flow-step:not(:last-child)::after { content: "↓"; top: 100%; right: auto; left: 0; width: 100%; height: 30px; line-height: 30px; transform: none; }
         .sequence { grid-template-columns: 1fr 1fr; }
         .sequence div:last-child { grid-column: 1 / -1; }
         .results { grid-template-columns: 1fr 1fr; }
@@ -567,60 +571,90 @@
           --text: #1a1a1a; --heading: #000; --muted: #333; --subtle: #555; --lede: #222;
           --accent: #8a5200; --accent-hover: #8a5200; --on-accent: #fff;
           --tint: #fff; --tint-border: #8a5200;
+          --small: 11.75px;   /* the smallest text on paper, about 8.8pt */
           color-scheme: light;
         }
         html { scroll-behavior: auto; }
-        body { display: block; min-height: 0; font-size: 11px; line-height: 1.46; }
-        .site-header, .site-footer, .hero-cta, .contact-buttons, .bio-links, .jump-grid, .evidence a, .btn, .btn-secondary { display: none !important; }
-        .wrap { max-width: none; padding-left: 0; padding-right: 0; }
-        .hero { padding: 0 0 21px; }
+        body { display: block; min-height: 0; font-size: var(--small); line-height: 1.36; }
+        .site-header, .site-footer, .hero-cta, .contact-buttons, .bio-links, .jump-grid, #inquiry .evidence a, .btn, .btn-secondary { display: none !important; }
+
+        /* Nothing here is wider than the page, but the boxes ended exactly at the printable edge,
+           and the PDF clip drops the last pixel there: right-hand borders vanished. A 1.5mm inset
+           keeps every border inside the page. */
+        .wrap { max-width: none; padding-left: 1.5mm; padding-right: 1.5mm; }
+
+        .print-masthead { display: block; margin: 0 1.5mm 10px; padding: 0 0 7px; border-bottom: 1px solid var(--border); font-size: var(--small); letter-spacing: .02em; color: var(--muted); }
+        .print-name { font-family: var(--font-heading); font-weight: 600; font-size: 13px; letter-spacing: 0; color: var(--heading); }
+
+        .hero { padding: 0 0 10px; }
         .hero::after { display: none; }
         .hero-layout { display: block; }
-        .hero h1 { font-size: 37px; max-width: none; margin: 10px 0; }
+        .hero h1 { font-size: 34px; max-width: none; margin: 8px 0; }
         .hero-copy { font-size: 13px; }
-        .intro-card { margin: 22px 0 0; padding: 15px; }
+        .intro-card { margin: 14px 0 0; padding: 12px 15px; }
         .intro-card blockquote { font-size: 17px; }
         .intro-card hr, .intro-card .micro, .intro-card .signature { display: none; }
-        .metric { padding: 10px !important; }
+        .metric { padding: 7px 9px !important; }
         .metric strong { font-size: 20px; }
-        .metric span { font-size: 11px; }
-        .work { padding: 15px 0; }
-        .section-head { margin-bottom: 12px; }
-        .section-head h2 { font-size: 26px; }
-        .section-head p, .split p, .textblock p, .insight p, .result p, .approach-step p, .bio-wrap p, .contact p { font-size: 11px; }
-        .case { border: 0; border-top: 2px solid var(--accent); border-radius: 0; margin: 0 0 18px; break-before: page; }
-        .case-inner { padding: 18px 0; }
-        .case h3 { font-size: 28px; margin: 12px 0 11px; }
-        .case .dek { font-size: 13px; margin: 0 0 10px; }
-        .case .divider { margin: 18px 0; }
+        .metric span { font-size: var(--small); }
+        .work { padding: 8px 0 0; }
+        .section-head { margin-bottom: 10px; }
+        .section-head h2 { font-size: 24px; }
+        .section-head p, .split p, .textblock p, .insight p, .result p, .approach-step p, .bio-wrap p, .contact p { font-size: var(--small); }
+
+        /* No forced page breaks: the case studies and the approach section flow on from each other.
+           Cards, tiles and callouts are kept whole, and headings stay with what follows. */
+        .case { overflow: visible; border: 0; border-top: 2px solid var(--accent); border-radius: 0; margin: 0 0 10px; }
+        .case-inner { padding: 14px 0 0; }
+        .case h3 { font-size: 25px; margin: 8px 0 8px; }
+        .case .dek { font-size: 13px; margin: 0 0 8px; }
+        .case .divider { margin: 11px 0; }
         .split { gap: 20px; }
+        .split p, .textblock p { margin-bottom: 7px; }
+        .textblock ul { margin-top: 6px; }
+        .textblock li { margin-bottom: 3px; }
+        .side-note, .scope { margin-top: 10px; padding: 10px 12px; }
         .split h4, .textblock h4 { font-size: 13px; }
-        .flow-wrap { padding: 12px; margin: 17px 0; }
-        .flow-step { min-height: 85px; padding: 10px; }
+        .flow-wrap { padding: 12px; margin: 14px 0; }
+        .flow { gap: 24px; }
+        .flow-step { min-height: 0; padding: 10px; }
+        .flow-step:not(:last-child)::after { right: -24px; width: 24px; font-size: 16px; }
         .flow-step strong { font-size: 13px; }
-        .flow-step span, .flow-caption, .tiny-note, .scope, .textblock ul, .sequence span, .step-caption, .side-note { font-size: 10.5px; }
-        .insight-grid { margin: 12px 0; }
-        .insight { padding: 13px; }
-        .insight strong { font-size: 15px; margin: 5px 0; }
+        .flow-step span, .flow-caption, .tiny-note, .scope, .textblock ul, .sequence span, .step-caption, .side-note { font-size: var(--small); }
+        .insight-grid { margin: 10px 0; }
+        .insight { padding: 12px; }
+        .insight strong { font-size: 15px; margin: 4px 0; }
         .results { margin: 10px 0; }
-        .result { padding: 11px; }
+        .result { padding: 10px; }
         .result strong { font-size: 23px; }
-        .sequence { margin-top: 16px; }
-        .sequence div { padding: 10px; }
-        .sequence strong { font-size: 11px; }
-        .evidence { margin-top: 12px; padding-top: 10px; }
-        .approach { padding: 20px 0; break-before: page; }
-        .approach-grid { margin-top: 15px; }
-        .approach-step { padding: 13px; min-height: 115px; }
-        .approach-step h3 { font-size: 13px; margin: 7px 0; }
-        .bio-wrap { padding: 25px 0; border: 0; break-inside: avoid; }
-        .bio-wrap h2 { font-size: 24px; }
+        .sequence { margin-top: 12px; }
+        .sequence div { padding: 9px; }
+        .step-caption { margin: 6px 0 0; }
+        .sequence strong { font-size: var(--small); }
+
+        /* The comparison link is kept on paper, with its address written out beside it. */
+        .evidence { display: block; margin-top: 10px; padding-top: 8px; }
+        .evidence a { display: inline-block; margin-top: 4px; font-size: var(--small); }
+        .print-url { display: inline; margin-left: 6px; font-weight: 400; color: var(--muted); }
+
+        .approach { padding: 6px 0 4px; }
+        .approach-grid { grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+        .approach-step { padding: 9px 10px; min-height: 0; }
+        .approach-step h3 { font-size: 13px; margin: 4px 0 5px; }
+        .bio-wrap { padding: 4px 0; border: 0; }
+        .bio-wrap h2 { font-size: 20px; margin: 6px 0; }
         .bio-motto { font-size: 16px; }
-        .contact { padding: 14px 0 0; }
-        .contact h2 { font-size: 23px; }
-        .print-only { display: block; margin-top: 8px; font-size: 10px; color: var(--muted); }
-        .case, .flow-wrap, .flow-step, .insight, .result, .scope, .approach-step { break-inside: avoid; }
-        .bio-grid { gap: 22px; }
+        .contact { padding: 4px 0 0; }
+        .contact h2 { font-size: 20px; margin: 4px auto 6px; }
+        .contact p { margin-bottom: 4px; }
+        .print-only { display: block; margin-top: 4px; font-size: var(--small); color: var(--muted); }
+        .bio-grid { grid-template-columns: 1.9fr 1fr; gap: 22px; }
+
+        .intro-card, .metrics, .metric, .flow-wrap, .flow-step, .insight-grid, .insight, .results, .result,
+        .scope, .side-note, .sequence, .sequence div, .approach-step, .evidence, .bio-wrap { break-inside: avoid; }
+        h2, h3, h4, .eyebrow, .flow-label, .case-top, .section-head { break-after: avoid; }
+        /* The "Evidence boundary" note stays with the results above it and the technology line below it. */
+        .scope { break-after: avoid; }
       }
     </style>
     <noscript>
@@ -668,6 +702,7 @@
     </header>
 
     <main id="top" class="site-main">
+<p class="print-masthead"><span class="print-name">Aaron Pitters</span> · aaronpitters.com/portfolio · aaronpitters@gmail.com</p>
 <section class="hero"><div class="wrap hero-layout">
   <div><div class="eyebrow">Applied AI / Workflow Design / Human Oversight</div><h1>AI should fit the work.<br><em>Not the other way around.</em></h1><p class="hero-copy">I design practical AI-assisted systems around real creative and business processes. The aim is not a complicated black box. It is a workflow people can understand, operate, and improve.</p><div class="hero-cta"><a href="#work" class="btn">Explore the case studies <span aria-hidden="true">↓</span></a><a href="#contact" class="btn-secondary">Discuss a role or project <span aria-hidden="true">↓</span></a></div></div>
   <aside class="intro-card" aria-label="Working philosophy"><div class="eyebrow">My approach</div><blockquote>Understand the work first. Choose technology second. Keep judgment with the people doing the work.</blockquote><div class="signature">Aaron Pitters · Atlanta, Georgia</div><hr><p class="micro"><b>Work samples, not hypotheticals.</b> These two case studies document systems I built for my own creative business and consulting practice. Each is documented with its limits.</p></aside>
@@ -687,7 +722,7 @@
     <p class="tiny-note"><b>Interpretation matters:</b> This was a comparison of end-to-end configurations, not a controlled model benchmark. Prompt versions and available project knowledge differed between runs. The result informed a workflow decision under my conditions, not a universal claim about one provider.</p>
     <div class="divider"></div>
     <div class="two-col"><div class="textblock"><h4>What I built and changed</h4><ul><li>Structured story handoffs, separate reference development, and medium-specific production steps.</li><li>Documented evaluation, routing and cost decisions for different kinds of model work.</li><li>A supporting Supabase/PostgreSQL data design for story records, approvals, production state and cost tracking.</li><li>A shift toward subscription-based production and Codex as a central workspace, rather than relying on many separately metered agents.</li></ul></div><div class="textblock"><h4>What it demonstrates</h4><ul><li>Translating real production knowledge into a workable system design.</li><li>Revising architecture when evaluation contradicts a preferred approach.</li><li>Balancing capability, creative control, reliability and operating cost.</li><li>Designing workflows that keep the creator in charge of decisions.</li></ul><div class="scope"><b>Current scope:</b> An internal pipeline in use and refinement for comics and visual storytelling. Broader media outputs and some deeper MCP-based integrations remain future-facing; they are not claimed as completed productions.</div></div></div>
-    <div class="evidence"><div class="info"><b>Supporting work sample: the seven-run comparison</b><span>Detailed configuration table, extraction measures, quality controls, and platform/cost notes (April 23–29, 2026).</span></div><a href="/portfolio/evidence/michaelmas-seven-run-comparison" target="_blank" rel="noopener">Open comparison ↗</a></div>
+    <div class="evidence"><div class="info"><b>Supporting work sample: the seven-run comparison</b><span>Detailed configuration table, extraction measures, quality controls, and platform/cost notes (April 23–29, 2026).</span></div><a href="/portfolio/evidence/michaelmas-seven-run-comparison" target="_blank" rel="noopener">Open comparison ↗<span class="print-url">https://aaronpitters.com/portfolio/evidence/michaelmas-seven-run-comparison</span></a></div>
   </div></article>
   <article class="case" id="inquiry" aria-labelledby="inquiry-title"><div class="case-inner">
     <div class="case-top"><div class="case-number orange"><b>02</b> Applied AI operations</div><div class="status">Public-facing system · tested with fictional leads</div></div>
@@ -703,7 +738,7 @@
 </div></section>
 <section class="approach" id="approach"><div class="wrap"><div class="section-head"><div><div class="eyebrow">How I approach the work</div><h2>Practical. Collaborative.<br>Understandable.</h2></div><p>I prefer building alongside the people who will use a system, so they understand it and can continue improving it. The level of collaboration can vary with the project.</p></div><div class="approach-grid"><div class="approach-step"><div class="num">01</div><h3>Understand</h3><p>Learn what the person is trying to do and how the work happens now.</p></div><div class="approach-step"><div class="num">02</div><h3>Design</h3><p>Choose the smallest reliable workflow that fits the actual goal.</p></div><div class="approach-step"><div class="num">03</div><h3>Build</h3><p>Connect tools, use existing services, and prototype where necessary.</p></div><div class="approach-step"><div class="num">04</div><h3>Test</h3><p>Challenge assumptions, measure results, and address failure paths.</p></div><div class="approach-step"><div class="num">05</div><h3>Enable</h3><p>Explain, document, and hand off a system its owner can keep using.</p></div></div></div></section>
 <section class="bio-wrap" id="about"><div class="wrap bio-grid"><div><div class="eyebrow">About Aaron</div><h2>Creative experience.<br>Business judgment.<br>Applied AI.</h2><p>I've spent about 30 years writing and developing stories, including books, screenplays and independent films. Earlier professional roles in claims management and customer service taught me how to listen, assess a situation, explain options and work toward a useful outcome. Since March 2023, I've been researching and applying generative AI, then building the tools and systems needed for my own work.</p><div class="bio-links"><a href="https://storicore.com/" target="_blank" rel="noopener">STORiCORE ↗</a><a href="https://1stdraftapp.com/" target="_blank" rel="noopener">1st Draft ↗</a><a href="https://www.linkedin.com/in/aaron-pitters-6015b5143/" target="_blank" rel="noopener">LinkedIn ↗</a></div></div><div class="bio-motto">“The useful skill isn't knowing every tool. It's understanding the work well enough to choose, test and connect the right ones.”</div></div></section>
-<section class="contact" id="contact"><div class="wrap"><div class="eyebrow">Let's connect</div><h2>Have a workflow problem worth solving?</h2><p>I'm interested in applied AI workflow design, implementation, enablement, and production systems, across creative work and broader business operations.</p><div class="contact-buttons"><a href="mailto:aaronpitters@gmail.com?subject=AI%20workflow%20portfolio%20inquiry" class="btn">Email Aaron ↗</a><a href="https://www.linkedin.com/in/aaron-pitters-6015b5143/" target="_blank" rel="noopener" class="btn-secondary">View LinkedIn ↗</a><button id="print-btn" class="btn-secondary" type="button" aria-label="Print / Save PDF of this portfolio">Print / Save PDF ↗</button></div><div class="print-only">aaronpitters@gmail.com · linkedin.com/in/aaron-pitters-6015b5143 · storicore.com</div></div></section>
+<section class="contact" id="contact"><div class="wrap"><div class="eyebrow">Let's connect</div><h2>Have a workflow problem worth solving?</h2><p>I'm interested in applied AI workflow design, implementation, enablement, and production systems, across creative work and broader business operations.</p><div class="contact-buttons"><a href="mailto:aaronpitters@gmail.com?subject=AI%20workflow%20portfolio%20inquiry" class="btn">Email Aaron ↗</a><a href="https://www.linkedin.com/in/aaron-pitters-6015b5143/" target="_blank" rel="noopener" class="btn-secondary">View LinkedIn ↗</a><button id="print-btn" class="btn-secondary" type="button" aria-label="Print / Save PDF of this portfolio">Print / Save PDF</button></div><div class="print-only">aaronpitters@gmail.com · linkedin.com/in/aaron-pitters-6015b5143 · storicore.com</div></div></section>
     </main>
 
     <footer class="site-footer">
