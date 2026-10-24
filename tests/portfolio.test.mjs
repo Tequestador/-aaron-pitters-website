@@ -71,7 +71,7 @@ test('neither page loads anything from outside the site', () => {
 });
 
 test('every font and icon the portfolio page loads exists in the repo', () => {
-  const paths = new Set([...page.matchAll(/(?:href|src)="(\/[^"#?]+\.(?:woff2|png|ico|webmanifest))"/g)].map((m) => m[1]));
+  const paths = new Set([...page.matchAll(/(?:href|src)="(\/[^"#?]+\.(?:woff2|png|ico|webmanifest))(?:\?[^"#]*)?"/g)].map((m) => m[1]));
   for (const m of page.matchAll(/url\('(\/fonts\/[^']+)'\)/g)) paths.add(m[1]);
   assert.ok(paths.size > 0);
   for (const path of paths) assert.ok(existsSync(join(ROOT, path)), `${path} is missing`);
