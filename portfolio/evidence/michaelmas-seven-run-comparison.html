@@ -220,7 +220,7 @@
 </head>
 <body>
 <div class="container">
-<a class="back" href="/portfolio/#pipeline">&larr; Back to the portfolio</a>
+<a class="back" id="back-link" href="/portfolio/#pipeline">&larr; Back to the portfolio</a>
 <div class="intro">
 <p><strong>Supporting work sample for the STORiCORE Three-System Pipeline.</strong> Seven ways of running the same story-intake task on Chapter 1 of <em>Michaelmas</em>, compared April 23&ndash;29, 2026. Each column is one run; each row is something the run extracted or checked. Run 7 (highlighted) performed best in this comparison.</p>
 <p class="muted">This compares whole workflows, not models: prompts and available project knowledge changed between runs. It shows what worked under my conditions, not a general benchmark.</p>
@@ -459,5 +459,9 @@
 </div>
 
 </div>
+<script>
+  // Opened from the creative portfolio (?from=creative)? Send the back link there instead of the applied-AI page.
+  if (new URLSearchParams(location.search).get('from') === 'creative') document.getElementById('back-link').href = '/portfolio/creative/#pipeline';
+</script>
 </body>
 </html>

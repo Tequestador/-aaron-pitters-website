@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="robots" content="noindex, follow">
+    <title>Creative AI &amp; Writing Portfolio | Aaron Pitters</title>
+    <meta name="description" content="Thirty years of writing, and selected creative AI projects by Aaron Pitters: an AI-illustrated novel, a three-stage story production pipeline, and a voice-first writing app.">
+    <link rel="canonical" href="https://aaronpitters.com/portfolio/creative/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Aaron Pitters">
+    <meta property="og:url" content="https://aaronpitters.com/portfolio/creative/">
+    <meta property="og:title" content="Creative AI &amp; Writing Portfolio | Aaron Pitters">
+    <meta property="og:description" content="Seven books, screenplays and independent films, plus three documented creative AI projects: an illustrated novel, a story production pipeline and a writing app.">
+    <meta property="og:image" content="https://aaronpitters.com/images/share/portfolio-creative.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Creative AI and Writing Portfolio by Aaron Pitters">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Creative AI &amp; Writing Portfolio | Aaron Pitters">
+    <meta name="twitter:description" content="Seven books, screenplays and independent films, plus three documented creative AI projects: an illustrated novel, a story production pipeline and a writing app.">
+    <meta name="twitter:image" content="https://aaronpitters.com/images/share/portfolio-creative.jpg">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=5">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=5">
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png?v=5">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="shortcut icon" href="/favicon.ico?v=5">
+    <!-- The two body weights and the heading weight are used on first paint, so fetch them early. -->
+    <link rel="preload" href="/fonts/source-sans-3/source-sans-3-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/source-sans-3/source-sans-3-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/fraunces/fraunces-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <style>
+      /* ── Fonts ──────────────────────────────────────────────────
+         Self-hosted (fonts/). The site's Content Security Policy blocks external font hosts.
+         Fraunces for headings, Source Sans 3 for body text; both are under the SIL Open Font
+         License (see the OFL.txt in each folder under fonts/). */
+      @font-face {
+        font-family: 'Fraunces';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/fraunces/fraunces-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Fraunces';
+        font-style: italic;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/fraunces/fraunces-latin-400-italic.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Source Sans 3';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/source-sans-3/source-sans-3-latin-400-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Source Sans 3';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/source-sans-3/source-sans-3-latin-600-normal.woff2') format('woff2');
+      }
+
+      /* ── Design tokens ──────────────────────────────────────── */
+      :root {
+        --bg: #0E1320;            /* page background */
+        --surface: #121929;       /* "Where to start" band, panels */
+        --border: #222B40;        /* header, footer and section dividers */
+        --card-border: #263049;   /* cards */
+        --button-border: #3A4560; /* outline buttons, form fields */
+        --text: #E7E3DA;          /* body text */
+        --heading: #F4F0E8;       /* headings */
+        --muted: #B6BCC9;         /* nav links, secondary text */
+        --subtle: #8E95A6;        /* small print, footer */
+        --lede: #C9CDD6;          /* tagline, blurbs */
+        --accent: #E8A33D;        /* eyebrows, active nav, primary buttons, links */
+        --accent-hover: #F3C77E;  /* link hover */
+        --on-accent: #15100A;     /* text on amber buttons */
+
+        --font-heading: Fraunces, Georgia, serif;
+        --font-body: 'Source Sans 3', system-ui, sans-serif;
+        color-scheme: dark;
+      }
+
+      /* ── Reset & Base ───────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: var(--font-body);
+        font-size: 18px;
+        line-height: 1.6;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Keep the footer at the bottom of the window on short pages. */
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* The main area grows to fill the space above the footer. */
+      .site-main { flex: 1 0 auto; }
+
+      h1, h2, h3 {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        color: var(--heading);
+      }
+
+      a { color: inherit; text-decoration: none; }
+      ul { list-style: none; }
+      img { max-width: 100%; }
+
+      /* Every link and button gets a visible amber focus outline. */
+      a:focus-visible, button:focus-visible,
+      input:focus-visible, textarea:focus-visible, select:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      /* ── Container: 1200px of content, 32px side padding (16px on phones) ── */
+      .container {
+        width: 100%;
+        max-width: 1264px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      /* ── Header ─────────────────────────────────────────────── */
+      .site-header {
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+
+      .header-inner {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px 24px;
+        padding-top: 18px;
+        padding-bottom: 18px;
+      }
+
+      .site-logo {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        font-size: 24px;
+        line-height: 1.2;
+        color: var(--text);
+      }
+
+      /* Below 800px the seven links no longer fit next to the wordmark on one row (they fit down to
+         about 770px), so they move into a menu: a slim sticky header with a button, and a full-width
+         panel that drops down under it. 800 is that cutoff plus a little room; keep the JS
+         matchMedia query below in step with it. */
+      .mobile-toggle {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        margin-right: -9px;          /* the 26px icon sits on the page gutter; the 44px target hangs out */
+        background: none;
+        border: 0;
+        border-radius: 8px;
+        color: var(--text);
+        cursor: pointer;
+      }
+      .mobile-toggle svg { width: 26px; height: 26px; }
+      .mobile-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .mobile-toggle .icon-close { display: none; }
+      .mobile-toggle[aria-expanded="true"] .icon-open { display: none; }
+      .mobile-toggle[aria-expanded="true"] .icon-close { display: inline; }
+
+      .primary-nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 28px;
+      }
+
+      .nav-link {
+        color: var(--muted);
+        font-size: 16px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid transparent;
+        transition: color .2s, border-color .2s;
+      }
+      .nav-link:hover { color: var(--text); }
+      .nav-link.active {
+        color: var(--text);
+        font-weight: 600;
+        border-bottom-color: var(--accent);
+      }
+
+      @media (max-width: 799px) {
+        .header-inner { flex-wrap: nowrap; padding-top: 10px; padding-bottom: 10px; }
+        .mobile-toggle { display: inline-flex; }
+
+        .primary-nav {
+          display: none;
+          position: absolute;        /* .site-header is sticky, so top: 100% is the header's bottom edge */
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: var(--bg);
+          border-bottom: 1px solid var(--border);
+          max-height: calc(100vh - 66px);   /* a phone held sideways scrolls the panel instead of clipping it */
+          max-height: calc(100dvh - 66px);
+          overflow-y: auto;
+        }
+        .primary-nav.open { display: block; }
+        .primary-nav ul { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 0; }
+
+        .nav-link {
+          position: relative;
+          display: flex;
+          align-items: center;
+          min-height: 48px;
+          padding: 0 16px;           /* same gutter as the wordmark */
+          font-size: 18px;
+          border-bottom: 0;
+        }
+        .nav-link.active::before {   /* the short amber bar on the left of the current page */
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 50%;
+          width: 3px;
+          height: 24px;
+          margin-top: -12px;
+          background: var(--accent);
+          border-radius: 0 2px 2px 0;
+        }
+      }
+      @media (min-width: 640px) and (max-width: 799px) {
+        .nav-link { padding: 0 32px; }
+      }
+
+      /* ── Common patterns ────────────────────────────────────── */
+      .eyebrow {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        line-height: 1.4;
+      }
+      /* The brand name is written STORiCORE with a lowercase i. Inside uppercase text it keeps that
+         spelling: wrap it as <span class="brand">STORiCORE</span>. */
+      .brand { text-transform: none; }
+
+      /* Primary button */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 28px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-family: inherit;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.2;
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background .2s, border-color .2s;
+      }
+      .btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--on-accent); }
+      .btn:disabled { background: var(--border); border-color: var(--border); color: var(--subtle); cursor: not-allowed; }
+
+      /* Outline button */
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 28px;
+        background: transparent;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.2;
+        border: 1px solid var(--button-border);
+        border-radius: 6px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: border-color .2s, color .2s;
+      }
+      .btn-secondary:hover { border-color: var(--accent); color: var(--heading); }
+
+      /* Store buttons are a little smaller than the page-level buttons. */
+      .btn-store { min-height: 44px; padding: 0 22px; font-size: 16px; }
+
+      /* ── Content links ──────────────────────────────────────── */
+      .site-main a:not(.btn):not(.btn-secondary):not(.card) {
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .site-main a:not(.btn):not(.btn-secondary):not(.card):hover { color: var(--accent-hover); }
+
+      /* ── Footer ──────────────────────────────────────────────── */
+      .site-footer {
+        border-top: 1px solid var(--border);
+        color: var(--subtle);
+        font-size: 15px;
+      }
+      .footer-inner {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px 24px;
+        padding-top: 28px;
+        padding-bottom: 28px;
+      }
+      .site-footer a { color: var(--muted); }
+      .site-footer a:hover { color: var(--text); }
+
+      /* ── Hidden utility ──────────────────────────────────────── */
+      .hidden { display: none !important; }
+
+      @media (min-width: 640px) {
+        .container { padding-left: 32px; padding-right: 32px; }
+      }
+
+      /* ══ This page only ════════════════════════════════════════
+         Everything above this line is shared with the root index.html and consulting/index.html
+         (the site has no shared stylesheet and no build step, so that block is duplicated; keep
+         the copies in step). Below is specific to the portfolio page. */
+      :root {
+        /* Highlighted boxes: a warm glow in one corner that fades into the navy card, built from
+           the tokens above. (A flat amber wash over navy reads as grey-brown.) */
+        --tint: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)) 0%, var(--surface) 65%);
+        --tint-border: color-mix(in srgb, var(--accent) 55%, var(--surface));
+      }
+
+      /* The sticky header is about 65px tall; anchored headings stop below it with room to spare. */
+      html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+      ::selection { background: var(--accent); color: var(--on-accent); }
+
+      /* Same width and gutters as .container, so the content lines up with the header and footer. */
+      .wrap { width: 100%; max-width: 1264px; margin-left: auto; margin-right: auto; padding-left: 16px; padding-right: 16px; }
+      @media (min-width: 640px) { .wrap { padding-left: 32px; padding-right: 32px; } }
+
+      h4 { font-family: var(--font-body); font-weight: 600; color: var(--heading); }
+      b, strong { font-weight: 600; }
+      p { margin: 0; }
+
+      /* Links inside the page's own components keep their component styling, not the amber text-link style. */
+      .site-main .bio-links a:not(.btn):not(.btn-secondary):not(.card) {
+        color: var(--text);
+        text-decoration: none;
+        padding: 11px 16px;
+        border: 1px solid var(--button-border);
+        border-radius: 80px;
+        font-size: 15px;
+        line-height: 1.2;
+        transition: border-color .2s, color .2s;
+      }
+      .site-main .bio-links a:not(.btn):not(.btn-secondary):not(.card):hover { color: var(--heading); border-color: var(--accent); }
+
+      /* ── Hero ── */
+      .hero { padding: 72px 0 64px; position: relative; overflow: hidden; }
+      .hero::after {
+        content: ""; position: absolute; top: 27px; right: -190px; width: 590px; height: 590px; border-radius: 50%;
+        border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+        box-shadow: 0 0 0 50px color-mix(in srgb, var(--accent) 3%, transparent), 0 0 0 114px color-mix(in srgb, var(--accent) 2%, transparent);
+        pointer-events: none;
+      }
+      .hero-layout { display: grid; grid-template-columns: 1.18fr .72fr; gap: 70px; align-items: center; position: relative; z-index: 1; }
+      .hero h1 { font-size: clamp(38px, 5.2vw, 62px); line-height: 1.08; letter-spacing: -.015em; margin: 17px 0 27px; max-width: 750px; text-wrap: balance; }
+      /* Each phrase is its own block so text-wrap: balance works on it separately; with the <br> in
+         between, the browser balances both lines to one width and still leaves "around." alone. */
+      .hero h1 em { display: block; color: var(--accent); font-style: normal; }
+      .hero-copy { font-size: 20px; color: var(--lede); line-height: 1.6; max-width: 680px; }
+      .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 33px; }
+      .hero-cta a { gap: .3em; }   /* an inline-flex button drops the space before the arrow; this puts it back */
+
+      .intro-card { background: var(--surface); border: 1px solid var(--card-border); border-radius: 10px; padding: 34px 31px; position: relative; }
+      .intro-card::before { content: ""; position: absolute; top: 0; left: 36px; width: 64px; height: 4px; background: var(--accent); border-radius: 0 0 3px 3px; }
+      .intro-card blockquote { font-family: var(--font-heading); font-weight: 600; font-size: 24px; line-height: 1.3; color: var(--heading); }
+      .intro-card .signature { font-size: 15px; color: var(--subtle); margin-top: 18px; }
+      .intro-card hr { border: 0; border-top: 1px solid var(--border); margin: 25px 0; }
+      .intro-card .micro { font-size: 16px; line-height: 1.6; color: var(--muted); }
+      .intro-card .micro b { color: var(--accent); }
+
+      /* ── Highlights ── */
+      .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-top: 8px; }
+      .metric { padding: 25px 22px 25px 0; }
+      .metric + .metric { padding-left: 30px; border-left: 1px solid var(--border); }
+      .metric strong { display: block; font-family: var(--font-heading); font-size: 34px; line-height: 1.1; color: var(--heading); }
+      .metric span { display: block; color: var(--muted); font-size: 15px; line-height: 1.45; margin-top: 7px; }
+
+      .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin: 0 0 28px; }
+      .section-head h2 { font-size: clamp(30px, 3.8vw, 46px); line-height: 1.12; letter-spacing: -.015em; margin: 8px 0 0; }
+      .section-head p { max-width: 410px; font-size: 17px; color: var(--muted); margin: 0 0 2px; }
+      .work { padding: 82px 0 28px; }
+
+      /* ── In-page jump cards ── */
+      .jump-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 68px; }
+      .jump {
+        display: flex; flex-direction: column; align-items: flex-start; min-height: 184px;
+        background: var(--surface); border: 1px solid var(--card-border); border-radius: 10px; padding: 27px 28px;
+        transition: border-color .2s, transform .2s;
+      }
+      .jump:hover { border-color: var(--accent); transform: translateY(-3px); }
+      .jump small { color: var(--accent); letter-spacing: .12em; text-transform: uppercase; font-size: 13px; font-weight: 600; }
+      .jump h3 { font-size: 25px; line-height: 1.2; margin: 12px 0 8px; }
+      .jump p { font-size: 16px; color: var(--muted); margin: 0 0 16px; }
+      .jump .arrow { color: var(--accent); font-size: 16px; font-weight: 600; margin-top: auto; }
+
+      /* ── Case studies ── */
+      .case { background: var(--surface); border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; margin: 0 0 34px; }
+      .case-inner { padding: 48px 56px 49px; }
+      .case-top { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+      .case-number { display: inline-flex; align-items: center; gap: 10px; color: var(--accent); letter-spacing: .12em; text-transform: uppercase; font-size: 13px; font-weight: 600; }
+      .case-number b { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--tint); border: 1px solid var(--tint-border); font-size: 13px; letter-spacing: 0; }
+      .status { border: 1px solid var(--card-border); border-radius: 99px; padding: 6px 12px; font-size: 14px; color: var(--subtle); background: var(--bg); }
+      .case h3 { font-size: clamp(28px, 3.5vw, 42px); line-height: 1.15; letter-spacing: -.015em; max-width: 800px; margin: 27px 0 17px; }
+      .case .dek { color: var(--lede); max-width: 795px; font-size: 19px; line-height: 1.6; margin: 0 0 31px; }
+      .case .divider { height: 1px; background: var(--border); margin: 35px 0; }
+
+      .split { display: grid; grid-template-columns: .78fr 1.22fr; gap: 55px; }
+      .split h4, .textblock h4 { font-size: 18px; margin: 0 0 10px; }
+      .split p, .textblock p { color: var(--muted); font-size: 16px; margin: 0 0 15px; }
+      .split .side-note { font-size: 15.5px; background: var(--bg); padding: 18px 19px; border-radius: 0 8px 8px 0; border-left: 3px solid var(--accent); color: var(--muted); margin-top: 20px; }
+      .side-note b, .scope b { color: var(--text); }
+
+      /* The three-stage diagram. Step outlines use --subtle so the shapes read at 3:1 or better on the dark background. */
+      .flow-wrap { background: var(--bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 26px 24px; margin: 34px 0 12px; }
+      .flow-label { font-size: 13px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 18px; }
+      .flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px; }
+      .flow-step { background: var(--surface); border: 1px solid var(--subtle); border-radius: 8px; padding: 17px 15px 19px; min-height: 145px; position: relative; }
+      .flow-step:not(:last-child)::after {   /* centred in the 30px gap between steps; no patch behind it */
+        content: "→"; position: absolute; right: -30px; top: 50%; transform: translateY(-50%);
+        font-weight: 600; color: var(--accent); font-size: 19px; width: 30px; text-align: center;
+      }
+      .flow-step .step-no { font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: .06em; }
+      .flow-step strong { display: block; font-family: var(--font-heading); font-size: 19px; line-height: 1.3; margin: 6px 0; color: var(--heading); }
+      .flow-step span { display: block; font-size: 15px; line-height: 1.5; color: var(--muted); }
+      .flow-caption { margin: 13px 1px 0; font-size: 14px; color: var(--subtle); }
+
+      .insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 27px 0; }
+      .insight { border: 1px solid var(--card-border); border-radius: 8px; padding: 22px 24px; background: var(--bg); }
+      .insight.tagged { background: var(--tint); border-color: var(--tint-border); }
+      .insight .insight-label { font-size: 12px; letter-spacing: .12em; color: var(--accent); text-transform: uppercase; font-weight: 600; }
+      .insight strong { display: block; font-family: var(--font-heading); font-size: 21px; line-height: 1.25; margin: 8px 0; color: var(--heading); }
+      .insight p { font-size: 15px; color: var(--muted); }
+      .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+      .result { padding: 18px 16px; background: var(--bg); border: 1px solid var(--card-border); border-radius: 8px; }
+      .result strong { display: block; font-family: var(--font-heading); font-size: 30px; line-height: 1.13; color: var(--accent); overflow-wrap: anywhere; }
+      .result p { font-size: 14px; line-height: 1.5; margin: 6px 0 0; color: var(--muted); }
+      .tiny-note { font-size: 14px; color: var(--subtle); line-height: 1.6; margin: 12px 0 0; }
+      .tiny-note b { color: var(--muted); }
+
+      .evidence { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+      .evidence .info { max-width: 610px; }
+      .evidence .info b { display: block; font-size: 16px; color: var(--heading); }
+      .evidence .info span { display: block; color: var(--subtle); font-size: 14px; margin-top: 3px; }
+      .evidence a { font-size: 15px; font-weight: 600; }
+
+      .sequence { margin-top: 30px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+      .sequence div { background: var(--bg); border: 1px solid var(--subtle); padding: 17px 12px; border-radius: 8px; text-align: center; }
+      .sequence div:nth-child(4) { background: var(--tint); border-color: var(--accent); }
+      .sequence strong { display: block; font-size: 15px; line-height: 1.3; color: var(--heading); }
+      .sequence span { display: block; font-size: 13.5px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+      .step-caption { margin: 11px 0 23px; color: var(--subtle); font-size: 14px; }
+
+      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 35px; }
+      .textblock ul { list-style: disc; padding-left: 20px; margin: 10px 0 0; color: var(--muted); font-size: 16px; }
+      .textblock li { margin-bottom: 8px; }
+      .scope { background: var(--bg); border-left: 3px solid var(--accent); padding: 15px 17px; color: var(--muted); border-radius: 0 8px 8px 0; margin-top: 20px; font-size: 14.5px; line-height: 1.6; }
+
+      /* ── Approach ── */
+      .approach { padding: 70px 0 66px; }
+      .approach-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 33px; }
+      .approach-step { background: var(--surface); border: 1px solid var(--card-border); border-radius: 8px; padding: 21px 17px 22px; min-height: 190px; }
+      .approach-step .num { font-size: 13px; font-weight: 600; color: var(--accent); }
+      .approach-step h3 { font-size: 19px; line-height: 1.25; margin: 13px 0 7px; }
+      .approach-step p { font-size: 15px; line-height: 1.55; color: var(--muted); }
+
+      /* ── About band ── */
+      .bio-wrap { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 63px 0; }
+      .bio-grid { display: grid; grid-template-columns: 1fr 1.02fr; gap: 80px; align-items: center; }
+      .bio-wrap h2 { font-size: clamp(30px, 3.8vw, 44px); line-height: 1.18; letter-spacing: -.015em; margin: 12px 0; }
+      .bio-wrap p { color: var(--lede); font-size: 17px; line-height: 1.65; }
+      .bio-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+      .bio-motto { border-left: 3px solid var(--accent); padding: 0 0 0 24px; font-family: var(--font-heading); font-weight: 600; font-size: 24px; line-height: 1.4; color: var(--heading); }
+
+      /* ── Contact ── */
+      .contact { padding: 80px 0 93px; text-align: center; }
+      .contact h2 { font-size: clamp(32px, 4vw, 50px); line-height: 1.15; letter-spacing: -.015em; margin: 11px auto 15px; max-width: 700px; }
+      .contact p { color: var(--muted); font-size: 18px; max-width: 665px; margin: 0 auto 25px; }
+      .contact-buttons { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+      .print-only, .print-masthead, .print-url { display: none; }   /* paper only; see the print block */
+
+      /* ── Creative portfolio: books, wider cards, the style recipe ── */
+      .jump-grid.three { grid-template-columns: repeat(3, 1fr); }
+      .books { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin: 0 0 18px; }
+      .book { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px 16px 20px; }
+      .book img { display: block; width: 100%; height: auto; aspect-ratio: 5 / 8; object-fit: cover; border-radius: 4px; border: 1px solid var(--card-border); background: var(--bg); }
+      .book h3 { font-size: 22px; line-height: 1.2; margin: 14px 0 6px; }
+      .book p { font-size: 15px; line-height: 1.5; color: var(--muted); }
+      .book-tag { align-self: flex-start; margin-top: 10px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+      .books-note { margin: 0 0 30px; }
+      .insight ul { list-style: disc; padding-left: 20px; margin: 8px 0 0; color: var(--muted); font-size: 15px; }
+      .insight li { margin-bottom: 6px; }
+      .insight-wide { margin-top: 18px; }
+      .insight-wide p { max-width: 820px; }
+      .writing-note { margin-top: 26px; }
+      .styles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+      .style { background: var(--surface); border: 1px solid var(--subtle); border-radius: 8px; padding: 15px 15px 17px; }
+      .style .step-no { font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: .06em; }
+      .style strong { display: block; font-family: var(--font-heading); font-size: 19px; line-height: 1.3; margin: 5px 0; color: var(--heading); overflow-wrap: anywhere; }
+      .style span { display: block; font-size: 15px; line-height: 1.5; color: var(--muted); }
+      .film-links { margin-top: 10px; font-size: 15px; }
+      .evidence .links { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+
+      @media (max-width: 900px) {
+        .hero-layout { grid-template-columns: 1fr; gap: 30px; }
+        .hero { padding: 56px 0 48px; }
+        .intro-card { max-width: 640px; }
+        .split { grid-template-columns: 1fr; gap: 20px; }
+        .bio-grid { gap: 36px; }
+        .metrics .metric { padding-right: 10px; }
+        .approach-grid { grid-template-columns: repeat(3, 1fr); }
+        .books { grid-template-columns: repeat(2, 1fr); }
+        .jump-grid.three { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 680px) {
+        .hero { padding: 40px 0 36px; }
+        .hero-copy { font-size: 18px; }
+        .intro-card { padding: 28px; }
+        .intro-card blockquote { font-size: 22px; }
+        .metrics { grid-template-columns: repeat(2, 1fr); }
+        .metric { padding: 20px 10px 20px 0 !important; border-left: 0 !important; }
+        .metric:nth-child(even) { padding-left: 15px !important; border-left: 1px solid var(--border) !important; }
+        .metric:nth-child(n+3) { border-top: 1px solid var(--border); }
+        .jump-grid, .two-col, .insight-grid { grid-template-columns: 1fr; }
+        .work { padding-top: 55px; }
+        .section-head { display: block; }
+        .section-head p { margin-top: 16px; }
+        .case-inner { padding: 28px 20px 30px; }
+        .case .dek { font-size: 17px; }
+        .case .divider { margin: 26px 0; }
+        .flow { grid-template-columns: 1fr; }
+        .flow-step { min-height: auto; }
+        .flow-step:not(:last-child)::after { content: "↓"; top: 100%; right: auto; left: 0; width: 100%; height: 30px; line-height: 30px; transform: none; }
+        .sequence { grid-template-columns: 1fr 1fr; }
+        .sequence div:last-child { grid-column: 1 / -1; }
+        .results { grid-template-columns: 1fr 1fr; }
+        .styles { grid-template-columns: repeat(2, 1fr); }
+        .results .result:last-child { grid-column: 1 / -1; }
+        .approach-grid { grid-template-columns: 1fr 1fr; }
+        .approach-step { min-height: 165px; }
+        .bio-grid { grid-template-columns: 1fr; }
+        .bio-motto { font-size: 21px; }
+        .contact { padding: 63px 0; }
+      }
+      @media (max-width: 479px) {
+        .books { grid-template-columns: 1fr; }
+        .book { display: grid; grid-template-columns: 96px 1fr; gap: 0 14px; align-items: start; padding: 12px; }
+        .book img { grid-row: 1 / span 3; }
+        .book h3 { margin-top: 0; }
+        .styles { grid-template-columns: 1fr; }
+        .results { grid-template-columns: 1fr; }
+        .metric strong { font-size: 28px; }
+        .approach-grid { grid-template-columns: 1fr; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        .jump, .btn, .btn-secondary { transition: none; }
+        .jump:hover { transform: none; }
+      }
+
+      /* ── Print: white page, dark text, Letter. The tokens are redefined for paper rather than
+         restyling every rule. The header, footer and buttons are left off the page. ── */
+      @page { size: Letter; margin: 15mm 14mm; }
+      @media print {
+        :root {
+          --bg: #fff; --surface: #fff; --border: #ccc; --card-border: #ccc; --button-border: #999;
+          --text: #1a1a1a; --heading: #000; --muted: #333; --subtle: #555; --lede: #222;
+          --accent: #8a5200; --accent-hover: #8a5200; --on-accent: #fff;
+          --tint: #fff; --tint-border: #8a5200;
+          --small: 11.75px;   /* the smallest text on paper, about 8.8pt */
+          color-scheme: light;
+        }
+        html { scroll-behavior: auto; }
+        body { display: block; min-height: 0; font-size: var(--small); line-height: 1.36; }
+        .site-header, .site-footer, .hero-cta, .contact-buttons, .bio-links, .jump-grid, #inquiry .evidence a, .btn, .btn-secondary { display: none !important; }
+
+        /* Nothing here is wider than the page, but the boxes ended exactly at the printable edge,
+           and the PDF clip drops the last pixel there: right-hand borders vanished. A 1.5mm inset
+           keeps every border inside the page. */
+        .wrap { max-width: none; padding-left: 1.5mm; padding-right: 1.5mm; }
+
+        .print-masthead { display: block; margin: 0 1.5mm 10px; padding: 0 0 7px; border-bottom: 1px solid var(--border); font-size: var(--small); letter-spacing: .02em; color: var(--muted); }
+        .print-name { font-family: var(--font-heading); font-weight: 600; font-size: 13px; letter-spacing: 0; color: var(--heading); }
+
+        .hero { padding: 0 0 10px; }
+        .hero::after { display: none; }
+        .hero-layout { display: block; }
+        .hero h1 { font-size: 34px; max-width: none; margin: 8px 0; }
+        .hero-copy { font-size: 13px; }
+        .intro-card { margin: 14px 0 0; padding: 12px 15px; }
+        .intro-card blockquote { font-size: 17px; }
+        .intro-card hr, .intro-card .micro, .intro-card .signature { display: none; }
+        .metric { padding: 7px 9px !important; }
+        .metric strong { font-size: 20px; }
+        .metric span { font-size: var(--small); }
+        .work { padding: 8px 0 0; }
+        .section-head { margin-bottom: 10px; }
+        .section-head h2 { font-size: 24px; }
+        .section-head p, .split p, .textblock p, .insight p, .result p, .approach-step p, .bio-wrap p, .contact p { font-size: var(--small); }
+
+        /* No forced page breaks: the case studies and the approach section flow on from each other.
+           Cards, tiles and callouts are kept whole, and headings stay with what follows. */
+        .case { overflow: visible; border: 0; border-top: 2px solid var(--accent); border-radius: 0; margin: 0 0 10px; }
+        .case-inner { padding: 14px 0 0; }
+        .case h3 { font-size: 25px; margin: 8px 0 8px; }
+        .case .dek { font-size: 13px; margin: 0 0 8px; }
+        .case .divider { margin: 11px 0; }
+        .split { gap: 20px; }
+        .split p, .textblock p { margin-bottom: 7px; }
+        .textblock ul { margin-top: 6px; }
+        .textblock li { margin-bottom: 3px; }
+        .side-note, .scope { margin-top: 10px; padding: 10px 12px; }
+        .split h4, .textblock h4 { font-size: 13px; }
+        .flow-wrap { padding: 12px; margin: 14px 0; }
+        .flow { gap: 24px; }
+        .flow-step { min-height: 0; padding: 10px; }
+        .flow-step:not(:last-child)::after { right: -24px; width: 24px; font-size: 16px; }
+        .flow-step strong { font-size: 13px; }
+        .flow-step span, .flow-caption, .tiny-note, .scope, .textblock ul, .sequence span, .step-caption, .side-note { font-size: var(--small); }
+        .insight-grid { margin: 10px 0; }
+        .insight { padding: 12px; }
+        .insight strong { font-size: 15px; margin: 4px 0; }
+        .results { margin: 10px 0; }
+        .result { padding: 10px; }
+        .result strong { font-size: 23px; }
+        .sequence { margin-top: 12px; }
+        .sequence div { padding: 9px; }
+        .step-caption { margin: 6px 0 0; }
+        .sequence strong { font-size: var(--small); }
+
+        /* The comparison link is kept on paper, with its address written out beside it. */
+        .evidence { display: block; margin-top: 10px; padding-top: 8px; }
+        .evidence a { display: inline-block; margin-top: 4px; font-size: var(--small); }
+        .print-url { display: inline; margin-left: 6px; font-weight: 400; color: var(--muted); }
+
+        .approach { padding: 6px 0 4px; }
+        .approach-grid { grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+        .approach-step { padding: 9px 10px; min-height: 0; }
+        .approach-step h3 { font-size: 13px; margin: 4px 0 5px; }
+        .bio-wrap { padding: 4px 0; border: 0; }
+        .bio-wrap h2 { font-size: 20px; margin: 6px 0; }
+        .bio-motto { font-size: 16px; }
+        .contact { padding: 4px 0 0; }
+        .contact h2 { font-size: 20px; margin: 4px auto 6px; }
+        .contact p { margin-bottom: 4px; }
+        .print-only { display: block; margin-top: 4px; font-size: var(--small); color: var(--muted); }
+        .bio-grid { grid-template-columns: 1.9fr 1fr; gap: 22px; }
+
+        .books { grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 8px; }
+        .book { padding: 8px 8px 10px; }
+        .book h3 { font-size: 13px; margin: 8px 0 3px; }
+        .book p { font-size: var(--small); line-height: 1.35; }
+        .book-tag { font-size: 10px; margin-top: 6px; }
+        .books-note { margin-bottom: 10px; }
+        .insight ul { font-size: var(--small); margin-top: 4px; }
+        .insight li { margin-bottom: 3px; }
+        .insight-wide { margin-top: 10px; }
+        .writing-note { margin-top: 12px; }
+        .styles { gap: 8px; }
+        .style { padding: 8px 10px; }
+        .style strong { font-size: 13px; margin: 3px 0; }
+        .style span { font-size: var(--small); }
+        .evidence .links { margin-top: 4px; }
+        .book, .style, .insight-wide,
+        .intro-card, .metrics, .metric, .flow-wrap, .flow-step, .insight-grid, .insight, .results, .result,
+        .scope, .side-note, .sequence, .sequence div, .approach-step, .evidence, .bio-wrap { break-inside: avoid; }
+        h2, h3, h4, .eyebrow, .flow-label, .case-top, .section-head { break-after: avoid; }
+        /* The "Evidence boundary" note stays with the results above it and the technology line below it. */
+        .scope { break-after: avoid; }
+      }
+    </style>
+    <noscript>
+    <style>
+      /* Without JavaScript the menu button can't open anything, so show the links as a plain list. */
+      @media (max-width: 799px) {
+        .mobile-toggle { display: none !important; }
+        .header-inner { flex-wrap: wrap !important; }
+        .primary-nav { display: block !important; position: static !important; width: 100%; max-height: none !important; border-bottom: 0 !important; }
+      }
+    </style>
+    </noscript>
+</head>
+<body>
+
+    <!-- Header: same markup as the root page and consulting. This page is unlisted, so it has no
+         tab of its own and nothing is marked as the current page. -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <div class="site-logo">Aaron Pitters</div>
+
+            <button id="mobile-toggle" class="mobile-toggle"
+                    aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true" focusable="false">
+                  <path class="icon-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6h16M4 12h16M4 18h16" />
+                  <path class="icon-close" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+
+            <nav id="primary-nav" class="primary-nav">
+                <ul>
+                    <li><a href="/#home" class="nav-link">Home</a></li>
+                    <li><a href="/#about" class="nav-link">About</a></li>
+                    <li><a href="/#books" class="nav-link">Books</a></li>
+                    <li><a href="/#storicore" class="nav-link">STORiCORE</a></li>
+                    <li><a href="/consulting/" class="nav-link">Consulting</a></li>
+                    <li><a href="/#blog" class="nav-link">Blog</a></li>
+                    <li><a href="/#contact" class="nav-link">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="top" class="site-main">
+<p class="print-masthead"><span class="print-name">Aaron Pitters</span> · aaronpitters.com/portfolio/creative · aaronpitters@gmail.com</p>
+<section class="hero"><div class="wrap hero-layout">
+  <div><div class="eyebrow">Writer / Filmmaker / Creative AI Workflow Designer</div><h1>The story comes first.<br><em>The tools serve it.</em></h1><p class="hero-copy">I've written for thirty years: novels, screenplays and independent films. Since 2023 I've been working out what AI can and can't do for storytellers, and building production workflows that keep the creator in charge.</p><div class="hero-cta"><a href="#writing" class="btn">Explore the writing <span aria-hidden="true">↓</span></a><a href="#work" class="btn-secondary">See the creative AI work <span aria-hidden="true">↓</span></a></div></div>
+  <aside class="intro-card" aria-label="Working philosophy"><div class="eyebrow">My approach</div><blockquote>Start with the story. Choose the tools second. Keep every creative decision with the creator.</blockquote><div class="signature">Aaron Pitters · Atlanta, Georgia</div><hr><p class="micro"><b>Work samples, not hypotheticals.</b> These case studies document published and in-progress work on my own stories. Each one says what is finished and what is not.</p></aside>
+</div></section>
+<div class="wrap"><div class="metrics" aria-label="Portfolio highlights"><div class="metric"><strong>1996</strong><span>Started writing screenplays</span></div><div class="metric"><strong>7</strong><span>Books written</span></div><div class="metric"><strong>36+</strong><span>Screenplays written</span></div><div class="metric"><strong>3</strong><span>Independent short films</span></div></div></div>
+
+<section id="writing" class="work"><div class="wrap">
+  <div class="section-head"><div><div class="eyebrow">The writing</div><h2>Thirty years of stories.<br>On the page and the screen.</h2></div><p>I started writing screenplays in 1996. My first script, <i>Monarch</i>, was about a restaurant in Buckhead and has nothing to do with the novel I later gave the same name.</p></div>
+  <div class="books" role="list">
+    <article class="book" role="listitem"><img src="/images/covers/monarch.jpg" width="600" height="960" loading="lazy" alt="Cover of Monarch: A Novel in Four Stages, by Aaron Pitters"><h3>Monarch</h3><p>A novel in four stages about a housewife who is convinced her world is about to end.</p></article>
+    <article class="book" role="listitem"><img src="/images/covers/psykosis.jpg" width="600" height="962" loading="lazy" alt="Cover of Psykosis, by Aaron Pitters"><h3>Psykosis</h3><p>A newly appointed district attorney, a hypnotherapist, and a murderous criminal underground.</p></article>
+    <article class="book" role="listitem"><img src="/images/covers/michaelmas.jpg" width="600" height="925" loading="lazy" alt="Cover of the illustrated edition of Michaelmas, by Aaron Pitters"><h3>Michaelmas</h3><p>England, 1727: a family dinner is interrupted by a summons to Isaac Newton's childhood home.</p><span class="book-tag">Illustrated edition · 2024</span></article>
+    <article class="book" role="listitem"><img src="/images/covers/house-fly-v3.jpg" width="600" height="932" loading="lazy" alt="Cover of House Fly, by Aaron Pitters"><h3>House Fly</h3><p>Part one of a two-part psychological sci-fi series. A recent divorcee takes a job that is too good to pass up.</p></article>
+  </div>
+  <p class="tiny-note books-note">Monarch is a four-part work, so these four titles are seven books in all. I wrote every one of them myself; AI has only helped with pictures and production. They are available as ebooks from Amazon, Barnes &amp; Noble and Apple Books. <a href="/#books">See the books page ↗</a></p>
+  <div class="insight-grid">
+    <div class="insight"><div class="insight-label">Screenplays</div><strong>More than three dozen, since 1996.</strong><ul><li>Finalist, Atlanta Film Festival Screenwriting Contest.</li><li><i>Detriment</i>, co-written with two other screenwriters, was optioned with director Tony Kaye (<i>American History X</i>).</li></ul></div>
+    <div class="insight"><div class="insight-label">Short films</div><strong>Written, directed and produced.</strong><p><i>CIPHER</i>, <i>WALKING MAN</i> and <i>BLUE MONDAY</i>: three independent short films I made in the 2000s.</p><p class="film-links">Watch on YouTube: <a href="https://youtu.be/X9-WT16_drI" target="_blank" rel="noopener"><i>CIPHER</i> ↗</a> · <a href="https://youtu.be/ldCKw5BwDyo" target="_blank" rel="noopener"><i>WALKING MAN</i> ↗</a></p></div>
+  </div>
+  <div class="insight insight-wide"><div class="insight-label">Thousand Springs</div><strong>A television series and transmedia story world.</strong><p>I developed and pitched it in 2024. In an isolated college town known for its charm and folklore, three interwoven tales of mystery and suspense unfold over twenty years, revealing a place where the cold calculus of reason collides with the cruel hand of fate.</p></div>
+  <div class="scope writing-note"><b>A note on AI and my stories:</b> I've tested the image and video models extensively, but I haven't published AI-generated films or stories. I didn't want to put out AI slop. The work below is about using AI in service of stories I write myself.</div>
+</div></section>
+
+<section id="work" class="work"><div class="wrap">
+  <div class="section-head"><div><div class="eyebrow">Selected creative AI work</div><h2>Three projects.<br>One idea: the story leads.</h2></div><p>Each project began with a problem I ran into as a storyteller: images that would not stay consistent, a production process that needed structure, and a way to get ideas down away from a desk.</p></div>
+  <div class="jump-grid three"><a class="jump card" href="#michaelmas"><small>01 / Image generation</small><h3>Illustrating <i>Michaelmas</i></h3><p>How I got roughly twenty AI-generated images to look like one book.</p><span class="arrow">View case study ↓</span></a><a class="jump card" href="#pipeline"><small>02 / Production workflow</small><h3>The STORiCORE Three-System Pipeline</h3><p>A staged architecture for turning source stories into consistent production materials and media.</p><span class="arrow">View case study ↓</span></a><a class="jump card" href="#first-draft"><small>03 / Creative software</small><h3>1st Draft, a voice-first writing app</h3><p>A writing app you talk to, built for ideas that start away from the desk.</p><span class="arrow">View case study ↓</span></a></div>
+
+  <article class="case" id="michaelmas" aria-labelledby="michaelmas-title"><div class="case-inner">
+    <div class="case-top"><div class="case-number"><b>01</b> Image generation</div><div class="status">Published · illustrated edition, January 2024</div></div>
+    <h3 id="michaelmas-title">Teaching an image model one consistent look.</h3><p class="dek">In 2023 I began making AI-generated illustrations for my novel <i>Michaelmas</i>. A single good image was easy. Making roughly twenty of them feel like one book was the real problem.</p>
+    <div class="split"><div><h4>Where it started</h4><p>In 2023 I started experimenting with AI image tools to create my first illustrated book: a new edition of <i>Michaelmas</i>, set in England in 1727.</p><p>I generated the images with DALL·E in ChatGPT, then finished them in Adobe Lightroom and Photoshop.</p></div><div><h4>The problem</h4><p>Characters and settings had to look the same from one image to the next. Seeding worked well at first. Then the models behind the tool kept changing, and the same approach worked less and less. That is still true today.</p><p>In the end I got the images to match through trial and error. What helped most was not a prompt trick but the look I chose: a rustic, antique style that tolerates variation.</p><div class="side-note"><b>What I learned:</b> The visual style you choose can do as much for consistency as any prompt. A look that forgives variation hides it.</div></div></div>
+    <div class="flow-wrap"><div class="flow-label">Style recipe / six early photographic processes, blended</div><div class="styles" role="list"><div class="style" role="listitem"><div class="step-no">01</div><strong>Daguerreotype</strong><span>Sharpness and clarity for characters and central subjects.</span></div><div class="style" role="listitem"><div class="step-no">02</div><strong>Calotype</strong><span>Soft, grainy backgrounds and a dreamlike atmosphere.</span></div><div class="style" role="listitem"><div class="step-no">03</div><strong>Tintype</strong><span>Deep shadows and dramatic contrast in the foreground.</span></div><div class="style" role="listitem"><div class="step-no">04</div><strong>Ambrotype</strong><span>Tonal depth and luminous highlights.</span></div><div class="style" role="listitem"><div class="step-no">05</div><strong>Albumen print</strong><span>Fine detail and warm sepia tones.</span></div><div class="style" role="listitem"><div class="step-no">06</div><strong>Gum bichromate</strong><span>Restrained color and painterly texture that blends the others.</span></div></div><p class="flow-caption">Rather than applying them one at a time, I combined all six within each illustration, usually at a 16:9 aspect ratio. The result sits between early photography and painting.</p></div>
+    <p class="tiny-note">I also experimented with period art and architecture: Baroque and Rococo portraiture, Rococo landscapes, Baroque and Palladian architecture, Renaissance painting, and Newtonian optics, with its prismatic light, refraction, and contrasting areas of sharp and soft focus.</p>
+    <div class="divider"></div>
+    <div class="eyebrow">By the numbers</div><div class="results"><div class="result"><strong>~20</strong><p>Illustrations in the 2024 edition.</p></div><div class="result"><strong>6</strong><p>Early photographic processes blended in each illustration.</p></div><div class="result"><strong>16:9</strong><p>The aspect ratio I generally worked in.</p></div></div>
+    <p class="tiny-note"><b>Interpretation matters:</b> This is craft, not a controlled experiment. Image tools change often, so treat the recipe as a record of what worked for this book, not a formula that will behave the same way today.</p>
+    <div class="divider"></div>
+    <div class="two-col"><div class="textblock"><h4>What I did</h4><ul><li>Generated the images with DALL·E in ChatGPT and finished them in Adobe Lightroom and Photoshop.</li><li>Worked out a blended six-style look through repeated trial and error.</li><li>Directed the composition and revisions of every image myself.</li></ul></div><div class="textblock"><h4>What it demonstrates</h4><ul><li>Solving visual continuity with art direction as well as prompting.</li><li>Adapting when the tools change underneath a project.</li><li>Using AI to extend what I can make as a writer, while the story stays mine.</li></ul><div class="scope"><b>Evidence boundary:</b> The illustrated edition is published. The style recipe comes from my original prompts, summarized with ChatGPT's help. There is no controlled comparison, and this page makes no claims about sales or reader response.</div></div></div>
+    <div class="evidence"><div class="info"><b>The published edition</b><span>Illustrated ebook, released January 18, 2024. The text is mine; the illustrations were generated with AI and directed and finished by me.</span></div><div class="links"><a href="https://a.co/d/b2BW4L6" target="_blank" rel="noopener">Amazon ↗</a><a href="https://www.barnesandnoble.com/w/michaelmas-aaron-pitters/1139928847" target="_blank" rel="noopener">Barnes &amp; Noble ↗</a><a href="https://books.apple.com/us/book/x/id6476014676" target="_blank" rel="noopener">Apple Books ↗</a></div></div>
+  </div></article>
+  <article class="case" id="pipeline" aria-labelledby="pipeline-title"><div class="case-inner">
+    <div class="case-top"><div class="case-number"><b>02</b> Creative workflow design</div><div class="status">Operational internal workflow · evolving</div></div>
+    <h3 id="pipeline-title">A production system organized around the story.</h3><p class="dek">An experiment in creative AI became a three-stage architecture: establish the story, secure the references, then produce for the medium. It replaced an earlier idea centered on a single Chief of Staff agent delegating freely to many agent teams.</p>
+    <div class="split"><div><h4>Where it started</h4><p>Beginning in 2023, I researched and worked with generative image, video, and language tools. Illustrating <i>Michaelmas</i> revealed a recurring problem: one good image is relatively easy; consistent characters and environments across a narrative are not.</p><p>While developing and pitching the television world of <i>Thousand Springs</i>, I began thinking in terms of a film production: distinct responsibilities, dependencies, and coordinated handoffs.</p></div><div><h4>The design decision</h4><p>My first concept had a central AI agent delegating to specialized groups of agents. Trial and error showed that independent delegation was not enough. The next stage depended on decisions and information established in the previous one.</p><p>I separated story analysis, reference consistency, and medium-specific production into defined stages, with structured outputs and human approval points between them.</p><div class="side-note"><b>Guiding constraint:</b> The story must drive the production, rather than allowing whichever generative model is being used to rewrite the story's details.</div></div></div>
+    <div class="flow-wrap"><div class="flow-label">System architecture / staged handoffs</div><div class="flow" role="list"><div class="flow-step" role="listitem"><div class="step-no">SYSTEM 01</div><strong>Story intake</strong><span>Extract characters, locations, events, chronology, and canonical details from source material.</span></div><div class="flow-step" role="listitem"><div class="step-no">SYSTEM 02</div><strong>References</strong><span>Develop visual guidance and continuity material before final media generation.</span></div><div class="flow-step" role="listitem"><div class="step-no">SYSTEM 03</div><strong>Production</strong><span>Apply story and references to the requirements of a comic page or other medium.</span></div></div><p class="flow-caption">Human review, approval and documented handoffs connect the stages. Creative direction remains with the author.</p></div>
+    <div class="divider"></div>
+    <div class="eyebrow">A decision changed by evidence</div><div class="insight-grid"><div class="insight"><div class="insight-label">The assumption</div><strong>More specialized agents would mean better intake.</strong><p>My early preferred approach relied on managed agents and metered API calls. I expected additional orchestration to justify its cost.</p></div><div class="insight tagged"><div class="insight-label">The finding</div><strong>The more economical workflow performed better in this test.</strong><p>Seven configurations using the same chapter of <i>Michaelmas</i> were compared across 18 extraction and quality measures in April 2026.</p></div></div>
+    <div class="results"><div class="result"><strong>41 vs 18</strong><p>Chronology events found by Run 7 (Opus 4.6 in a Claude Project) versus Run 5 (the same model run as a managed agent).</p></div><div class="result"><strong>10 vs 2</strong><p>Additional canonical story facts preserved by the same two runs.</p></div><div class="result"><strong>$0 marginal</strong><p>Metered API expense on the selected test run, within an existing paid subscription. Not zero total cost.</p></div></div>
+    <p class="tiny-note"><b>Interpretation matters:</b> This was a comparison of end-to-end configurations, not a controlled model benchmark. Prompt versions and available project knowledge differed between runs. The result informed a workflow decision under my conditions, not a universal claim about one provider.</p>
+    <div class="divider"></div>
+    <div class="two-col"><div class="textblock"><h4>What I built and changed</h4><ul><li>Structured story handoffs, separate reference development, and medium-specific production steps.</li><li>Documented evaluation, routing and cost decisions for different kinds of model work.</li><li>A supporting Supabase/PostgreSQL data design for story records, approvals, production state and cost tracking.</li><li>A shift toward subscription-based production and Codex as a central workspace, rather than relying on many separately metered agents.</li></ul></div><div class="textblock"><h4>What it demonstrates</h4><ul><li>Translating real production knowledge into a workable system design.</li><li>Revising architecture when evaluation contradicts a preferred approach.</li><li>Balancing capability, creative control, reliability and operating cost.</li><li>Designing workflows that keep the creator in charge of decisions.</li></ul><div class="scope"><b>Current scope:</b> An internal pipeline in use and refinement for comics and visual storytelling. Broader media outputs and some deeper MCP-based integrations remain future-facing; they are not claimed as completed productions. Episode one of the House Fly comic is in production and has not been released yet.</div></div></div>
+    <div class="evidence"><div class="info"><b>Supporting work sample: the seven-run comparison</b><span>Detailed configuration table, extraction measures, quality controls, and platform/cost notes (April 23–29, 2026).</span></div><a href="/portfolio/evidence/michaelmas-seven-run-comparison?from=creative" target="_blank" rel="noopener">Open comparison ↗<span class="print-url">https://aaronpitters.com/portfolio/evidence/michaelmas-seven-run-comparison</span></a></div>
+  </div></article>
+  <article class="case" id="first-draft" aria-labelledby="first-draft-title"><div class="case-inner">
+    <div class="case-top"><div class="case-number"><b>03</b> Creative software</div><div class="status">Public app · launched September 2025</div></div>
+    <h3 id="first-draft-title">A writing app you talk to.</h3><p class="dek">1st Draft is a voice-first storytelling app. You press Start and talk through your story, and your words become text you can shape, instead of sitting at a keyboard to get ideas onto the page.</p>
+    <div class="split"><div><h4>Where it started</h4><p>For thirty years I wrote at a computer. I wanted a way to get a story down without being chained to a desk, so I built an app for talking one out. I like to use it on a walk or a hike.</p></div><div><h4>What it does</h4><p>1st Draft helps writers and non-writers develop, organize, and refine their creative ideas through natural conversation, turning them into structured stories, outlines, and documents.</p><p>It began in September 2024 as a GPT-based assistant. I designed, built, tested and publicly launched it as a standalone app in September 2025, managing the requirements, interface design, integration, testing and deployment.</p><div class="side-note"><b>Deliberately simple:</b> Press Start and start talking. One button to begin, and no keyboard required.</div></div></div>
+    <div class="sequence" aria-label="How 1st Draft works"><div><strong>01 / Start</strong><span>Press one button</span></div><div><strong>02 / Talk</strong><span>Speak your story</span></div><div><strong>03 / Transcribe</strong><span>Your words become text</span></div><div><strong>04 / Structure</strong><span>Outlines, stories and documents</span></div><div><strong>05 / Refine</strong><span>Keep developing the idea</span></div></div><p class="step-caption">Built for writers, and for people who do not think of themselves as writers.</p>
+    <div class="divider"></div>
+    <div class="two-col"><div class="textblock"><h4>What I built</h4><ul><li>A custom GPT assistant that grew into a standalone app.</li><li>A voice-first interface: press Start and talk.</li><li>Transcription of spoken ideas into text, then structure for stories, outlines and documents.</li></ul></div><div class="textblock"><h4>What it demonstrates</h4><ul><li>Designing for the way writers actually work, including away from the desk.</li><li>Taking an idea from a custom GPT to a public app.</li><li>Keeping an interface simple enough that anyone can start.</li></ul><div class="scope"><b>Evidence boundary:</b> 1st Draft is publicly available. This page does not claim user numbers, revenue or reviews.</div></div></div>
+    <div class="evidence"><div class="info"><b>Try 1st Draft</b><span>The app and its story are at 1stdraftapp.com.</span></div><div class="links"><a href="https://1stdraftapp.com/" target="_blank" rel="noopener">Visit 1st Draft ↗</a></div></div>
+  </div></article>
+</div></section>
+
+<section class="approach" id="approach"><div class="wrap"><div class="section-head"><div><div class="eyebrow">How I help creators</div><h2>Practical. Collaborative.<br>Creator in charge.</h2></div><p>AI is a production tool. I help writers and creators decide where it fits, build a process they can understand, and keep every creative decision in their own hands. Writers and creators who just want a first opinion can start at <a href="/consulting/">my consulting page</a>.</p></div><div class="approach-grid"><div class="approach-step"><div class="num">01</div><h3>Start with the story</h3><p>Learn what the creator is making, what must never change, and where the work gets stuck.</p></div><div class="approach-step"><div class="num">02</div><h3>Map the process</h3><p>Break the work into stages with clear handoffs and approval points.</p></div><div class="approach-step"><div class="num">03</div><h3>Choose the tools</h3><p>Match tools and models to each stage, and leave out the ones that fight the story.</p></div><div class="approach-step"><div class="num">04</div><h3>Test on real work</h3><p>Run real chapters, pages or scenes through it, and fix what breaks.</p></div><div class="approach-step"><div class="num">05</div><h3>Hand it off</h3><p>Document the process so the creator can run and change it without me.</p></div></div></div></section>
+<section class="bio-wrap" id="about"><div class="wrap bio-grid"><div><div class="eyebrow">About Aaron</div><h2>Writer. Filmmaker.<br>Creative AI builder.</h2><p>I've been writing for thirty years: screenplays since 1996, seven books, and three independent short films. In 2023 I began researching generative AI, first by illustrating <i>Michaelmas</i>, then by building the tools and systems to produce my own stories. Before that, I spent more than a decade in claims service and management, which taught me how to listen, explain options and work toward a practical outcome.</p><div class="bio-links"><a href="https://storicore.com/" target="_blank" rel="noopener">STORiCORE ↗</a><a href="https://1stdraftapp.com/" target="_blank" rel="noopener">1st Draft ↗</a><a href="https://www.linkedin.com/in/aaronpitters/" target="_blank" rel="noopener">LinkedIn ↗</a></div></div><div class="bio-motto">“AI does the heavy lifting. I make the creative calls at every step.”</div></div></section>
+<section class="contact" id="contact"><div class="wrap"><div class="eyebrow">Let's connect</div><h2>Building a creative process that needs a system?</h2><p>I'm interested in creative AI workflow design, production systems, and creator enablement, helping writers, filmmakers and studios build processes they understand and can run themselves.</p><div class="contact-buttons"><a href="mailto:aaronpitters@gmail.com?subject=Creative%20AI%20portfolio%20inquiry" class="btn">Email Aaron ↗</a><a href="https://www.linkedin.com/in/aaronpitters/" target="_blank" rel="noopener" class="btn-secondary">View LinkedIn ↗</a><button id="print-btn" class="btn-secondary" type="button" aria-label="Print / Save PDF of this portfolio">Print / Save PDF</button></div><div class="print-only">aaronpitters@gmail.com · linkedin.com/in/aaronpitters · storicore.com</div></div></section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <span>&copy; <span id="current-year"></span> Aaron Pitters &amp; STORiCORE. All rights reserved.</span>
+            <a href="mailto:contact@storicore.com">contact@storicore.com</a>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Mobile menu (same behavior as the root page): the button toggles the panel; a link tap, Escape, or a tap outside closes it.
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const primaryNav   = document.getElementById('primary-nav');
+        if (mobileToggle && primaryNav) {
+          const isOpen = () => primaryNav.classList.contains('open');
+          const setMenu = (open) => {
+            primaryNav.classList.toggle('open', open);
+            mobileToggle.setAttribute('aria-expanded', String(open));
+            mobileToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+          };
+          mobileToggle.addEventListener('click', () => setMenu(!isOpen()));
+          document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => setMenu(false));
+          });
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isOpen()) { setMenu(false); mobileToggle.focus(); }
+          });
+          document.addEventListener('click', (e) => {
+            if (isOpen() && !primaryNav.contains(e.target) && !mobileToggle.contains(e.target)) setMenu(false);
+          });
+          // Widening past the cutoff, or coming back to the page from history, never leaves the menu open.
+          window.matchMedia('(min-width: 800px)').addEventListener('change', () => setMenu(false));
+          window.addEventListener('pageshow', () => setMenu(false));
+        }
+
+        // The print button (an inline onclick would be blocked by the site's Content Security Policy).
+        const printBtn = document.getElementById('print-btn');
+        if (printBtn) printBtn.addEventListener('click', () => window.print());
+    </script>
+
+</body>
+</html>
