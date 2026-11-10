@@ -69,8 +69,8 @@ test('no ® in titles, meta tags, structured data or alt text', () => {
   }
 });
 
-test('every page that uses the mark styles it with .reg at 0.8em, slightly raised', () => {
+test('every page shows the mark at the font\'s own size and position (.reg)', () => {
   for (const page of PAGES) {
-    assert.match(read(page), /\.reg \{ font-size: \.8em; vertical-align: \.25em; line-height: 0; \}/, page);
+    assert.match(read(page), /\.reg \{ font-size: 1em; vertical-align: baseline; \}/, page);
   }
 });
