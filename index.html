@@ -358,9 +358,10 @@
        spelling: wrap it as <span class="brand">STORiCORE</span>. */
     .brand { text-transform: none; }
     /* The registered-trademark sign after STORiCORE. Sized relative to the text around it
-       (0.65em), so it stays legible in the footer and in body copy. line-height: 0 keeps it
-       from pushing the line apart. The markup is aria-hidden, so screen readers skip it. */
-    .reg { font-size: .65em; vertical-align: super; line-height: 0; }
+       (0.8em, not the usual 0.65em, because Source Sans 3 already draws the sign small), so it
+       stays legible in the footer. vertical-align: .25em raises it a little; line-height: 0 keeps
+       it from pushing the line apart. The markup is aria-hidden, so screen readers skip it. */
+    .reg { font-size: .8em; vertical-align: .25em; line-height: 0; }
 
     /* Primary button */
     .btn {
