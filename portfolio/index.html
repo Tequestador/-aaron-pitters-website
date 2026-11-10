@@ -263,6 +263,10 @@
       /* The brand name is written STORiCORE with a lowercase i. Inside uppercase text it keeps that
          spelling: wrap it as <span class="brand">STORiCORE</span>. */
       .brand { text-transform: none; }
+      /* The registered-trademark sign after STORiCORE. Sized relative to the text around it
+         (0.65em), so it stays legible in the footer and in body copy. line-height: 0 keeps it
+         from pushing the line apart. The markup is aria-hidden, so screen readers skip it. */
+      .reg { font-size: .65em; vertical-align: super; line-height: 0; }
 
       /* Primary button */
       .btn {
@@ -744,7 +748,7 @@
 
     <footer class="site-footer">
         <div class="container footer-inner">
-            <span>&copy; <span id="current-year"></span> Aaron Pitters &amp; STORiCORE. All rights reserved.</span>
+            <span>&copy; <span id="current-year"></span> Aaron Pitters and STORiCORE LLC. All rights reserved. STORiCORE<sup class="reg" aria-hidden="true">&reg;</sup> is a registered trademark of STORiCORE LLC.</span>
             <a href="mailto:contact@storicore.com">contact@storicore.com</a>
         </div>
     </footer>
